@@ -1,6 +1,6 @@
-import "../App.css";
+import "../../App.css";
 import React, { useEffect, useState } from "react";
-import { API_URL } from "../config.js";
+import { API_URL } from "../../config.js";
 
 
 function AddItem() {

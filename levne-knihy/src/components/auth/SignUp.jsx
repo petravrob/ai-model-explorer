@@ -1,5 +1,5 @@
-import "../App.css"
-import { API_URL } from "../config.js";
+import "../../App.css"
+import { API_URL } from "../../config.js";
 
 
 import React, { useState } from "react";
