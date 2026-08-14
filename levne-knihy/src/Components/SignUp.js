@@ -1,4 +1,6 @@
 import "../App.css"
+import { API_URL } from "../config.js";
+
 
 import React, { useState } from "react";
 
@@ -13,13 +15,12 @@ function SignUp() {
     const handleSubmit = (e) => {
             e.preventDefault();
 
-            fetch("http://localhost:5000/registrovat-se", {
+            fetch(`${API_URL}/registrovat-se`, {
                 method: "POST",
                 crossDomain: true,
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
-                    "Access-Control-Allow-Origin": "*",
                 },
                 body: JSON.stringify({
                     uname,

@@ -1,5 +1,6 @@
 import "../App.css";
 import React, { useEffect, useState } from "react";
+import { API_URL } from "../config.js";
 
 
 function AddItem() {
@@ -30,13 +31,12 @@ function AddItem() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        fetch("http://localhost:5000/pridat-inzerat", {
+        fetch(`${API_URL}/pridat-inzerat`, {
             method: "POST",
             crossDomain: true,
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
-                "Access-Control-Allow-Origin": "*",
             },
             body: JSON.stringify({
                 uname: userName,
@@ -64,13 +64,12 @@ function AddItem() {
     }
 
     useEffect(() => {
-        fetch("http://localhost:5000/", {
+        fetch(`${API_URL}/`, {
             method: "POST",
             crossDomain: true,
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
-                "Access-Control-Allow-Origin": "*",
             },
             body: JSON.stringify({
                 token: window.localStorage.getItem("token"),

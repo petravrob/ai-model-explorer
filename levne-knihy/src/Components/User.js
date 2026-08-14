@@ -1,5 +1,6 @@
 import "../App.css"
 import { useState, useEffect } from "react";
+import { API_URL } from "../config.js";
 
 
 function User () {
@@ -15,13 +16,12 @@ function User () {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        fetch("http://localhost:5000/uzivatel", {
+        fetch(`${API_URL}/uzivatel`, {
             method: "POST",
             crossDomain: true,
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
-                "Access-Control-Allow-Origin": "*",
             },
             body: JSON.stringify({
                 uname,
@@ -43,13 +43,12 @@ function User () {
             setUpdate(false);
     }
     useEffect(() => {
-        fetch("http://localhost:5000/", {
+        fetch(`${API_URL}`, {
             method: "POST",
             crossDomain: true,
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
-                "Access-Control-Allow-Origin": "*",
             },
             body: JSON.stringify({
                 token: window.localStorage.getItem("token"),

@@ -6,7 +6,15 @@ const { status } = require("express/lib/response");
 const app = express();
 app.use(express.json({ limit: "300mb"}));
 const cors = require("cors");
-app.use(cors());
+
+app.use(cors({
+    origin: [
+        "http://localhost:3000",
+        "https://levne-knihy.netlify.app"
+    ],
+    credentials: true
+}));
+
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -29,6 +37,12 @@ app.use(express.urlencoded({ limit: '300mb' }));
 var bodyParser = require('body-parser');
 app.use(bodyParser.json({limit: "3000mb"}));
 app.use(bodyParser.urlencoded({limit: "3000mb", extended: true, parameterLimit:5000000000}));
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server started on port ${PORT}`);
+});
 
 require("./userDetails");
 require("./bookDetails");
@@ -173,7 +187,3 @@ app.post("/moje-inzeraty/:bookId", async (req, res) => {
       res.status(500).json({ status: "error" });
     }
   });
-
-app.listen(5000, () => {
-    console.log("Server started")
-})
