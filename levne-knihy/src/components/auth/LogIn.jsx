@@ -1,6 +1,6 @@
-import "../App.css"
+import "../../App.css"
 import React, { Component, useState } from "react";
-import { API_URL } from "../config.js";
+import { API_URL } from "../../config.js";
 
 
 function LogIn() {
