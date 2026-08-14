@@ -7,13 +7,7 @@ const app = express();
 app.use(express.json({ limit: "300mb"}));
 const cors = require("cors");
 
-app.use(cors({
-    origin: [
-        "http://localhost:3000",
-        "https://levne-knihy.netlify.app"
-    ],
-    credentials: true
-}));
+app.use(cors());
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");

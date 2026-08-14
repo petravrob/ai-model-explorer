@@ -2,7 +2,7 @@
   "name": "levne-knihy-node",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.jsx",
   "scripts": {
     "start": "node app.js"
   },
