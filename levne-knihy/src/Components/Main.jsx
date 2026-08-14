@@ -1,12 +1,12 @@
 import "../App.css";
 import { Routes, Route } from "react-router-dom";
-import Books from "./Books";
-import AddItem from "./AddItem";
-import LogIn from "./LogIn";
-import SignUp from "./SignUp";
-import MyItems from "./MyItems";
-import User from "./User";
-import BookDetail from "./BookDetail";
+import Books from "./Books.jsx";
+import AddItem from "./AddItem.jsx";
+import LogIn from "./LogIn.jsx";
+import SignUp from "./SignUp.jsx";
+import MyItems from "./MyItems.jsx";
+import User from "./User.jsx";
+import BookDetail from "./BookDetail.jsx";
 
 function Main() {
     return (
