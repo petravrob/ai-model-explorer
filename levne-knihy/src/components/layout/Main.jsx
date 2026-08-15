@@ -6,7 +6,6 @@ import LogIn from "../auth/LogIn.jsx";
 import SignUp from "../auth/SignUp.jsx";
 import MyItems from "../books/MyItems.jsx";
 import User from "../user/User.jsx";
-import BookDetail from "../books/BookDetail.jsx";
 
 function Main() {
     return (
