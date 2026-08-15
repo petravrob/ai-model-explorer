@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { API_URL } from "../../config.js";
 import BookList from "./BookList.tsx";
 import BookDetail from "./BookDetail.tsx";
+import BookForm from "./BookForm.tsx";
 
 
 function MyItems() {
@@ -11,26 +12,32 @@ function MyItems() {
     const [filteredItems, setFilteredItems] = useState([]);
     const [isFiltered, setIsFiltered] = useState(false);
     const [selectedBook, setSelectedBook] = useState("");
-    const [name, setName] = useState("");
-    const [author, setAuthor] = useState("");
-    const [description, setDescription] = useState("");
-    const [pages, setPages] = useState("");
-    const [state, setState] = useState("");
-    const [price, setPrice] = useState("");
-    const [delivery, setDelivery] = useState("");
-    const [image, setImage] = useState("");
-    const [uname, setUname] = useState("");
     const [update, setUpdate] = useState(false);
+
+    const [editedBook, setEditedBook] = useState({
+        name: "",
+        author: "",
+        description: "",
+        pages: "",
+        state: "",
+        price: "",
+        delivery: "",
+        image: "",
+    });
+
+    const [uname, setUname] = useState("");
     const [fname, setFname] = useState("");
     const [lname, setLname] = useState("");
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
     const [_id, setId] = useState("");
 
+
     const handleSubmit = (e) => {
         e.preventDefault();
+
         const bookId = selectedBook._id;
-        console.log(bookId);
+
         fetch(`${API_URL}/moje-inzeraty/${bookId}`, {
             method: "POST",
             crossDomain: true,
@@ -39,13 +46,13 @@ function MyItems() {
                 Accept: "application/json",
             },
             body: JSON.stringify({
-                name: selectedBook.name,
-                author: selectedBook.author,
-                description: selectedBook.description,
-                pages: selectedBook.pages,
-                state: selectedBook.state,
-                price: selectedBook.price,
-                delivery: selectedBook.delivery,
+                name: editedBook.name,
+                author: editedBook.author,
+                description: editedBook.description,
+                pages: editedBook.pages,
+                state: editedBook.state,
+                price: editedBook.price,
+                delivery: editedBook.delivery,
             }),
         })
             .then((res) => res.json())
@@ -56,26 +63,23 @@ function MyItems() {
                     alert("Něco se nepovedlo.");
                 }
             });
-        console.log(
-            name,
-            author,
-            description,
-            pages,
-            state,
-            price,
-            delivery,
-            image, "what iam passing")
-        setUpdate(false);
 
+        setUpdate(false);
     }
 
 
     const convertToBase64 = (e) => {
         var reader = new FileReader();
+
         reader.readAsDataURL(e.target.files[0]);
+
         reader.onload = () => {
-            setImage(reader.result);
+            setEditedBook({
+                ...editedBook,
+                image: reader.result,
+            });
         };
+
         reader.onerror = error => {
             console.log("error convert to base64", error);
         };
@@ -111,6 +115,7 @@ function MyItems() {
         setUserName(user);
     }, []);
 
+
     useEffect(() => {
         const getMyItems = () => {
             fetch(`${API_URL}/`, {
@@ -125,7 +130,19 @@ function MyItems() {
         getMyItems();
     }, []);
 
+
     const handleChange = () => {
+        setEditedBook({
+            name: selectedBook.name,
+            author: selectedBook.author,
+            description: selectedBook.description,
+            pages: selectedBook.pages,
+            state: selectedBook.state,
+            price: selectedBook.price,
+            delivery: selectedBook.delivery,
+            image: selectedBook.image,
+        });
+
         setUpdate(true);
     }
 
@@ -147,9 +164,11 @@ function MyItems() {
         }
     }, [userName, myItems, isFiltered]);
 
+
     const handleBookClick = (book) => {
         setSelectedBook(book);
     };
+
 
     const handleBackButtonClick = () => {
         setSelectedBook("");
@@ -159,7 +178,7 @@ function MyItems() {
 
     const handleDeleteButtonClick = () => {
         const bookId = selectedBook._id;
-        console.log(bookId);
+
         fetch(`${API_URL}/moje-inzeraty/${bookId}`, {
             method: "DELETE",
             body: JSON.stringify({
@@ -180,72 +199,31 @@ function MyItems() {
             });
     };
 
+
     return (
         <div id="books">
-            {selectedBook == "" ? <BookList books={filteredItems} onBookClick={handleBookClick} />
-                :
-                update ?
-                    <div className="logged-in">
+            {selectedBook == ""
+                ? <BookList
+                    books={filteredItems}
+                    onBookClick={handleBookClick}
+                />
+
+                : update
+
+                    ? <div className="logged-in">
                         <h2>Upravit inzerát</h2>
-                        <form action="/save-book" method="POST">
-                            <div className="logged-in-left">
-                                <div>
-                                    <label name="name">Název:</label>
-                                    <input type="text" id="name" name="name" value={selectedBook.name} required onChange={(e) => setSelectedBook({ ...selectedBook, name: e.target.value })} />
-                                </div>
 
-                                <div>
-                                    <label name="author">Autor:</label>
-                                    <input type="text" id="author" name="author" value={selectedBook.author} required onChange={(e) => setSelectedBook({ ...selectedBook, author: e.target.value })} />
-                                </div>
-
-                                <div>
-                                    <label name="description">Popis:</label>
-                                    <textarea id="description" name="description" value={selectedBook.description} onChange={(e) => setSelectedBook({ ...selectedBook, description: e.target.value })} ></textarea>
-                                </div>
-                            </div>
-                            <div className="logged-in-right">
-                                <div>
-                                    <label name="pages">Počet stránek:</label>
-                                    <input type="number" id="pages" name="pages" value={selectedBook.pages} required onChange={(e) => setSelectedBook({ ...selectedBook, pages: e.target.value })} />
-                                </div>
-
-                                <div>
-                                    <label name="state">Stav knihy:</label>
-                                    <div id="state">
-                                        <div className="book-state">
-                                            <input type="radio" id="state-new" name="state" value="nová" required checked={selectedBook.state === "nová"} onChange={(e) => setSelectedBook({ ...selectedBook, state: e.target.value })} />
-                                            <label name="state-new">Nová</label>
-                                        </div>
-                                        <div className="book-state">
-                                            <input type="radio" id="state-excellent" name="state" value="velmi dobrý" checked={selectedBook.state === "velmi dobrý"} onChange={(e) => setSelectedBook({ ...selectedBook, state: e.target.value })} />
-                                            <label name="state-excellent">Velmi dobrý</label>
-                                        </div>
-                                        <div className="book-state">
-                                            <input type="radio" id="state-good" name="state" value="dobrý" checked={selectedBook.state === "dobrý"} onChange={(e) => setSelectedBook({ ...selectedBook, state: e.target.value })} />
-                                            <label name="state-good">Dobrý</label>
-                                        </div>
-                                        <div className="book-state">
-                                            <input type="radio" id="state-poor" name="state" value="horší stav" checked={selectedBook.state === "horší stav"} onChange={(e) => setSelectedBook({ ...selectedBook, state: e.target.value })} />
-                                            <label name="state-poor">Horší stav</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label name="price">Cena:</label>
-                                    <input type="number" id="price" name="price" value={selectedBook.price} required onChange={(e) => setSelectedBook({ ...selectedBook, price: e.target.value })} />
-                                </div>
-
-                                <div>
-                                    <label name="delivery">Poštovné:</label>
-                                    <input type="number" id="delivery" name="delivery" value={selectedBook.delivery} required onChange={(e) => setSelectedBook({ ...selectedBook, delivery: e.target.value })} />
-                                </div>
-                                <button className="btn" onClick={handleSubmit} type="submit">Uložit úpravy</button>
-                            </div>
-                        </form>
+                        <BookForm
+                            book={editedBook}
+                            setBook={setEditedBook}
+                            onSubmit={handleSubmit}
+                            submitText="Upravit inzerát"
+                            showImage={false}
+                            onImageChange={convertToBase64}
+                        />
                     </div>
-                    :
-                    <div>
+
+                    : <div>
 
                         <BookDetail book={selectedBook} />
                         <div className="my-items-btn">
