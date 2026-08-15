@@ -1,6 +1,7 @@
 import "../../App.css";
 import React, { useEffect, useState } from "react";
 import { API_URL } from "../../config.js";
+import BookList from "./BookList.tsx";
 
 
 function MyItems() {
@@ -180,19 +181,7 @@ function MyItems() {
 
     return (
         <div id="books">
-            {selectedBook == "" ?
-                <ul>
-                    {filteredItems.map(book => {
-                        return (
-                            <li className="book" key={book._id} onClick={() => handleBookClick(book)}>
-                                <p className="book-name"> {book.name} </p>
-                                <p className="book-athor"> {book.author} </p>
-                                <img className="book-image" src={book.image} />
-                                <p className="book-price">{book.price} Kč,-</p>
-                            </li>
-                        )
-                    })}
-                </ul>
+            {selectedBook == "" ? <BookList books={filteredItems} onBookClick={handleBookClick} />
                 :
                 update ?
                     <div className="logged-in">

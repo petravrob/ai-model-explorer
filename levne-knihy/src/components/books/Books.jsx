@@ -1,6 +1,7 @@
 import "../../App.css";
 import React, { useEffect, useState } from "react";
 import { API_URL } from "../../config.js";
+import BookList from "./BookList.js";
 
 
 function Books () {
@@ -34,22 +35,9 @@ function Books () {
 
     return (
         <div id="books">
-            { selectedBook == "" ?
-            <ul>
-            {books.map(book => {
-                return (
-                    <li className="book" key={book._id} onClick={() => handleBookClick(book)}>
-                        <p className="book-name"> {book.name} </p>
-                        <p className="book-athor"> {book.author} </p>
-                        <img className="book-image" src={book.image} />
-                        <p className="book-price">{book.price} Kč,-</p>
-                    </li>
-                )
-            })}
-            </ul>
-            :
-                <div>
-
+            { selectedBook == "" 
+            ? <BookList books={books} onBookClick={handleBookClick} />
+            : <div>
                     <div className="book-detail">
                         <div className="book-container">
                             <h2 className="book-name">{selectedBook.name}</h2>
