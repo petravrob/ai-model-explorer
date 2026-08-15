@@ -1,24 +1,4 @@
-import React from "react";
-
-export interface Book {
-    _id: string;
-    name: string;
-    author: string;
-    image: string;
-    price: number;
-    description: string;
-    state: string;
-    pages: number;
-    delivery: number;
-    fname: string;
-    lname: string;
-    phone: string;
-}
-
-interface BookListProps {
-    books: Book[];
-    onBookClick: (book: Book) => void;
-}
+import { Book, BookListProps } from "./types";
 
 function BookList({ books, onBookClick }: BookListProps) {
     return (

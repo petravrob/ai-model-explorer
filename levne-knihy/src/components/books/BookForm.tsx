@@ -1,25 +1,5 @@
 import React from "react";
-
-// TODO: lépe definovat typ Book - bude se používat na více místech v kódu
-interface Book {
-    name: string;
-    author: string;
-    description: string;
-    pages: string | number;
-    state: string;
-    price: string | number;
-    delivery: string | number;
-    image?: string;
-}
-
-interface BookFormProps {
-    book: Book;
-    setBook: React.Dispatch<React.SetStateAction<Book>>;
-    onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-    submitText: string;
-    showImage?: boolean;
-    onImageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}
+import { BookFormData, BookFormProps } from "./types";
 
 function BookForm({
     book,

@@ -169,13 +169,6 @@ function MyItems() {
         setSelectedBook(book);
     };
 
-
-    const handleBackButtonClick = () => {
-        setSelectedBook("");
-        window.location.href = "./moje-inzeraty";
-    }
-
-
     const handleDeleteButtonClick = () => {
         const bookId = selectedBook._id;
 
@@ -227,7 +220,6 @@ function MyItems() {
 
                         <BookDetail book={selectedBook} />
                         <div className="my-items-btn">
-                            <button className="btn" onClick={handleBackButtonClick}>Zpět k prohlížení</button>
                             <button type="submit" className="btn" onClick={handleDeleteButtonClick}>
                                 Smazat inzerát
                             </button>

@@ -30,10 +30,6 @@ function Books () {
     }, []);
     
 
-    const handleBackButtonClick = () => {
-         setSelectedBook("");
-    }
-
     return (
         <div id="books">
             { selectedBook == "" 

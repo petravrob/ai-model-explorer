@@ -1,18 +1,5 @@
 import React from "react";
-
-interface Book {
-    name: string;
-    author: string;
-    image: string;
-    description: string;
-    state: string;
-    pages: number;
-    price: number;
-    delivery: number;
-    fname: string;
-    lname: string;
-    phone: string;
-}
+import { Book } from "./types";
 
 interface BookDetailProps {
     book: Book;
