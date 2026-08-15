@@ -1,16 +1,13 @@
-import React from "react";
 import { Book } from "./types";
 
-interface BookDetailProps {
-    book: Book;
-}
-
-function BookDetail({ book }: BookDetailProps) {
+function BookDetail({ book }: { book: Book }) {
     return (
         <div className="book-detail">
             <div className="book-container">
                 <h2 className="book-name">{book.name}</h2>
+                
                 <h4 className="book-author">{book.author}</h4>
+
                 <img
                     className="book-image"
                     src={book.image}

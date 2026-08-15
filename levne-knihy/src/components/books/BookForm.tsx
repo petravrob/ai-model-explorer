@@ -1,5 +1,5 @@
 import React from "react";
-import { BookFormData, BookFormProps } from "./types";
+import { BookFormProps } from "./types";
 
 function BookForm({
     book,
@@ -10,6 +10,7 @@ function BookForm({
     onImageChange,
 }: BookFormProps) {
 
+    // Nastavení nového stavu knihy při změně pole formuláře
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {

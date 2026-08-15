@@ -13,13 +13,10 @@ export interface Book {
     phone: string;
     uname: string;
 }
-
-
 export interface BookListProps {
     books: Book[];
     onBookClick: (book: Book) => void;
 }
-
 export interface BookFormData {
     name: string;
     author: string;
