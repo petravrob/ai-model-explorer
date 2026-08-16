@@ -12,6 +12,7 @@ import {
 } from "../../../api/booksApi";
 
 import useBookForm from "./useBookForm";
+import useCurrentUser from "../../user/hooks/useCurrentUser";
 
 /** Obstarává logiku zobrazení, výběru, úpravy a mazání knih */
 function useBookBrowser(mode: BookBrowserMode) {
@@ -24,14 +25,17 @@ function useBookBrowser(mode: BookBrowserMode) {
     const [update, setUpdate] =
         useState<boolean>(false);
 
-    const [userName, setUserName] =
-        useState<string>("");
-
     const [loading, setLoading] =
         useState<boolean>(true);
 
     const [error, setError] =
         useState<string | null>(null);
+
+    const {
+        user,
+        error: userError,
+    } = useCurrentUser();
+
 
     // Zpracování formuláře a převod obrázku
     const {
@@ -84,7 +88,7 @@ function useBookBrowser(mode: BookBrowserMode) {
     const filteredBooks: Book[] =
         mode === "user"
             ? books.filter(
-                (book) => book.uname === userName
+                (book) => book.uname === user?.uname
             )
             : books;
 
@@ -246,7 +250,7 @@ function useBookBrowser(mode: BookBrowserMode) {
         handleDelete,
 
         loading,
-        error,
+        error: error ?? userError,
     };
 }
 
