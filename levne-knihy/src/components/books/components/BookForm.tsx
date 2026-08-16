@@ -1,24 +1,14 @@
 import React from "react";
-import { BookFormProps } from "./types";
+import { BookFormProps } from "../types";
 
 function BookForm({
     book,
-    setBook,
+    onChange,
     onSubmit,
     submitText,
-    showImage = false,
+    showImage = true,
     onImageChange,
 }: BookFormProps) {
-
-    // Nastavení nového stavu knihy při změně pole formuláře
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        setBook({
-            ...book,
-            [e.target.name]: e.target.value,
-        });
-    };
 
     return (
         <form onSubmit={onSubmit}>
@@ -32,7 +22,7 @@ function BookForm({
                         name="name"
                         value={book.name}
                         required
-                        onChange={handleChange}
+                        onChange={onChange}
                     />
                 </div>
 
@@ -44,7 +34,7 @@ function BookForm({
                         name="author"
                         value={book.author}
                         required
-                        onChange={handleChange}
+                        onChange={onChange}
                     />
                 </div>
 
@@ -54,7 +44,7 @@ function BookForm({
                         id="description"
                         name="description"
                         value={book.description}
-                        onChange={handleChange}
+                        onChange={onChange}
                     />
                 </div>
 
@@ -70,7 +60,7 @@ function BookForm({
                         name="pages"
                         value={book.pages}
                         required
-                        onChange={handleChange}
+                        onChange={onChange}
                     />
                 </div>
 
@@ -87,7 +77,7 @@ function BookForm({
                                 value="nová"
                                 checked={book.state === "nová"}
                                 required
-                                onChange={handleChange}
+                                onChange={onChange}
                             />
                             <label htmlFor="state-new">Nová</label>
                         </div>
@@ -99,7 +89,7 @@ function BookForm({
                                 name="state"
                                 value="velmi dobrý"
                                 checked={book.state === "velmi dobrý"}
-                                onChange={handleChange}
+                                onChange={onChange}
                             />
                             <label htmlFor="state-excellent">
                                 Velmi dobrý
@@ -113,7 +103,7 @@ function BookForm({
                                 name="state"
                                 value="dobrý"
                                 checked={book.state === "dobrý"}
-                                onChange={handleChange}
+                                onChange={onChange}
                             />
                             <label htmlFor="state-good">Dobrý</label>
                         </div>
@@ -125,7 +115,7 @@ function BookForm({
                                 name="state"
                                 value="horší stav"
                                 checked={book.state === "horší stav"}
-                                onChange={handleChange}
+                                onChange={onChange}
                             />
                             <label htmlFor="state-poor">
                                 Horší stav
@@ -143,7 +133,7 @@ function BookForm({
                         name="price"
                         value={book.price}
                         required
-                        onChange={handleChange}
+                        onChange={onChange}
                     />
                 </div>
 
@@ -155,7 +145,7 @@ function BookForm({
                         name="delivery"
                         value={book.delivery}
                         required
-                        onChange={handleChange}
+                        onChange={onChange}
                     />
                 </div>
 

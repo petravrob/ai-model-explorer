@@ -1,4 +1,4 @@
-import { BookListProps } from "./types";
+import { BookListProps } from "../types";
 
 function BookList({ books, onBookClick }: BookListProps) {
     return (

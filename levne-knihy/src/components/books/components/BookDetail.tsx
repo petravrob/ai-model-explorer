@@ -1,4 +1,4 @@
-import { Book } from "./types";
+import { Book } from "../types";
 
 function BookDetail({ book }: { book: Book }) {
     return (

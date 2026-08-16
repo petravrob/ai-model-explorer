@@ -21,18 +21,22 @@ export interface BookFormData {
     name: string;
     author: string;
     description: string;
-    pages: string;
+    pages: number | "";
     state: string;
-    price: string;
-    delivery: string;
+    price: number | "";
+    delivery: number | "";
     image: string;
 }
-
 export interface BookFormProps {
     book: BookFormData;
-    setBook: React.Dispatch<React.SetStateAction<BookFormData>>;
     onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
     submitText: string;
     showImage?: boolean;
-    onImageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    onImageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
+export interface BookBrowserProps {
+    mode: BookBrowserMode;
+}
+
+export type BookBrowserMode = "all" | "user";
