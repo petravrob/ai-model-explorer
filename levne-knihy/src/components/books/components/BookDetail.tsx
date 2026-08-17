@@ -1,5 +1,6 @@
 import { Book } from "../types";
 
+/** Zobrazuje detailní informace o knize. */
 function BookDetail({ book }: { book: Book }) {
     return (
         <div className="book-detail">

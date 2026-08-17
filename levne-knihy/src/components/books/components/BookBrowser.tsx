@@ -4,6 +4,7 @@ import BookDetail from "./BookDetail";
 import BookForm from "./BookForm";
 import BookList from "./BookList";
 
+/** Rozhraní pro zobrazení inzerátu knih, jejich detailu, umožňuje také jejich úpravu. */
 function BookBrowser({
     mode,
 }: BookBrowserProps) {

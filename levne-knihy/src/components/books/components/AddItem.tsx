@@ -1,6 +1,7 @@
 import useAddItem from "../hooks/useAddBook.ts";
 import BookForm from "./BookForm.tsx";
 
+/** Rozhraní pro přidání nové knihy. */
 function AddItem() {
 
     const {

@@ -1,6 +1,7 @@
 import React from "react";
 import { BookFormProps } from "../types";
 
+/** Zobrazuje formulář pro vytvoření nebo úpravu inzerátu knihy */
 function BookForm({
     book,
     onChange,

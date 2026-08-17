@@ -1,5 +1,6 @@
 import { BookListProps } from "../types";
 
+/** Zobrazuje senzma knih */
 function BookList({ books, onBookClick }: BookListProps) {
     return (
         <ul>
