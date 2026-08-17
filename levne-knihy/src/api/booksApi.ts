@@ -2,7 +2,7 @@ import { API_URL } from "../config.js";
 import { Book, BookFormData } from "../components/books/types.js";
 import ApiResponse from "../components/types.js";
 
-/** Načtení všech inzerátů */
+/** Načte všechny inzeráty. */
 export const getBooks = async (): Promise<Book[]> => {
 
     const response = await fetch(`${API_URL}/`, {
@@ -21,7 +21,7 @@ export const getBooks = async (): Promise<Book[]> => {
 };
 
 
-/** Přidání nového inzerátu */
+/** Přidá nový inzerát. */
 export const addBook = async (
     user: {
         uname: string;
@@ -73,7 +73,7 @@ export const addBook = async (
 };
 
 
-/** Úprava inzerátu */
+/** Úpraví inzerát. */
 export const updateBook = async (
     bookId: string,
     book: BookFormData
@@ -115,7 +115,7 @@ export const updateBook = async (
 };
 
 
-/** Smazání inzerátu */
+/** Smaže inzerát. */
 export const deleteBook = async (
     bookId: string
 ): Promise<void> => {

@@ -1,7 +1,7 @@
-import { User, SignUpData, LoginData } from "../components/user/types";
+import { User, LoginData, UserFormData } from "../components/user/types";
 import { API_URL } from "../config";
 
-/** Načte aktuálně přihlášeného uživatele */
+/** Načte aktuálně přihlášeného uživatele. */
 export const getCurrentUser = async (): Promise<User> => {
 
     const response = await fetch(`${API_URL}`, {
@@ -26,7 +26,7 @@ export const getCurrentUser = async (): Promise<User> => {
     return data.data;
 };
 
-
+/** Aktualizuje údaje uživatele. */
 export const updateUser = async (
     user: User
 ): Promise<void> => {
@@ -56,9 +56,9 @@ export const updateUser = async (
     }
 };
 
-
+/** Zaregistruje uživatele. */
 export const registerUser = async (
-    user: SignUpData
+    user: UserFormData
 ): Promise<void> => {
 
     const response = await fetch(`${API_URL}/registrovat-se`, {
@@ -79,7 +79,7 @@ export const registerUser = async (
     }
 };
 
-
+/** Přihlásí uživatele. */
 export const loginUser = async (
     loginData: LoginData
 ): Promise<string> => {
@@ -103,3 +103,22 @@ export const loginUser = async (
 
     return data.data;
 };
+
+/** Odhlásí uživatele. */
+function useLogout() {
+
+    const logout = (): void => {
+
+        window.localStorage.clear();
+
+        window.location.href = "./";
+    };
+
+
+    return {
+        logout,
+    };
+}
+
+
+export default useLogout;

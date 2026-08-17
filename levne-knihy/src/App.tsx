@@ -1,6 +1,7 @@
-import Footer from './components/layout/Footer.jsx';
-import Header from "./components/layout/Header.jsx"
+import Footer from './components/layout/Footer.tsx';
+import Header from "./components/layout/Header.tsx"
 import Main from "./components/layout/Main.tsx"
+import "./App.css";
 
 function App() {
   return (

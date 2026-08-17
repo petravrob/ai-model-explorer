@@ -6,7 +6,7 @@ import useBookForm from "./useBookForm";
 import useCurrentUser from "../../user/hooks/useCurrentUser";
 
 
-function useAddBook() {
+function useAddBookAdvertisement() {
 
     // aktuálně přihlášený uživatel
     const {
@@ -71,4 +71,4 @@ function useAddBook() {
 }
 
 
-export default useAddBook;
+export default useAddBookAdvertisement;

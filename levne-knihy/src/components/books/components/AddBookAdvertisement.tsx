@@ -1,8 +1,8 @@
-import useAddItem from "../hooks/useAddBook.ts";
+import useAddBookAdvertisement from "../hooks/useAddBookAdvertisement.ts";
 import BookForm from "./BookForm.tsx";
 
 /** Rozhraní pro přidání nové knihy. */
-function AddItem() {
+function AddBookAdvertisement() {
 
     const {
         user,
@@ -10,7 +10,7 @@ function AddItem() {
         handleChange,
         handleImageChange,
         handleSubmit,
-    } = useAddItem();
+    } = useAddBookAdvertisement();
 
 
     return (
@@ -47,4 +47,4 @@ function AddItem() {
 }
 
 
-export default AddItem;
+export default AddBookAdvertisement;
