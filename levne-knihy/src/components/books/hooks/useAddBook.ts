@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { getCurrentUser, User } from "../../../api/userApi";
+import { getCurrentUser } from "../../../api/userApi";
 import { addBook } from "../../../api/booksApi";
 import useBookForm from "./useBookForm";
 import useCurrentUser from "../../user/hooks/useCurrentUser";

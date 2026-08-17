@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 
-import { getCurrentUser, User } from "../../../api/userApi";
+import { getCurrentUser } from "../../../api/userApi";
+import { User } from "../types";
+
 
 /** Načte aktuálně přihlášeného uživatele */
 function useCurrentUser() {
 
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] =
+        useState<User | null>(null);
 
     const [loading, setLoading] =
         useState<boolean>(true);

@@ -1,11 +1,9 @@
-import "../../App.css";
 import { Routes, Route } from "react-router-dom";
 import AddItem from "../books/components/AddItem.js";
-import LogIn from "../auth/LogIn.jsx";
-import SignUp from "../auth/SignUp.jsx";
+import SignUp from "../user/components/SignUp.tsx";
 import BookBrowser from "../books/components/BookBrowser.tsx";
-import User from "../user/User.jsx";
-import BookDetail from "../books/components/BookDetail.tsx";
+import User from "../user/components/User.js";
+import LogIn from "../user/components/LogIn.tsx";
 
 function Main() {
     return (
