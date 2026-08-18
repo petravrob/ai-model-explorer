@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 import {
     updateUser,
@@ -61,8 +62,8 @@ function useUser() {
 
             await updateUser(updatedUser);
 
-            alert("Údaje byly upraveny.");
-
+            toast.success("Údaje byly upraveny.");
+        
             setUpdate(false);
 
         } catch (error) {
@@ -72,10 +73,8 @@ function useUser() {
                 error
             );
 
-            alert(
-                "Údaje se nepodařilo upravit."
-            );
-
+            toast.error("Údaje se nepodařilo upravit.");
+        
         }
 
     };

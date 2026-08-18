@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 import {
     loginUser,
@@ -45,8 +46,8 @@ function useLogIn() {
 
             const token = await loginUser(formData);
 
-            alert("Přihlášení bylo úspěšné.");
-
+            toast.success("Přihlášení bylo úspěšné.");
+        
             window.localStorage.setItem(
                 "token",
                 token
@@ -71,10 +72,8 @@ function useLogIn() {
                 error
             );
 
-            alert(
-                "Přihlášení nebylo úspěšné."
-            );
-
+            toast.error("Přihlášení nebylo úspěšné.");
+        
         }
 
     };

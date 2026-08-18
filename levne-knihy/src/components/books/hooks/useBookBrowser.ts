@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 import {
     Book,
@@ -171,8 +172,8 @@ function useBookBrowser(mode: BookBrowserMode) {
 
             setUpdate(false);
 
-            alert("Údaje byly upraveny.");
-
+            toast.success("Údaje byly upraveny.");
+            
         } catch (error) {
 
             console.error(
@@ -180,10 +181,7 @@ function useBookBrowser(mode: BookBrowserMode) {
                 error
             );
 
-            alert(
-                "Údaje se nepodařilo upravit."
-            );
-
+            toast.error("Údaje se nepodařilo upravit.");
         }
     };
 
@@ -214,8 +212,8 @@ function useBookBrowser(mode: BookBrowserMode) {
             // Návrat na seznam knih (selectedBook určuje, která kniha je zobrazovaná v detailním režimu)
             setSelectedBook(null);
 
-            alert("Kniha byla smazána.");
-
+            toast.success("Kniha byla smazána.");
+        
         } catch (error) {
 
             console.error(
@@ -223,10 +221,8 @@ function useBookBrowser(mode: BookBrowserMode) {
                 error
             );
 
-            alert(
-                "Knihu se nepodařilo smazat."
-            );
-
+            toast.error("Knihu se nepodařilo smazat.");
+        
         }
 
     };

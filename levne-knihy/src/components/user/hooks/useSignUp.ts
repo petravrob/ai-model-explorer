@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 import {
     registerUser,
@@ -60,8 +61,8 @@ function useSignUp() {
                 password: formData.password ?? "",
             });
 
-            alert("Registrace byla úspěšná.");
-
+            toast.success("Registrace byla úspěšná.");
+        
             setFormData(emptySignUp);
 
         } catch (error) {
@@ -71,10 +72,8 @@ function useSignUp() {
                 error
             );
 
-            alert(
-                "Registrace nebyla úspěšná."
-            );
-
+            toast.error("Registrace nebyla úspěšná.");
+        
         }
 
     };
