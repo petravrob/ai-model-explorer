@@ -1,6 +1,6 @@
 import "../App.css";
 import React, { useEffect, useState } from "react";
-
+import { API_URL } from "../config.js";
 
 
 function Books () {
@@ -9,7 +9,7 @@ function Books () {
     
 
     const getBooks = () => {
-        fetch("http://localhost:5000/", {
+        fetch(`${API_URL}/`, {
           method: "GET",
         })
           .then((res) => res.json())

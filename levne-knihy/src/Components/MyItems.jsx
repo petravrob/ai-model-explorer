@@ -1,5 +1,7 @@
 import "../App.css";
 import React, { useEffect, useState } from "react";
+import { API_URL } from "../config.js";
+
 
 function MyItems() {
     const [myItems, setMyItems] = useState([]);
@@ -27,13 +29,12 @@ function MyItems() {
         e.preventDefault();
         const bookId = selectedBook._id;
         console.log(bookId);
-        fetch(`http://localhost:5000/moje-inzeraty/${bookId}`, {
+        fetch(`${API_URL}/moje-inzeraty/${bookId}`, {
             method: "POST",
             crossDomain: true,
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
-                "Access-Control-Allow-Origin": "*",
             },
             body: JSON.stringify({
                 name: selectedBook.name,
@@ -80,13 +81,12 @@ function MyItems() {
 
 
     useEffect(() => {
-        fetch("http://localhost:5000/", {
+        fetch(`${API_URL}/`, {
             method: "POST",
             crossDomain: true,
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
-                "Access-Control-Allow-Origin": "*",
             },
             body: JSON.stringify({
                 token: window.localStorage.getItem("token"),
@@ -111,7 +111,7 @@ function MyItems() {
 
     useEffect(() => {
         const getMyItems = () => {
-            fetch("http://localhost:5000/", {
+            fetch(`${API_URL}/`, {
                 method: "GET",
             })
                 .then((res) => res.json())
@@ -158,7 +158,7 @@ function MyItems() {
     const handleDeleteButtonClick = () => {
         const bookId = selectedBook._id;
         console.log(bookId);
-        fetch(`http://localhost:5000/moje-inzeraty/${bookId}`, {
+        fetch(`${API_URL}/moje-inzeraty/${bookId}`, {
             method: "DELETE",
             body: JSON.stringify({
                 bookId: bookId,

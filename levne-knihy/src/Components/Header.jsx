@@ -1,6 +1,7 @@
 import '../App.css';
 import React, { useState, useEffect } from 'react';
 import { NavLink } from "react-router-dom";
+import { API_URL } from "../config.js";
 
 
 
@@ -12,13 +13,12 @@ function Header({ }) {
 
 
   useEffect(() => {
-    fetch("http://localhost:5000/", {
+    fetch(`${API_URL}/`, {
       method: "POST",
       crossDomain: true,
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({
         token: window.localStorage.getItem("token"),

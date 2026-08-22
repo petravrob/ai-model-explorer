@@ -1,5 +1,7 @@
 import "../App.css"
 import React, { Component, useState } from "react";
+import { API_URL } from "../config.js";
+
 
 function LogIn() {
   const [uname, setUname] = useState("");
@@ -7,13 +9,12 @@ function LogIn() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    fetch("http://localhost:5000/prihlasit-se", {
+    fetch(`${API_URL}/prihlasit-se`, {
       method: "POST",
       crossDomain: true,
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({
         uname,
@@ -30,13 +31,12 @@ function LogIn() {
 
           window.location.href = "./";
         }
-      }); fetch("http://localhost:5000/", {
+      }); fetch(`${API_URL}/`, {
         method: "POST",
         crossDomain: true,
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          "Access-Control-Allow-Origin": "*",
         },
         body: JSON.stringify({
           uname,
