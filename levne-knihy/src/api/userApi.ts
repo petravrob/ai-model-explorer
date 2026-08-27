@@ -1,5 +1,6 @@
 import { User, LoginData, UserFormData } from "../components/user/types";
 import { API_URL } from "../config";
+import { toast } from "react-toastify";
 
 /** Načte aktuálně přihlášeného uživatele. */
 export const getCurrentUser = async (): Promise<User> => {
@@ -112,8 +113,10 @@ function useLogout() {
         window.localStorage.clear();
 
         window.location.href = "./";
-    };
 
+        toast.success("Byli jste odhlášeni.");
+        
+    };
 
     return {
         logout,

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 import { getCurrentUser } from "../../../api/userApi";
 import { addBook } from "../../../api/booksApi";
@@ -37,7 +38,7 @@ function useAddBookAdvertisement() {
 
             await addBook(user, newBook);
 
-            alert("Kniha byla přidána.");
+            toast.success("Kniha byla přidána.");
 
             // Reset formuláře po úspěšném přidání knihy
             resetBook();
@@ -49,10 +50,7 @@ function useAddBookAdvertisement() {
                 error
             );
 
-            alert(
-                "Knihu se nepodařilo přidat."
-            );
-
+            toast.error("Knihu se nepodařilo přidat.");
         }
 
     };
