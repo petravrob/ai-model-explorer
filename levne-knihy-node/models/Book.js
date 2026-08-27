@@ -1,5 +1,12 @@
 const mongoose = require("mongoose");
 
+const BOOK_STATES = {
+    NEW: "Nový",
+    VERY_GOOD: "Velmi dobrý",
+    GOOD: "Dobrý",
+    SATISFACTORY: "Uspokojivý",
+};
+
 const bookSchema = new mongoose.Schema(
     {
         name: {
@@ -21,8 +28,9 @@ const bookSchema = new mongoose.Schema(
             required: true,
             min: 1,
         },
-        state: { // TODO: enum
+        state: {
             type: String,
+            enum: Object.values(BOOK_STATES),
             required: true,
             trim: true,
         },
