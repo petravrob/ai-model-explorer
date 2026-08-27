@@ -19,7 +19,7 @@ app.use(cors());
 
 app.use(
     express.json({
-        limit: "300mb", // TODO: upravit limity 300/3000
+        limit: "300mb",
     })
 );
 
