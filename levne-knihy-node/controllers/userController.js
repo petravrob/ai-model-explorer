@@ -1,7 +1,4 @@
-const jwt = require("jsonwebtoken");
-
 const User = require("../models/User");
-const { JWT_SECRET } = require("../config/env");
 
 const updateUser = async (req, res) => {
     try {
@@ -10,11 +7,10 @@ const updateUser = async (req, res) => {
             lname,
             email,
             phone,
-            _id,
         } = req.body;
 
-        const updatedUser = await User.findByIdAndUpdate(
-            _id,
+        const updatedUser = await User.findOneAndUpdate(
+            { uname: req.user.uname },
             {
                 fname,
                 lname,
@@ -49,12 +45,8 @@ const updateUser = async (req, res) => {
 
 const getCurrentUser = async (req, res) => {
     try {
-        const { token } = req.body;
-
-        const decodedToken = jwt.verify(token, JWT_SECRET);
-
         const user = await User.findOne({
-            uname: decodedToken.uname,
+            uname: req.user.uname,
         });
 
         if (!user) {
@@ -69,11 +61,11 @@ const getCurrentUser = async (req, res) => {
             data: user,
         });
     } catch (error) {
-        console.error("User authentication failed:", error);
+        console.error("Fetching current user failed:", error);
 
-        return res.status(401).json({
+        return res.status(500).json({
             status: "error",
-            error: "Invalid or expired token.",
+            error: "Failed to fetch current user.",
         });
     }
 };

@@ -84,12 +84,15 @@ const login = async (req, res) => {
             {
                 uname: user.uname,
             },
-            JWT_SECRET
+            JWT_SECRET,
+            {
+                expiresIn: "1h",
+            }
         );
 
         return res.status(200).json({
             status: "ok",
-            data: token,
+            token,
         });
     } catch (error) {
         console.error("Login failed:", error);

@@ -1,4 +1,5 @@
 const Book = require("../models/Book");
+const User = require("../models/User");
 
 const createBook = async (req, res) => {
     try {
@@ -11,11 +12,18 @@ const createBook = async (req, res) => {
             price,
             base64,
             delivery,
-            fname,
-            lname,
-            phone,
-            uname,
         } = req.body;
+
+        const user = await User.findOne({
+            uname: req.user.uname,
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                status: "error",
+                error: "User not found.",
+            });
+        }
 
         await Book.create({
             name,
@@ -26,10 +34,10 @@ const createBook = async (req, res) => {
             price,
             image: base64,
             delivery,
-            fname,
-            lname,
-            phone,
-            uname,
+            fname: user.fname,
+            lname: user.lname,
+            phone: user.phone,
+            uname: user.uname,
         });
 
         return res.status(201).json({
@@ -67,14 +75,23 @@ const deleteBook = async (req, res) => {
     try {
         const { bookId } = req.params;
 
-        const deletedBook = await Book.findByIdAndDelete(bookId);
+        const book = await Book.findById(bookId);
 
-        if (!deletedBook) {
+        if (!book) {
             return res.status(404).json({
                 status: "error",
                 error: "Book not found.",
             });
         }
+
+        if (book.uname !== req.user.uname) {
+            return res.status(403).json({
+                status: "error",
+                error: "You are not allowed to delete this book.",
+            });
+        }
+
+        await Book.findByIdAndDelete(bookId);
 
         return res.status(200).json({
             status: "ok",
@@ -93,6 +110,22 @@ const updateBook = async (req, res) => {
     try {
         const { bookId } = req.params;
 
+        const book = await Book.findById(bookId);
+
+        if (!book) {
+            return res.status(404).json({
+                status: "error",
+                error: "Book not found.",
+            });
+        }
+
+        if (book.uname !== req.user.uname) {
+            return res.status(403).json({
+                status: "error",
+                error: "You are not allowed to update this book.",
+            });
+        }
+
         const {
             name,
             author,
@@ -100,44 +133,35 @@ const updateBook = async (req, res) => {
             pages,
             state,
             price,
+            base64,
             delivery,
-            fname,
-            lname,
-            phone,
-            uname,
         } = req.body;
 
-        const updatedBook = await Book.findByIdAndUpdate(
+        const updateData = {
+            name,
+            author,
+            description,
+            pages,
+            state,
+            price,
+            delivery,
+        };
+
+        if (base64 !== undefined) {
+            updateData.image = base64;
+        }
+
+        await Book.findByIdAndUpdate(
             bookId,
-            {
-                name,
-                author,
-                description,
-                pages,
-                state,
-                price,
-                delivery,
-                fname,
-                lname,
-                phone,
-                uname,
-            },
+            updateData,
             {
                 new: true,
                 runValidators: true,
             }
         );
 
-        if (!updatedBook) {
-            return res.status(404).json({
-                status: "error",
-                error: "Book not found.",
-            });
-        }
-
         return res.status(200).json({
             status: "ok",
-            data: updatedBook,
         });
     } catch (error) {
         console.error("Book update failed:", error);
