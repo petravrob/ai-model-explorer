@@ -19,6 +19,7 @@ function useCurrentUser() {
 
     useEffect(() => {
 
+        // Načtení aktuálně přihlášeného uživatele
         const loadUser = async (): Promise<void> => {
 
             try {

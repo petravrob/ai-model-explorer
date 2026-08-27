@@ -113,7 +113,7 @@ function useBookBrowser(mode: BookBrowserMode) {
     };
 
 
-    // Přechod na režim úpravy knihy (Book obsahuje číselné hodnoty zatímco formulář používá string)
+    // Přechod na režim úpravy knihy
     const handleEdit = (): void => {
 
         if (!selectedBook) {

@@ -42,7 +42,7 @@ function useUser() {
 
     };
 
-
+    // Zajišťuje úpravu údajů o uživateli
     const handleSubmit = async (
         e: React.FormEvent<HTMLFormElement>
     ): Promise<void> => {

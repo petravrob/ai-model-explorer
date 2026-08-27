@@ -20,7 +20,7 @@ function useUserForm() {
     const [formData, setFormData] =
         useState<UserFormData>(emptyUserForm);
 
-
+    // Obstarává změnu formuláře o uživateli
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement>
     ): void => {
@@ -37,7 +37,7 @@ function useUserForm() {
 
     };
 
-
+    // Založí nového uživatele
     const initializeUser = (
         user: User
     ): void => {

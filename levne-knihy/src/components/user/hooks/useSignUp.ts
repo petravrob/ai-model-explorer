@@ -26,7 +26,7 @@ function useSignUp() {
     const [formData, setFormData] =
         useState<UserFormData>(emptySignUp);
 
-
+    // Obstará změnu polí v registrovacím formuláři
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement>
     ): void => {
@@ -43,7 +43,7 @@ function useSignUp() {
 
     };
 
-
+    // Zajišťuje registraci nového uživatele
     const handleSubmit = async (
         e: React.FormEvent<HTMLFormElement>
     ): Promise<void> => {
@@ -60,10 +60,10 @@ function useSignUp() {
                 email: formData.email,
                 password: formData.password ?? "",
             });
-
-            toast.success("Registrace byla úspěšná.");
         
             setFormData(emptySignUp);
+
+            toast.success("Registrace byla úspěšná.");
 
         } catch (error) {
 

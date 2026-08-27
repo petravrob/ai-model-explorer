@@ -18,7 +18,7 @@ function useLogIn() {
     const [formData, setFormData] =
         useState<LoginData>(emptyLogin);
 
-
+    // Obstará změnu polí v přihlašovacím formuláři
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement>
     ): void => {
@@ -35,7 +35,7 @@ function useLogIn() {
 
     };
 
-
+    // Přihlášení uživatele
     const handleSubmit = async (
         e: React.FormEvent<HTMLFormElement>
     ): Promise<void> => {
@@ -45,8 +45,6 @@ function useLogIn() {
         try {
 
             const token = await loginUser(formData);
-
-            toast.success("Přihlášení bylo úspěšné.");
         
             window.localStorage.setItem(
                 "token",
