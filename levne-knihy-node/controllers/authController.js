@@ -22,13 +22,15 @@ const register = async (req, res) => {
 
         if (usedUname) {
             return res.status(409).json({
-                error: "Username already in use.",
+                status: "error",
+                error: "Uživatelské jméno již používá jiný uživatel.",
             });
         }
 
         if (usedEmail) {
             return res.status(409).json({
-                error: "Email already in use.",
+                status: "error",
+                error: "E-mailová adresa již používá jiný uživatel.",
             });
         }
 
@@ -51,7 +53,7 @@ const register = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Registration failed.",
+            error: "Registrace se nezdařila.",
         });
     }
 };
@@ -64,7 +66,8 @@ const login = async (req, res) => {
 
         if (!user) {
             return res.status(404).json({
-                error: "User not found.",
+                status: "error",
+                error: "Uživatel nebyl nalezen.",
             });
         }
 
@@ -76,7 +79,7 @@ const login = async (req, res) => {
         if (!passwordIsValid) {
             return res.status(401).json({
                 status: "error",
-                error: "Invalid password.",
+                error: "Nesprávné heslo.",
             });
         }
 
@@ -99,7 +102,7 @@ const login = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Login failed.",
+            error: "Přihlášení se nezdařilo.",
         });
     }
 };
