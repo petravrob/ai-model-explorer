@@ -68,9 +68,12 @@ function useBookBrowser(mode: BookBrowserMode) {
                     error
                 );
 
-                setError(
-                    "Nepodařilo se načíst knihy."
-                );
+                const errorMessage =
+                    error instanceof Error
+                        ? error.message
+                        : "Nepodařilo se načíst knihy.";
+
+                setError(errorMessage);
 
             } finally {
 
@@ -127,7 +130,7 @@ function useBookBrowser(mode: BookBrowserMode) {
     };
 
 
-    // Uložení upravené knihy.
+    // Uložení upravené knihy
     const handleSubmit = async (
         e: React.FormEvent<HTMLFormElement>
     ): Promise<void> => {
@@ -146,7 +149,7 @@ function useBookBrowser(mode: BookBrowserMode) {
             );
 
 
-            // Lokální stav pro úpravu knihy
+            // Lokální stav pro upravenou knihu
             const updatedBook: Book = {
                 ...selectedBook,
                 ...editedBook,
@@ -167,13 +170,13 @@ function useBookBrowser(mode: BookBrowserMode) {
             );
 
 
-            // Aktualizace právě zobrazené a upravené knihy
+            // Aktualizace právě zobrazené knihy
             setSelectedBook(updatedBook);
 
             setUpdate(false);
 
             toast.success("Údaje byly upraveny.");
-            
+
         } catch (error) {
 
             console.error(
@@ -181,7 +184,12 @@ function useBookBrowser(mode: BookBrowserMode) {
                 error
             );
 
-            toast.error("Údaje se nepodařilo upravit.");
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "Údaje se nepodařilo upravit.";
+
+            toast.error(errorMessage);
         }
     };
 
@@ -221,8 +229,12 @@ function useBookBrowser(mode: BookBrowserMode) {
                 error
             );
 
-            toast.error("Knihu se nepodařilo smazat.");
-        
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "Knihu se nepodařilo smazat.";
+
+            toast.error(errorMessage);
         }
 
     };

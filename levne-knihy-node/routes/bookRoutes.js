@@ -9,11 +9,16 @@ const {
 
 const authenticate = require("../middleware/authMiddleware");
 
+const {
+    validateBook,
+} = require("../middleware/validationMiddleware");
+
 const router = express.Router();
 
 router.post(
     "/pridat-inzerat",
     authenticate,
+    validateBook,
     createBook
 );
 
@@ -28,6 +33,7 @@ router.delete(
 router.post(
     "/moje-inzeraty/:bookId",
     authenticate,
+    validateBook,
     updateBook
 );
 
