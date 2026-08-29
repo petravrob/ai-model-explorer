@@ -1,6 +1,7 @@
 import { User, LoginData, UserFormData } from "../components/user/types";
 import { API_URL } from "../config";
 import { getAuthHeaders } from "./authApi";
+import { handleApiResponse } from "./apiUtils";
 import { toast } from "react-toastify";
 
 /** Načte aktuálně přihlášeného uživatele. */
@@ -15,15 +16,12 @@ export const getCurrentUser = async (): Promise<User> => {
         },
     });
 
-    const data = await response.json();
+    const data = await handleApiResponse<User>(
+        response,
+        "Nepodařilo se načíst aktuálního uživatele."
+    );
 
-    if (data.status !== "ok") {
-        throw new Error(
-            "Nepodařilo se načíst aktuálního uživatele."
-        );
-    }
-
-    return data.data;
+    return data.data as User;
 };
 
 /** Aktualizuje údaje uživatele. */
@@ -46,13 +44,10 @@ export const updateUser = async (
         }),
     });
 
-    const data = await response.json();
-
-    if (data.status !== "ok") {
-        throw new Error(
-            "Nepodařilo se upravit osobní údaje."
-        );
-    }
+    await handleApiResponse(
+        response,
+        "Nepodařilo se upravit osobní údaje."
+    );
 };
 
 /** Zaregistruje uživatele. */
@@ -69,13 +64,10 @@ export const registerUser = async (
         body: JSON.stringify(user),
     });
 
-    const data = await response.json();
-
-    if (data.status !== "ok") {
-        throw new Error(
-            "Registrace nebyla úspěšná."
-        );
-    }
+    await handleApiResponse(
+        response,
+        "Registrace nebyla úspěšná."
+    );
 };
 
 /** Přihlásí uživatele. */
@@ -92,15 +84,14 @@ export const loginUser = async (
         body: JSON.stringify(loginData),
     });
 
-    const data = await response.json();
+    const data = await handleApiResponse<{
+        token: string;
+    }>(
+        response,
+        "Přihlášení nebylo úspěšné."
+    );
 
-    if (data.status !== "ok") {
-        throw new Error(
-            "Přihlášení nebylo úspěšné."
-        );
-    }
-
-    return data.token;
+    return data.data!.token;
 };
 
 /** Odhlásí uživatele. */
@@ -113,7 +104,7 @@ function useLogout() {
         window.location.href = "./";
 
         toast.success("Byli jste odhlášeni.");
-        
+
     };
 
     return {
@@ -121,4 +112,4 @@ function useLogout() {
     };
 }
 
-export default useLogout;
+export default useLogout; 

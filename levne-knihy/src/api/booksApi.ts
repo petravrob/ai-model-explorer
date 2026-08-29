@@ -1,7 +1,7 @@
 import { API_URL } from "../config.js";
 import { getAuthHeaders } from "./authApi.js";
 import { Book, BookFormData } from "../components/books/types.js";
-import ApiResponse from "../components/types.js";
+import { handleApiResponse } from "./apiUtils";
 
 /** Načte všechny inzeráty. */
 export const getBooks = async (): Promise<Book[]> => {
@@ -10,15 +10,12 @@ export const getBooks = async (): Promise<Book[]> => {
         method: "GET",
     });
 
-    if (!response.ok) {
-        throw new Error(
-            "Nepodařilo se načíst inzeráty."
-        );
-    }
+    const data = await handleApiResponse<Book[]>(
+        response,
+        "Nepodařilo se načíst inzeráty."
+    );
 
-    const data: ApiResponse<Book[]> = await response.json();
-
-    return data.data;
+    return data.data as Book[];
 };
 
 
@@ -49,23 +46,14 @@ export const addBook = async (
         }
     );
 
-    if (!response.ok) {
-        throw new Error(
-            "Nepodařilo se přidat inzerát."
-        );
-    }
-
-    const data: ApiResponse<unknown> = await response.json();
-
-    if (data.status !== "ok") {
-        throw new Error(
-            "Nepodařilo se přidat inzerát."
-        );
-    }
+    await handleApiResponse(
+        response,
+        "Nepodařilo se přidat inzerát."
+    );
 };
 
 
-/** Úpraví inzerát. */
+/** Upraví inzerát. */
 export const updateBook = async (
     bookId: string,
     book: BookFormData
@@ -93,19 +81,10 @@ export const updateBook = async (
         }
     );
 
-    if (!response.ok) {
-        throw new Error(
-            "Nepodařilo se upravit inzerát."
-        );
-    }
-
-    const data: ApiResponse<unknown> = await response.json();
-
-    if (data.status !== "ok") {
-        throw new Error(
-            "Nepodařilo se upravit inzerát."
-        );
-    }
+    await handleApiResponse(
+        response,
+        "Nepodařilo se upravit inzerát."
+    );
 };
 
 
@@ -124,17 +103,8 @@ export const deleteBook = async (
         }
     );
 
-    if (!response.ok) {
-        throw new Error(
-            "Nepodařilo se smazat inzerát."
-        );
-    }
-
-    const data: ApiResponse<unknown> = await response.json();
-
-    if (data.status !== "ok") {
-        throw new Error(
-            "Nepodařilo se smazat inzerát."
-        );
-    }
-};
+    await handleApiResponse(
+        response,
+        "Nepodařilo se smazat inzerát."
+    );
+}; 
