@@ -5,19 +5,23 @@ import { User } from "../types";
 
 
 /** Načte aktuálně přihlášeného uživatele */
-function useCurrentUser() {
+function useCurrentUser(loginNotRequired: boolean = true) {
 
     const [user, setUser] =
         useState<User | null>(null);
 
     const [loading, setLoading] =
-        useState<boolean>(true);
+        useState<boolean>(loginNotRequired);
 
     const [error, setError] =
         useState<string | null>(null);
 
 
     useEffect(() => {
+
+        if (!loginNotRequired) {
+            return;
+        }
 
         // Načtení aktuálně přihlášeného uživatele
         const loadUser = async (): Promise<void> => {
@@ -52,7 +56,7 @@ function useCurrentUser() {
 
         loadUser();
 
-    }, []);
+    }, [loginNotRequired]);
 
 
     return {

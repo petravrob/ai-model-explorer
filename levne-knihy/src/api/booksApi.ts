@@ -1,4 +1,5 @@
 import { API_URL } from "../config.js";
+import { getAuthHeaders } from "./authApi.js";
 import { Book, BookFormData } from "../components/books/types.js";
 import ApiResponse from "../components/types.js";
 
@@ -23,12 +24,6 @@ export const getBooks = async (): Promise<Book[]> => {
 
 /** Přidá nový inzerát. */
 export const addBook = async (
-    user: {
-        uname: string;
-        fname: string;
-        lname: string;
-        phone: string;
-    },
     book: BookFormData
 ): Promise<void> => {
 
@@ -39,9 +34,9 @@ export const addBook = async (
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
+                ...getAuthHeaders(),
             },
             body: JSON.stringify({
-                uname: user.uname,
                 name: book.name,
                 author: book.author,
                 description: book.description,
@@ -49,9 +44,6 @@ export const addBook = async (
                 price: book.price,
                 state: book.state,
                 delivery: book.delivery,
-                fname: user.fname,
-                lname: user.lname,
-                phone: user.phone,
                 base64: book.image,
             }),
         }
@@ -86,6 +78,7 @@ export const updateBook = async (
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
+                ...getAuthHeaders(),
             },
             body: JSON.stringify({
                 name: book.name,
@@ -95,6 +88,7 @@ export const updateBook = async (
                 state: book.state,
                 price: book.price,
                 delivery: book.delivery,
+                base64: book.image,
             }),
         }
     );
@@ -125,11 +119,8 @@ export const deleteBook = async (
         {
             method: "DELETE",
             headers: {
-                "Content-Type": "application/json",
+                ...getAuthHeaders(),
             },
-            body: JSON.stringify({
-                bookId,
-            }),
         }
     );
 

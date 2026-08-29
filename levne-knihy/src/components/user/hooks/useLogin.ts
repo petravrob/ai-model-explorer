@@ -44,12 +44,9 @@ function useLogIn() {
 
         try {
 
-            const token = await loginUser(formData);
+            const response = await loginUser(formData);
         
-            window.localStorage.setItem(
-                "token",
-                token
-            );
+            localStorage.setItem("token", response);
 
             window.localStorage.setItem(
                 "loggedIn",

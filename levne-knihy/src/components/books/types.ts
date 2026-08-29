@@ -1,10 +1,17 @@
+export enum BookState {
+    NEW = "Nový",
+    VERY_GOOD = "Velmi dobrý",
+    GOOD = "Dobrý",
+    SATISFACTORY = "Uspokojivý",
+}
+
 export interface Book {
     _id: string;
     name: string;
     author: string;
     description: string;
     pages: number;
-    state: string;
+    state: BookState;
     price: number;
     delivery: number;
     image: string;
@@ -22,7 +29,7 @@ export interface BookFormData {
     author: string;
     description: string;
     pages: number | "";
-    state: string;
+    state: BookState;
     price: number | "";
     delivery: number | "";
     image: string;
