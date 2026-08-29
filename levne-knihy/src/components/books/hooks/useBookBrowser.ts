@@ -35,7 +35,7 @@ function useBookBrowser(mode: BookBrowserMode) {
     const {
         user,
         error: userError,
-    } = useCurrentUser();
+    } = useCurrentUser(mode === "user");
 
 
     // Zpracování formuláře a převod obrázku

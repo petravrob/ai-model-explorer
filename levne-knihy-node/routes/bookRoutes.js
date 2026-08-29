@@ -7,11 +7,28 @@ const {
     updateBook,
 } = require("../controllers/bookController");
 
+const authenticate = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
-router.post("/pridat-inzerat", createBook);
+router.post(
+    "/pridat-inzerat",
+    authenticate,
+    createBook
+);
+
 router.get("/", getBooks);
-router.delete("/moje-inzeraty/:bookId", deleteBook);
-router.post("/moje-inzeraty/:bookId", updateBook);
+
+router.delete(
+    "/moje-inzeraty/:bookId",
+    authenticate,
+    deleteBook
+);
+
+router.post(
+    "/moje-inzeraty/:bookId",
+    authenticate,
+    updateBook
+);
 
 module.exports = router;

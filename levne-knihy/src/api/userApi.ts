@@ -1,5 +1,6 @@
 import { User, LoginData, UserFormData } from "../components/user/types";
 import { API_URL } from "../config";
+import { getAuthHeaders } from "./authApi";
 import { toast } from "react-toastify";
 
 /** Načte aktuálně přihlášeného uživatele. */
@@ -10,10 +11,8 @@ export const getCurrentUser = async (): Promise<User> => {
         headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
+            ...getAuthHeaders(),
         },
-        body: JSON.stringify({
-            token: window.localStorage.getItem("token"),
-        }),
     });
 
     const data = await response.json();
@@ -37,14 +36,13 @@ export const updateUser = async (
         headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
+            ...getAuthHeaders(),
         },
         body: JSON.stringify({
-            uname: user.uname,
             fname: user.fname,
             lname: user.lname,
             email: user.email,
             phone: user.phone,
-            _id: user._id,
         }),
     });
 
@@ -102,7 +100,7 @@ export const loginUser = async (
         );
     }
 
-    return data.data;
+    return data.token;
 };
 
 /** Odhlásí uživatele. */
@@ -122,6 +120,5 @@ function useLogout() {
         logout,
     };
 }
-
 
 export default useLogout;

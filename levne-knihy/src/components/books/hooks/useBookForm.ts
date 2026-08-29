@@ -1,13 +1,13 @@
 import { useState } from "react";
 import React from "react";
-import { Book, BookFormData } from "../types";
+import { Book, BookFormData, BookState } from "../types";
 
 export const emptyBook: BookFormData = {
     name: "",
     author: "",
     description: "",
     pages: "",
-    state: "",
+    state: BookState.NEW,
     price: "",
     delivery: "",
     image: "",

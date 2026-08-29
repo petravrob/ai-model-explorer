@@ -1,5 +1,5 @@
 import React from "react";
-import { BookFormProps } from "../types";
+import { BookFormProps, BookState } from "../types";
 
 /** Zobrazuje formulář pro vytvoření nebo úpravu inzerátu knihy */
 function BookForm({
@@ -70,58 +70,25 @@ function BookForm({
 
                     <div id="state">
 
-                        <div className="book-state">
-                            <input
-                                type="radio"
-                                id="state-new"
-                                name="state"
-                                value="nová"
-                                checked={book.state === "nová"}
-                                required
-                                onChange={onChange}
-                            />
-                            <label htmlFor="state-new">Nová</label>
-                        </div>
+                        {Object.values(BookState).map((state) => (
+                            <label
+                                className="book-state"
+                                key={state}
+                                htmlFor={`state-${state}`}
+                            >
+                                <input
+                                    type="radio"
+                                    id={`state-${state}`}
+                                    name="state"
+                                    value={state}
+                                    checked={book.state === state}
+                                    required
+                                    onChange={onChange}
+                                />
 
-                        <div className="book-state">
-                            <input
-                                type="radio"
-                                id="state-excellent"
-                                name="state"
-                                value="velmi dobrý"
-                                checked={book.state === "velmi dobrý"}
-                                onChange={onChange}
-                            />
-                            <label htmlFor="state-excellent">
-                                Velmi dobrý
+                                <span>{state}</span>
                             </label>
-                        </div>
-
-                        <div className="book-state">
-                            <input
-                                type="radio"
-                                id="state-good"
-                                name="state"
-                                value="dobrý"
-                                checked={book.state === "dobrý"}
-                                onChange={onChange}
-                            />
-                            <label htmlFor="state-good">Dobrý</label>
-                        </div>
-
-                        <div className="book-state">
-                            <input
-                                type="radio"
-                                id="state-poor"
-                                name="state"
-                                value="horší stav"
-                                checked={book.state === "horší stav"}
-                                onChange={onChange}
-                            />
-                            <label htmlFor="state-poor">
-                                Horší stav
-                            </label>
-                        </div>
+                        ))}
 
                     </div>
                 </div>

@@ -36,7 +36,7 @@ function useAddBookAdvertisement() {
 
         try {
 
-            await addBook(user, newBook);
+            await addBook(newBook);
 
             toast.success("Kniha byla přidána.");
 
