@@ -30,6 +30,7 @@ function useUser() {
         useState<boolean>(false);
 
 
+    // Přechod do režimu úpravy uživatele
     const handleEdit = (): void => {
 
         if (!user) {
@@ -73,8 +74,12 @@ function useUser() {
                 error
             );
 
-            toast.error("Údaje se nepodařilo upravit.");
-        
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "Údaje se nepodařilo upravit.";
+
+            toast.error(errorMessage);
         }
 
     };

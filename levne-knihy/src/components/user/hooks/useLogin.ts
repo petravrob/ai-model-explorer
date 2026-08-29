@@ -67,8 +67,12 @@ function useLogIn() {
                 error
             );
 
-            toast.error("Přihlášení nebylo úspěšné.");
-        
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "Přihlášení nebylo úspěšné.";
+
+            toast.error(errorMessage);
         }
 
     };

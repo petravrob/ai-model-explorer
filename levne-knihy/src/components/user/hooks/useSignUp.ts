@@ -72,8 +72,12 @@ function useSignUp() {
                 error
             );
 
-            toast.error("Registrace nebyla úspěšná.");
-        
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "Registrace nebyla úspěšná.";
+
+            toast.error(errorMessage);
         }
 
     };

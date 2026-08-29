@@ -42,9 +42,12 @@ function useCurrentUser(loginNotRequired: boolean = true) {
                     error
                 );
 
-                setError(
-                    "Nepodařilo se načíst uživatele."
-                );
+                const errorMessage =
+                    error instanceof Error
+                        ? error.message
+                        : "Nepodařilo se načíst uživatele.";
+
+                setError(errorMessage);
 
             } finally {
 

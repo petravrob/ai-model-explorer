@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-import { getCurrentUser } from "../../../api/userApi";
 import { addBook } from "../../../api/booksApi";
 import useBookForm from "./useBookForm";
 import useCurrentUser from "../../user/hooks/useCurrentUser";
 
 
+/** Umožňuje vytvoření nového inzerátu */
 function useAddBookAdvertisement() {
 
     // aktuálně přihlášený uživatel
     const {
         user,
     } = useCurrentUser();
+
 
     // Stav formuláře a převod obrázku
     const {
@@ -50,7 +50,12 @@ function useAddBookAdvertisement() {
                 error
             );
 
-            toast.error("Knihu se nepodařilo přidat.");
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "Knihu se nepodařilo přidat.";
+
+            toast.error(errorMessage);
         }
 
     };
