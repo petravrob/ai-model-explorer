@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-require("./userDetails");
-require("./bookDetails");
+require("./models/User.js");
+require("./models/Book.js");
 require("dotenv").config();
 
 
-const User = mongoose.model("UserInfo");
-const Book = mongoose.model("BookInfo");
+const User = mongoose.model("User");
+const Book = mongoose.model("Book");
 
 // mongodb connection
 const mongoUrl = process.env.MONGO_URI;
