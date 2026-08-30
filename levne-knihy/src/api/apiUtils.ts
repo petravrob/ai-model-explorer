@@ -2,13 +2,13 @@ interface ApiError {
     msg?: string;
 }
 
-export interface ApiResponse<T = unknown> {
-    status?: string;
-    data?: T;
-    error?: string;
+export default interface ApiResponse<T> {
+    status: string;
+    data: T;
+    token: string;
     errors?: ApiError[];
+    error?: string;
 }
-
 
 /**Zpracuje API odpověď a v případě chyby vyhodí error s chybovou hláškou z backendu.*/
 export const handleApiResponse = async <T>(
