@@ -1,0 +1,9 @@
+.my-items-btn {
+  display: flex;
+  flex-direction: column;
+}
+
+.my-items-btn button {
+  width: 156px;
+  margin: 10px 0;
+}

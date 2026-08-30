@@ -1,6 +1,6 @@
-import useSignUp from "../hooks/useSignUp";
+import useSignUp from "../../hooks/useSignUp";
 
-import UserForm from "./UserForm";
+import UserForm from "../UserForm/UserForm";
 
 /** Registrace uživatele. */
 function SignUp() {

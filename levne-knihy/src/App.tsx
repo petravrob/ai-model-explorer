@@ -1,10 +1,12 @@
+import "./styles/global.css";
+import "./styles/buttons.css";
 import "./App.css";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Footer from './components/layout/Footer.tsx';
-import Header from "./components/layout/Header.tsx"
-import Main from "./components/layout/Main.tsx"
+import Footer from './features/layout/components/Footer/Footer.tsx';
+import Header from "./features/layout/components/Header/Header.tsx"
+import Main from "./features/layout/components/Main/Main.tsx"
 
 function App() {
   return (

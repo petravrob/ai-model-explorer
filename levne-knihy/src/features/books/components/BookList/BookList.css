@@ -1,0 +1,43 @@
+
+#books ul {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: left;
+}
+
+#books li {
+  width: 285px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 30px 0;
+  padding: 30px 0;
+  text-align: center;
+}
+
+#books li:hover {
+  background-color: #fcd6b3;
+}
+
+.book-image {
+  width: 155px;
+  margin: auto;
+  padding: 15px 0;
+}
+
+.book-name {
+  padding-bottom: 5px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.book-author {
+  font-size: 18px;
+  font-weight: 300;
+}
+
+.book-price {
+  font-size: 20px;
+  font-weight: 600;
+}
