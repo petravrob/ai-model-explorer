@@ -1,4 +1,4 @@
-import { UserDetailsProps } from "../types";
+import { UserDetailsProps } from "../../types";
 
 /** Zobrazuje detailní informace o uživateli. */
 function UserDetails({

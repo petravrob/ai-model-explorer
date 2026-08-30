@@ -1,0 +1,11 @@
+.book-detail {
+  display: flex;
+}
+
+.book-container {
+  min-width: 230px;
+}
+
+.book-detail-text {
+  margin: 10px 0;
+}

@@ -1,5 +1,6 @@
-import React from "react";
-import { BookFormProps, BookState } from "../types";
+import "./BookForm.css";
+
+import { BookFormProps, BookState } from "../../types";
 
 /** Zobrazuje formulář pro vytvoření nebo úpravu inzerátu knihy */
 function BookForm({

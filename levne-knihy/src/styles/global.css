@@ -1,0 +1,51 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f1e8e0;
+}
+
+.container {
+  max-width: 1200px;
+  border-radius: 22px;
+  margin: auto;
+  padding: 0 10px;
+}
+
+main {
+  min-height: 40vh;
+  margin: 62px 0 150px;
+  padding: 30px;
+  background-color: #fff;
+  border-bottom-left-radius: 22px;
+  border-bottom-right-radius: 22px;
+}
+
+main ul {
+  list-style: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:visited {
+  color: #000;
+}
+
+button {
+  background: none;
+  border: none;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  color: #000;
+  text-decoration: none;
+}
+
+button:hover {
+  text-decoration: underline;
+}

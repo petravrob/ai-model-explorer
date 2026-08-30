@@ -1,8 +1,10 @@
-import useBookBrowser from "../hooks/useBookBrowser";
-import { BookBrowserProps } from "../types";
-import BookDetail from "./BookDetail";
-import BookForm from "./BookForm";
-import BookList from "./BookList";
+import "./BookBrowser.css";
+
+import useBookBrowser from "../../hooks/useBookBrowser";
+import { BookBrowserProps } from "../../types";
+import BookDetail from "../BookDetail/BookDetail";
+import BookForm from "../BookForm/BookForm";
+import BookList from "../BookList/BookList";
 
 /** Rozhraní pro zobrazení inzerátu knih, jejich detailu, umožňuje také jejich úpravu. */
 function BookBrowser({

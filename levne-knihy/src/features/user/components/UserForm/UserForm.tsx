@@ -1,4 +1,4 @@
-import { UserFormProps } from "../types";
+import { UserFormProps } from "../../types";
 
 /** Formulář pro úpravu nebo registraci údajů o uživateli. */
 function UserForm({

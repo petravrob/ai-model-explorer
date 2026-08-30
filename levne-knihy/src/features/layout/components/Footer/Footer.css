@@ -1,0 +1,38 @@
+footer {
+  background-color: #fcd6b3;
+}
+
+#school-project-information {
+  padding: 45px 0 10px;
+  text-align: center;
+}
+
+#autor-contact {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.autor-contact-section {
+  max-width: 390px;
+  padding: 10px;
+}
+
+footer h2 {
+  font-size: 18px;
+}
+
+#copyright {
+  margin: 0;
+  padding: 10px 0 15px;
+  text-align: center;
+}
+
+#contact-doesnt-exist {
+  padding-top: 60px;
+  text-align: center;
+}
+
+footer a {
+  color: #00034b;
+}

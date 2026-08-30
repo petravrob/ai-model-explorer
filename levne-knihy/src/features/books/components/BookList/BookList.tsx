@@ -1,4 +1,6 @@
-import { BookListProps } from "../types";
+import "./BookList.css";
+
+import { BookListProps } from "../../types";
 
 /** Zobrazuje senzma knih */
 function BookList({ books, onBookClick }: BookListProps) {

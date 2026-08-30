@@ -1,5 +1,5 @@
-import useAddBookAdvertisement from "../hooks/useAddBookAdvertisement.ts";
-import BookForm from "./BookForm.tsx";
+import useAddBookAdvertisement from "../../hooks/useAddBookAdvertisement.ts";
+import BookForm from "../BookForm/BookForm.tsx";
 
 /** Rozhraní pro přidání nové knihy. */
 function AddBookAdvertisement() {

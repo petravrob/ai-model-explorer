@@ -1,7 +1,7 @@
-import useUser from "../hooks/useUser";
+import useUser from "../../hooks/useUser";
 
-import UserDetails from "./UserDetails";
-import UserForm from "./UserForm";
+import UserDetails from "../UserDetails/UserDetails";
+import UserForm from "../UserForm/UserForm";
 
 /** Zobrazuje údaje uživatele a umožňuje jejich upravení. */
 function User() {

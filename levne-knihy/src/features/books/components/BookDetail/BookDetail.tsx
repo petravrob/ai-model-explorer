@@ -1,4 +1,6 @@
-import { Book } from "../types";
+import "./BookDetail.css";
+
+import { Book } from "../../types";
 
 /** Zobrazuje detailní informace o knize. */
 function BookDetail({ book }: { book: Book }) {

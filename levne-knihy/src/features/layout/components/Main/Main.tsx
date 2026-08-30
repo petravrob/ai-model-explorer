@@ -1,9 +1,9 @@
 import { Routes, Route } from "react-router-dom";
-import AddBookAdvertisement from "../books/components/AddBookAdvertisement.js";
-import SignUp from "../user/components/SignUp.tsx";
-import BookBrowser from "../books/components/BookBrowser.tsx";
-import User from "../user/components/User.js";
-import LogIn from "../user/components/LogIn.tsx";
+import SignUp from "../../../user/components/SignUp/SignUp.tsx";
+import AddBookAdvertisement from "../../../books/components/AddBookAdvertisement/AddBookAdvertisement.tsx";
+import BookBrowser from "../../../books/components/BookBrowser/BookBrowser.tsx";
+import LogIn from "../../../user/components/LogIn/LogIn.tsx";
+import User from "../../../user/components/User/User.tsx";
 
 function Main() {
     return (

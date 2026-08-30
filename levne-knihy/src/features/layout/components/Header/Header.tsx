@@ -1,7 +1,9 @@
+import "./Header.css";
+
 import { NavLink } from "react-router-dom";
 
-import useCurrentUser from "../user/hooks/useCurrentUser";
-import useLogout from "../../api/userApi";
+import useCurrentUser from "../../../user/hooks/useCurrentUser";
+import useLogout from "../../../../api/userApi";
 
 function Header() {
 

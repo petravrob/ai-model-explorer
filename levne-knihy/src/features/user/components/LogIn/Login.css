@@ -1,0 +1,30 @@
+.auth-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: left;
+}
+
+.auth-inner h2 {
+  margin: 20px 0;
+}
+
+.auth-inner .mb-3 {
+  margin-bottom: 15px;
+}
+
+.auth-inner label {
+  font-weight: bold;
+}
+
+.auth-inner input[type="text"],
+.auth-inner input[type="email"],
+.auth-inner input[type="password"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+.auth-inner .d-grid {
+  margin-top: 20px;
+}
