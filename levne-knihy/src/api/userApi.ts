@@ -1,4 +1,4 @@
-import { User, LoginData, UserFormData } from "../components/user/types";
+import { User, LoginData, UserFormData } from "../features/user/types";
 import { API_URL } from "../config";
 import { getAuthHeaders } from "./authApi";
 import { handleApiResponse } from "./apiUtils";
@@ -91,7 +91,7 @@ export const loginUser = async (
         "Přihlášení nebylo úspěšné."
     );
 
-    return data.data!.token;
+    return data.token;
 };
 
 /** Odhlásí uživatele. */
