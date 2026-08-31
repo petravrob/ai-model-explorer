@@ -5,26 +5,25 @@ import { BookListProps } from "../../types";
 /** Zobrazuje senzma knih */
 function BookList({ books, onBookClick }: BookListProps) {
     return (
-        <ul>
+        <ul className="book-list">
             {books.map((book) => (
                 <li
-                    className="book"
+                    className="book-list__item"
                     key={book._id}
                     onClick={() => onBookClick(book)}
                 >
-                    <p className="book-name">{book.name}</p>
-
-                    <p className="book-author">{book.author}</p>
-
                     <img
-                        className="book-image"
                         src={book.image}
                         alt={book.name}
                     />
 
-                    <p className="book-price">
-                        {book.price} Kč,-
-                    </p>
+                    <div>
+                        <p className="book-list__name">{book.name}</p>
+                        <p className="book-list__author">{book.author}</p>
+                        <p className="book-list__price">
+                            {book.price} Kč,-
+                        </p>
+                    </div>
                 </li>
             ))}
         </ul>

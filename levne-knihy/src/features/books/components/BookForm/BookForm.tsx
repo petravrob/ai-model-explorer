@@ -13,49 +13,49 @@ function BookForm({
 }: BookFormProps) {
 
     return (
-        <form onSubmit={onSubmit}>
-            <div className="logged-in-left">
+        <form onSubmit={onSubmit} className="book-form">
 
-                <div>
-                    <label htmlFor="name">Název:</label>
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={book.name}
-                        required
-                        onChange={onChange}
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="author">Autor:</label>
-                    <input
-                        type="text"
-                        id="author"
-                        name="author"
-                        value={book.author}
-                        required
-                        onChange={onChange}
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="description">Popis:</label>
-                    <textarea
-                        id="description"
-                        name="description"
-                        value={book.description}
-                        onChange={onChange}
-                    />
-                </div>
-
+            <div className="form-field">
+                <label htmlFor="name">Název</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={book.name}
+                    required
+                    onChange={onChange}
+                    placeholder="Např. Malý princ"
+                />
             </div>
 
-            <div className="logged-in-right">
+            <div className="form-field">
+                <label htmlFor="author">Autor</label>
+                <input
+                    type="text"
+                    id="author"
+                    name="author"
+                    value={book.author}
+                    required
+                    onChange={onChange}
+                    placeholder="Např. Antoine de Saint-Exupéry"
+                />
+            </div>
 
-                <div>
-                    <label htmlFor="pages">Počet stránek:</label>
+            <div className="form-field">
+                <label htmlFor="description">Popis</label>
+                <textarea
+                    id="description"
+                    name="description"
+                    value={book.description}
+                    onChange={onChange}
+                    placeholder="Krátký popis stavu a obsahu knihy..."
+                    rows={4}
+                />
+            </div>
+
+            <div className="form-row form-row-2">
+                <div className="form-field">
+                    <label htmlFor="pages">Počet stránek</label>
                     <input
                         type="number"
                         id="pages"
@@ -63,64 +63,15 @@ function BookForm({
                         value={book.pages}
                         required
                         onChange={onChange}
+                        placeholder="0"
+                        min="1"
                     />
                 </div>
 
-                <div>
-                    <label>Stav knihy:</label>
-
-                    <div id="state">
-
-                        {Object.values(BookState).map((state) => (
-                            <label
-                                className="book-state"
-                                key={state}
-                                htmlFor={`state-${state}`}
-                            >
-                                <input
-                                    type="radio"
-                                    id={`state-${state}`}
-                                    name="state"
-                                    value={state}
-                                    checked={book.state === state}
-                                    required
-                                    onChange={onChange}
-                                />
-
-                                <span>{state}</span>
-                            </label>
-                        ))}
-
-                    </div>
-                </div>
-
-                <div>
-                    <label htmlFor="price">Cena:</label>
-                    <input
-                        type="number"
-                        id="price"
-                        name="price"
-                        value={book.price}
-                        required
-                        onChange={onChange}
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="delivery">Poštovné:</label>
-                    <input
-                        type="number"
-                        id="delivery"
-                        name="delivery"
-                        value={book.delivery}
-                        required
-                        onChange={onChange}
-                    />
-                </div>
 
                 {showImage && (
-                    <div>
-                        <label htmlFor="image">Obrázek:</label>
+                    <div className="form-field">
+                        <label htmlFor="image">Obrázek obálky</label>
                         <input
                             type="file"
                             id="image"
@@ -132,10 +83,67 @@ function BookForm({
                     </div>
                 )}
 
+            </div>
+
+
+            <div className="form-field">
+                <label>Stav knihy</label>
+                <div className="book-form__states">
+                    {Object.values(BookState).map((state) => (
+                        <label
+                            className="book-form__state"
+                            key={state}
+                            htmlFor={`state-${state}`}
+                        >
+                            <input
+                                type="radio"
+                                id={`state-${state}`}
+                                name="state"
+                                value={state}
+                                checked={book.state === state}
+                                required
+                                onChange={onChange}
+                            />
+                            <span>{state}</span>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
+            <div className="form-row form-row-2">
+                <div className="form-field">
+                    <label htmlFor="price">Cena (Kč)</label>
+                    <input
+                        type="number"
+                        id="price"
+                        name="price"
+                        value={book.price}
+                        required
+                        onChange={onChange}
+                        placeholder="0"
+                        min="0"
+                    />
+                </div>
+
+                <div className="form-field">
+                    <label htmlFor="delivery">Poštovné (Kč)</label>
+                    <input
+                        type="number"
+                        id="delivery"
+                        name="delivery"
+                        value={book.delivery}
+                        required
+                        onChange={onChange}
+                        placeholder="0"
+                        min="0"
+                    />
+                </div>
+            </div>
+
+            <div className="form-actions">
                 <button className="btn" type="submit">
                     {submitText}
                 </button>
-
             </div>
         </form>
     );

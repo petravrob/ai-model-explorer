@@ -1,55 +1,40 @@
+import "./UserDetails.css";
+
 import { UserDetailsProps } from "../../types";
 
-/** Zobrazuje detailní informace o uživateli. */
-function UserDetails({
-    user,
-    onEdit,
-}: UserDetailsProps) {
-
+/** Zobrazuje základní informace o uživateli. */
+function UserDetails({ user, onEdit }: UserDetailsProps) {
     return (
-        <div id="user">
+        <div className="user-details">
+            <div className="user-details__header">
+                <div className="user-details__avatar" aria-hidden="true"></div>
 
-            <p className="user-detail-text">
-                Přezdívka:
-                <br />
-                <b>{user.uname}</b>
-            </p>
+                <div>
+                    <h2>{user.fname} {user.lname}</h2>
+                    <p>@{user.uname}</p>
+                </div>
+            </div>
 
-            <p className="user-detail-text">
-                Jméno:
-                <br />
-                <b>{user.fname}</b>
-            </p>
+            <div className="user-details__info">
+                <div>
+                    <span>Email</span>
+                    <strong>{user.email}</strong>
+                </div>
 
-            <p className="user-detail-text">
-                Příjmení:
-                <br />
-                <b>{user.lname}</b>
-            </p>
-
-            <p className="user-detail-text">
-                Telefon:
-                <br />
-                <b>{user.phone}</b>
-            </p>
-
-            <p className="user-detail-text">
-                Email:
-                <br />
-                <b>{user.email}</b>
-            </p>
+                <div>
+                    <span>Telefon</span>
+                    <strong>{user.phone}</strong>
+                </div>
+            </div>
 
             <button
                 type="button"
-                className="btn"
                 onClick={onEdit}
             >
                 Upravit osobní údaje
             </button>
-
         </div>
     );
 }
-
 
 export default UserDetails;

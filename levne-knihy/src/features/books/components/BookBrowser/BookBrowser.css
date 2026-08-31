@@ -1,9 +1,43 @@
-.my-items-btn {
-  display: flex;
-  flex-direction: column;
+.book-browser {
+    width: 100%;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 1.75rem 1.5rem 3.5rem;
 }
 
-.my-items-btn button {
-  width: 156px;
-  margin: 10px 0;
+.book-browser h2 {
+    max-width: var(--form-max-width);
+    margin: 0 auto 1.5rem;
+    color: var(--text);
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.book-browser__message {
+    margin: 3.5rem 0;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.book-browser__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+}
+
+@media (max-width: 600px) {
+    .book-browser {
+        padding: 1.25rem 1rem 2.5rem;
+    }
+
+    .book-browser__actions {
+        flex-direction: column;
+    }
+
+    .book-browser__actions .btn {
+        width: 100%;
+    }
 }

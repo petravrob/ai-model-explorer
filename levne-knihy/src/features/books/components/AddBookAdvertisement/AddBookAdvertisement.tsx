@@ -1,5 +1,6 @@
 import useAddBookAdvertisement from "../../hooks/useAddBookAdvertisement.ts";
 import BookForm from "../BookForm/BookForm.tsx";
+import "./AddBookAdvertisement.css";
 
 /** Rozhraní pro přidání nové knihy. */
 function AddBookAdvertisement() {
@@ -14,19 +15,14 @@ function AddBookAdvertisement() {
 
 
     return (
-        <div id="add-item">
+        <div className="add-book">
 
             {!user ? (
-
-                <h4>
-                    Do této sekce mohou přispívat pouze
-                    přihlášení uživatelé.
-                </h4>
-
+                <p className="add-book__message">
+                    Do této sekce mohou přispívat pouze přihlášení uživatelé.
+                </p>
             ) : (
-
-                <div className="logged-in">
-
+                <>
                     <h2>Přidat inzerát</h2>
 
                     <BookForm
@@ -37,14 +33,10 @@ function AddBookAdvertisement() {
                         showImage={true}
                         onImageChange={handleImageChange}
                     />
-
-                </div>
-
+                </>
             )}
-
         </div>
     );
 }
-
 
 export default AddBookAdvertisement;

@@ -1,43 +1,111 @@
-#header {
-  width: 100%;
-  height: 130px;
-  margin-top: 150px;
-  background: #df9149;
-  border-top-left-radius: 22px;
-  border-top-right-radius: 22px;
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    background: var(--background);
+    border-bottom: 1px solid var(--border);
 }
 
-#header h1 {
-  overflow: hidden;
-  padding: 38px 30px;
-  color: #ffffff;
-  font-size: 2.5em;
-  font-weight: 700;
-  text-align: left;
+.header__container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 1.75rem;
 }
 
-#nav-bar {
-  display: flex;
-  justify-content: space-between;
-  list-style: none;
-  background-color: #ffffff;
-  border-bottom: 2px solid #df9149;
+.header__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--header-height);
 }
 
-.nav-bar-div {
-  display: flex;
-  justify-content: stretch;
+.header h1 {
+    margin: 0;
+    color: var(--primary);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.5rem;
 }
 
-#nav-bar li {
-  padding: 20px 30px;
+.header__auth {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
 }
 
-#nav-bar li:hover {
-  background-color: #fcd6b3;
-  text-decoration: underline;
+.header__auth a {
+    color: #444;
+    font-size: .9rem;
+    text-decoration: none;
 }
 
-#nav-bar li a {
-  text-decoration: none;
+.header__auth a:hover {
+    color: var(--primary);
+}
+
+.header .register {
+    padding: .4rem 1rem;
+    border-radius: 999px;
+    background: var(--primary);
+    color: white;
+}
+
+.header .register:hover {
+    background: var(--primary-hover);
+}
+
+.header nav ul {
+    display: flex;
+    gap: .15rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.header nav a {
+    display: block;
+    padding: .85rem 1.15rem;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    font-size: .925rem;
+    text-decoration: none;
+}
+
+.header nav a:hover,
+.header nav a.active {
+    color: var(--primary);
+}
+
+.header nav a.active {
+    border-bottom-color: var(--primary);
+    font-weight: 600;
+}
+
+@media (max-width: 700px) {
+    .header__container {
+        padding: 0 1rem;
+    }
+
+    .header__top {
+        height: 56px;
+    }
+
+    .header h1 {
+        font-size: 1.3rem;
+    }
+
+    .header nav ul {
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .header nav ul::-webkit-scrollbar {
+        display: none;
+    }
+
+    .header nav a {
+        padding: .75rem .9rem;
+        white-space: nowrap;
+        font-size: .875rem;
+    }
 }

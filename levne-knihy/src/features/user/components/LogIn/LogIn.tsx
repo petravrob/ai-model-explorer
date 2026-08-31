@@ -2,84 +2,51 @@ import "./Login.css";
 
 import useLogIn from "../../hooks/useLogin";
 
-/** Přihlášení uživatele (user name + password form). */
+/** Přihlášení uživatele. */
 function LogIn() {
-
     const {
         formData,
         handleChange,
         handleSubmit,
     } = useLogIn();
 
-
     return (
-        <div className="auth-wrapper">
+        <div className="login">
+            <form onSubmit={handleSubmit}>
+                <div className="form-field">
+                    <label htmlFor="uname">Přezdívka</label>
+                    <input
+                        id="uname"
+                        name="uname"
+                        type="text"
+                        value={formData.uname}
+                        onChange={handleChange}
+                        required
+                        placeholder="Vaše přezdívka"
+                    />
+                </div>
 
-            <div className="auth-inner">
+                <div className="form-field">
+                    <label htmlFor="password">Heslo</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        placeholder="••••••••"
+                    />
+                </div>
 
-                <form onSubmit={handleSubmit}>
-
-                    <h2>
+                <div className="form-actions">
+                    <button type="submit" className="btn">
                         Přihlásit se
-                    </h2>
-
-
-                    <div className="mb-3">
-
-                        <label htmlFor="uname">
-                            Přezdívka
-                        </label>
-
-                        <input
-                            id="uname"
-                            name="uname"
-                            type="text"
-                            className="form-control"
-                            value={formData.uname}
-                            onChange={handleChange}
-                            required
-                        />
-
-                    </div>
-
-
-                    <div className="mb-3">
-
-                        <label htmlFor="password">
-                            Heslo
-                        </label>
-
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            className="form-control"
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                        />
-
-                    </div>
-
-
-                    <div className="d-grid">
-
-                        <button
-                            type="submit"
-                            className="btn btn-primary"
-                        >
-                            Přihlásit se
-                        </button>
-
-                    </div>
-
-                </form>
-
-            </div>
-
+                    </button>
+                </div>
+            </form>
         </div>
     );
 }
-
 
 export default LogIn;

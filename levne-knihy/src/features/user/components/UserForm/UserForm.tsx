@@ -1,8 +1,9 @@
+import "./UserForm.css";
+
 import { UserFormProps } from "../../types";
 
 /** Formulář pro úpravu nebo registraci údajů o uživateli. */
 function UserForm({
-    title,
     formData,
     handleChange,
     handleSubmit,
@@ -12,166 +13,104 @@ function UserForm({
 }: UserFormProps) {
 
     return (
-        <div className="auth-wrapper">
+        <div className="user-form-page">
 
-            <div className="auth-inner">
+            <form className="book-form" onSubmit={handleSubmit}>
 
-                <form onSubmit={handleSubmit}>
-
-                    <h2>
-                        {title}
-                    </h2>
-
-
-                    {showUsername && (
-
-                        <div className="mb-3">
-
-                            <label htmlFor="uname">
-                                Přezdívka
-                            </label>
-
-                            <input
-                                id="uname"
-                                name="uname"
-                                type="text"
-                                className="form-control"
-                                value={formData.uname ?? ""}
-                                onChange={handleChange}
-                                required
-                            />
-
-                        </div>
-
-                    )}
-
-
-                    {!showUsername && (
-
-                        <div className="mb-3">
-
-                            <label>
-                                Přezdívku nelze změnit
-                            </label>
-
-                        </div>
-
-                    )}
-
-
-                    <div className="mb-3">
-
-                        <label htmlFor="fname">
-                            Jméno
-                        </label>
-
+                {showUsername ? (
+                    <div className="form-field">
+                        <label htmlFor="uname">Přezdívka</label>
                         <input
-                            id="fname"
-                            name="fname"
+                            id="uname"
+                            name="uname"
                             type="text"
-                            className="form-control"
-                            value={formData.fname}
+                            value={formData.uname ?? ""}
                             onChange={handleChange}
                             required
+                            placeholder="Vaše přezdívka"
                         />
-
                     </div>
+                ) : (
+                    <div className="form-field">
+                        <label>Přezdívka</label>
+                        <p className="form-readonly">{formData.uname}</p>
+                    </div>
+                )}
 
+                <div className="form-field">
+                    <label htmlFor="fname">Jméno</label>
+                    <input
+                        id="fname"
+                        name="fname"
+                        type="text"
+                        value={formData.fname}
+                        onChange={handleChange}
+                        required
+                        placeholder="Jan"
+                    />
+                </div>
 
-                    <div className="mb-3">
+                <div className="form-field">
+                    <label htmlFor="lname">Příjmení</label>
+                    <input
+                        id="lname"
+                        name="lname"
+                        type="text"
+                        value={formData.lname}
+                        onChange={handleChange}
+                        required
+                        placeholder="Novák"
+                    />
+                </div>
 
-                        <label htmlFor="lname">
-                            Příjmení
-                        </label>
+                <div className="form-field">
+                    <label htmlFor="email">Email</label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        placeholder="jan@email.cz"
+                    />
+                </div>
 
+                <div className="form-field">
+                    <label htmlFor="phone">Telefon</label>
+                    <input
+                        id="phone"
+                        name="phone"
+                        type="text"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        required
+                        placeholder="777 123 456"
+                    />
+                </div>
+
+                {showPassword && (
+                    <div className="form-field">
+                        <label htmlFor="password">Heslo</label>
                         <input
-                            id="lname"
-                            name="lname"
-                            type="text"
-                            className="form-control"
-                            value={formData.lname}
+                            id="password"
+                            name="password"
+                            type="password"
+                            value={formData.password ?? ""}
                             onChange={handleChange}
                             required
+                            placeholder="••••••••"
                         />
-
                     </div>
+                )}
 
+                <div className="form-actions">
+                    <button type="submit" className="btn">
+                        {submitText}
+                    </button>
+                </div>
 
-                    <div className="mb-3">
-
-                        <label htmlFor="email">
-                            Email
-                        </label>
-
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            className="form-control"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                        />
-
-                    </div>
-
-
-                    <div className="mb-3">
-
-                        <label htmlFor="phone">
-                            Telefon
-                        </label>
-
-                        <input
-                            id="phone"
-                            name="phone"
-                            type="text"
-                            className="form-control"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            required
-                        />
-
-                    </div>
-
-
-                    {showPassword && (
-
-                        <div className="mb-3">
-
-                            <label htmlFor="password">
-                                Heslo
-                            </label>
-
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                className="form-control"
-                                value={formData.password ?? ""}
-                                onChange={handleChange}
-                                required
-                            />
-
-                        </div>
-
-                    )}
-
-
-                    <div className="d-grid">
-
-                        <button
-                            type="submit"
-                            className="btn btn-primary"
-                        >
-                            {submitText}
-                        </button>
-
-                    </div>
-
-                </form>
-
-            </div>
+            </form>
 
         </div>
     );

@@ -1,11 +1,134 @@
 .book-detail {
-  display: flex;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 3rem;
+    max-width: 900px;
+    margin-top: 1.5rem;
 }
 
-.book-container {
-  min-width: 230px;
+.book-detail__cover {
+    position: sticky;
+    top: 6rem;
 }
 
-.book-detail-text {
-  margin: 10px 0;
+.book-detail__cover img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 10px;
+    background: #f0ebe3;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .1);
+}
+
+.book-detail__info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    min-width: 0;
+}
+
+.book-detail header {
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.book-detail h2 {
+    margin: 0 0 .35rem;
+    color: var(--text);
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.book-detail .author {
+    margin: 0 0 .85rem;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+}
+
+.book-detail .price {
+    margin: 0;
+    color: var(--primary);
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.book-detail__details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem 1.5rem;
+}
+
+.book-detail__details div {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    min-width: 90px;
+}
+
+.book-detail__details span,
+.book-detail section h3 {
+    margin: 0 0 .5rem;
+    color: #999;
+    font-size: .7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.book-detail__details strong {
+    color: var(--text);
+    font-size: .95rem;
+    font-weight: 600;
+}
+
+.book-detail section p {
+    margin: 0;
+    color: #333;
+    font-size: .95rem;
+    line-height: 1.6;
+}
+
+.book-detail section + section {
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+}
+
+.book-detail .seller {
+    margin-bottom: .2rem;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.book-detail .phone {
+    color: #555;
+    font-size: .9rem;
+}
+
+@media (max-width: 700px) {
+    .book-detail {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        margin: 1.5rem auto 0;
+    }
+
+    .book-detail__cover {
+        position: static;
+        max-width: 220px;
+        margin: 0 auto;
+    }
+
+    .book-detail h2,
+    .book-detail .author,
+    .book-detail .price {
+        text-align: center;
+    }
+
+    .book-detail h2 {
+        font-size: 1.4rem;
+    }
+
+    .book-detail__details {
+        justify-content: center;
+    }
 }

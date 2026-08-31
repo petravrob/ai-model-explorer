@@ -5,50 +5,50 @@ import { Book } from "../../types";
 /** Zobrazuje detailní informace o knize. */
 function BookDetail({ book }: { book: Book }) {
     return (
-        <div className="book-detail">
-            <div className="book-container">
-                <h2 className="book-name">{book.name}</h2>
-                
-                <h4 className="book-author">{book.author}</h4>
-
+        <article className="book-detail">
+            <div className="book-detail__cover">
                 <img
-                    className="book-image"
                     src={book.image}
                     alt={book.name}
                 />
             </div>
 
-            <div className="book-container">
-                <p className="book-detail-text">
-                    Popis: <br />
-                    {book.description}
-                </p>
+            <div className="book-detail__info">
+                <header>
+                    <h2>{book.name}</h2>
+                    <p className="author">{book.author}</p>
+                    <p className="price">{book.price} Kč,-</p>
+                </header>
 
-                <p className="book-detail-text">
-                    Stav knihy: <b>{book.state}</b>
-                </p>
+                <div className="book-detail__details">
+                    <div>
+                        <span>Stav</span>
+                        <strong>{book.state}</strong>
+                    </div>
 
-                <p className="book-detail-text">
-                    Počet stránek: <b>{book.pages}</b>
-                </p>
+                    <div>
+                        <span>Stránek</span>
+                        <strong>{book.pages}</strong>
+                    </div>
 
-                <p className="book-detail-text">
-                    Cena: <b>{book.price} Kč,-</b>
-                </p>
+                    <div>
+                        <span>Poštovné</span>
+                        <strong>{book.delivery} Kč</strong>
+                    </div>
+                </div>
 
-                <p className="book-detail-text">
-                    Poštovné: <b>{book.delivery} Kč,-</b>
-                </p>
+                <section>
+                    <h3>Popis</h3>
+                    <p>{book.description}</p>
+                </section>
 
-                <p className="book-detail-text">
-                    Prodávající: <b>{book.fname} {book.lname}</b>
-                </p>
-
-                <p className="book-detail-text">
-                    Telefon: <b>{book.phone}</b>
-                </p>
+                <section>
+                    <h3>Prodejce</h3>
+                    <p className="seller">{book.fname} {book.lname}</p>
+                    <p className="phone">{book.phone}</p>
+                </section>
             </div>
-        </div>
+        </article>
     );
 }
 
