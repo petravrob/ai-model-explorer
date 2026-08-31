@@ -1,3 +1,5 @@
+import "./User.css";
+
 import useUser from "../../hooks/useUser";
 
 import UserDetails from "../UserDetails/UserDetails";
@@ -23,52 +25,43 @@ function User() {
     if (loading) {
 
         return (
-            <div id="user">
-                <p>Načítání údajů...</p>
+            <div className="user">
+                <p className="user__message">Načítání údajů...</p>
             </div>
         );
-
     }
 
-
     if (error || !user) {
-
         return (
-            <div id="user">
-                <p>
+            <div className="user">
+                <p className="user__message">
                     {error ?? "Nepodařilo se načíst uživatele."}
                 </p>
             </div>
         );
-
     }
 
-
-    return (
-        <div>
-
-            {update ? (
-
+    if (update) {
+        return (
+            <div className="user">
                 <UserForm
-                    title="Upravit osobní údaje"
                     formData={formData}
                     handleChange={handleChange}
                     handleSubmit={handleSubmit}
-                    submitText="Upravit"
+                    submitText="Upravit osobní údaje"
                 />
+            </div>
+        );
+    }
 
-            ) : (
-
-                <UserDetails
-                    user={user}
-                    onEdit={handleEdit}
-                />
-
-            )}
-
+    return (
+        <div className="user">
+            <UserDetails
+                user={user}
+                onEdit={handleEdit}
+            />
         </div>
     );
 }
-
 
 export default User;

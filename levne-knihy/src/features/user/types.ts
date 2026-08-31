@@ -31,8 +31,6 @@ export interface UserDetailsProps {
 
 
 export interface UserFormProps {
-    title: string;
-
     formData: UserFormData;
 
     handleChange: (

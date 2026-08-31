@@ -1,5 +1,4 @@
 import "./styles/global.css";
-import "./styles/buttons.css";
 import "./App.css";
 
 import { ToastContainer } from "react-toastify";

@@ -1,0 +1,18 @@
+.user {
+    width: 100%;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 1.75rem;
+}
+
+.user__message {
+    margin: 3.5rem 0;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .user {
+        padding: 1.25rem 1rem 2.5rem;
+    }
+}

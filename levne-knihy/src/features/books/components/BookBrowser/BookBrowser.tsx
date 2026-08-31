@@ -32,70 +32,50 @@ function BookBrowser({
 
     if (loading) {
         return (
-            <div id="books">
-                <p>Načítání knih...</p>
+            <div className="book-browser">
+                <p className="book-browser__message">Načítání knih...</p>
             </div>
         );
     }
-
 
     if (error) {
         return (
-            <div id="books">
-                <p>{error}</p>
+            <div className="book-browser">
+                <p className="book-browser__message">{error}</p>
             </div>
         );
     }
 
-
-    // Režim úpravy knihy
     if (update) {
-
         return (
-            <div id="books">
+            <div className="book-browser">
+                <h2>Upravit inzerát</h2>
 
-                <div className="logged-in">
-
-                    <h2>
-                        Upravit inzerát
-                    </h2>
-
-                    <BookForm
-                        book={editedBook}
-                        onChange={handleChange}
-                        onSubmit={handleSubmit}
-                        submitText="Upravit inzerát"
-                        showImage={false}
-                        onImageChange={handleImageChange}
-                    />
-
-                </div>
-
+                <BookForm
+                    book={editedBook}
+                    onChange={handleChange}
+                    onSubmit={handleSubmit}
+                    submitText="Upravit inzerát"
+                    showImage={false}
+                    onImageChange={handleImageChange}
+                />
             </div>
         );
     }
 
-
-    // Seznam knih
     if (!selectedBook) {
-
         return (
-            <div id="books">
-
+            <div className="book-browser">
                 <BookList
                     books={books}
                     onBookClick={handleBookClick}
                 />
-
             </div>
         );
     }
 
-
-    // Detail vybrané knihy
     return (
-        <div id="books">
-
+        <div className="book-browser">
             <button
                 type="button"
                 className="btn"
@@ -104,16 +84,10 @@ function BookBrowser({
                 Zpět na seznam
             </button>
 
-
-            <BookDetail
-                book={selectedBook}
-            />
-
+            <BookDetail book={selectedBook} />
 
             {mode === "user" && (
-
-                <div className="my-items-btn">
-
+                <div className="book-browser__actions">
                     <button
                         type="button"
                         className="btn"
@@ -122,7 +96,6 @@ function BookBrowser({
                         Smazat inzerát
                     </button>
 
-
                     <button
                         type="button"
                         className="btn"
@@ -130,14 +103,10 @@ function BookBrowser({
                     >
                         Upravit inzerát
                     </button>
-
                 </div>
-
             )}
-
         </div>
     );
 }
-
 
 export default BookBrowser;
