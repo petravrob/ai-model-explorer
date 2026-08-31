@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 
 import useCurrentUser from "../../../user/hooks/useCurrentUser";
 import useLogout from "../../../../api/userApi";
-import UserDropdown from "../../../user/components/UserDropDown/UserDropDown";
+import UserDropdown from "../../../user/components/UserDropdown/UserDropdown";
 
 function Header() {
     const { user } = useCurrentUser();
