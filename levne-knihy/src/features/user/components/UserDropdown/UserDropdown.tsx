@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { NavLink } from "react-router-dom";
-
 import "./UserDropdown.css";
 
+import { useEffect, useRef, useState } from "react";
+import { NavLink } from "react-router-dom";
 interface UserDropdownProps {
     uname: string;
     fname?: string;
