@@ -2,6 +2,8 @@ import "./UserDropdown.css";
 
 import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
+import Avatar from "../../../../ui/Avatar/Avatar";
+
 interface UserDropdownProps {
     uname: string;
     fname?: string;
@@ -84,10 +86,7 @@ function UserDropdown({
                 aria-haspopup="true"
                 onClick={toggleMenu}
             >
-                <span
-                    className="user-dropdown__avatar"
-                    aria-hidden="true"
-                ></span>
+                <Avatar />
 
                 <span>{uname}</span>
 
@@ -100,40 +99,37 @@ function UserDropdown({
             {open && (
                 <div className="user-dropdown__menu">
                     <div className="user-dropdown__header">
-                        <span
-                            className="user-dropdown__avatar large"
-                            aria-hidden="true"
-                        ></span>
+                        <Avatar size="large" />
 
                         <span>{displayName}</span>
                     </div>
 
-                    <div className="divider"></div>
+                    <div className="user-dropdown__divider"></div>
 
                     <NavLink
                         to="/uzivatel"
-                        className="item"
+                        className="user-dropdown__item"
                         onClick={() => setOpen(false)}
                     >
                         <span
-                            className="icon profile"
+                            className="user-dropdown__icon"
                             aria-hidden="true"
                         ></span>
                         Profil
                     </NavLink>
 
-                    <div className="divider"></div>
+                    <div className="user-dropdown__divider"></div>
 
                     <button
                         type="button"
-                        className="item logout"
+                        className="user-dropdown__item user-dropdown__item--logout"
                         onClick={() => {
                             setOpen(false);
                             onLogout();
                         }}
                     >
                         <span
-                            className="icon logout-icon"
+                            className="user-dropdown__icon"
                             aria-hidden="true"
                         ></span>
                         Odhlásit se

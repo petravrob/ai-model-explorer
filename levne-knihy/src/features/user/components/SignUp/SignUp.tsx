@@ -1,6 +1,7 @@
 import useSignUp from "../../hooks/useSignUp";
 
 import UserForm from "../UserForm/UserForm";
+import { PageContainer, PageTitle } from "../../../../ui";
 
 /** Registrace uživatele. */
 function SignUp() {
@@ -13,15 +14,18 @@ function SignUp() {
 
 
     return (
-        <UserForm
-            title="Registrovat se"
-            formData={formData}
-            handleChange={handleChange}
-            handleSubmit={handleSubmit}
-            submitText="Registrovat se"
-            showUsername
-            showPassword
-        />
+        <PageContainer>
+            <PageTitle centered>Registrovat se</PageTitle>
+
+            <UserForm
+                formData={formData}
+                handleChange={handleChange}
+                handleSubmit={handleSubmit}
+                submitText="Registrovat se"
+                showUsername
+                showPassword
+            />
+        </PageContainer>
     );
 }
 

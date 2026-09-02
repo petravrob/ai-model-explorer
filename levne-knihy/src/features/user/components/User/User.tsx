@@ -1,6 +1,6 @@
-import "./User.css";
-
 import useUser from "../../hooks/useUser";
+import PageContainer from "../../../../ui/PageContainer/PageContainer";
+import PageMessage from "../../../../ui/PageMessage/PageMessage";
 
 import UserDetails from "../UserDetails/UserDetails";
 import UserForm from "../UserForm/UserForm";
@@ -23,44 +23,43 @@ function User() {
 
 
     if (loading) {
-
         return (
-            <div className="user">
-                <p className="user__message">Načítání údajů...</p>
-            </div>
+            <PageContainer>
+                <PageMessage>Načítání údajů...</PageMessage>
+            </PageContainer>
         );
     }
 
     if (error || !user) {
         return (
-            <div className="user">
-                <p className="user__message">
+            <PageContainer>
+                <PageMessage>
                     {error ?? "Nepodařilo se načíst uživatele."}
-                </p>
-            </div>
+                </PageMessage>
+            </PageContainer>
         );
     }
 
     if (update) {
         return (
-            <div className="user">
+            <PageContainer>
                 <UserForm
                     formData={formData}
                     handleChange={handleChange}
                     handleSubmit={handleSubmit}
                     submitText="Upravit osobní údaje"
                 />
-            </div>
+            </PageContainer>
         );
     }
 
     return (
-        <div className="user">
+        <PageContainer>
             <UserDetails
                 user={user}
                 onEdit={handleEdit}
             />
-        </div>
+        </PageContainer>
     );
 }
 

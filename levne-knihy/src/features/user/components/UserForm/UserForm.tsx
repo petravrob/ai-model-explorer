@@ -1,6 +1,5 @@
-import "./UserForm.css";
-
 import { UserFormProps } from "../../types";
+import { Button, Form, FormActions, FormField } from "../../../../ui";
 
 /** Formulář pro úpravu nebo registraci údajů o uživateli. */
 function UserForm({
@@ -13,108 +12,95 @@ function UserForm({
 }: UserFormProps) {
 
     return (
-        <div className="user-form-page">
+        <Form onSubmit={handleSubmit} className="user-form">
 
-            <form className="book-form" onSubmit={handleSubmit}>
-
-                {showUsername ? (
-                    <div className="form-field">
-                        <label htmlFor="uname">Přezdívka</label>
-                        <input
-                            id="uname"
-                            name="uname"
-                            type="text"
-                            value={formData.uname ?? ""}
-                            onChange={handleChange}
-                            required
-                            placeholder="Vaše přezdívka"
-                        />
-                    </div>
-                ) : (
-                    <div className="form-field">
-                        <label>Přezdívka</label>
-                        <p className="form-readonly">{formData.uname}</p>
-                    </div>
-                )}
-
-                <div className="form-field">
-                    <label htmlFor="fname">Jméno</label>
+            {showUsername ? (
+                <FormField label="Přezdívka" htmlFor="uname">
                     <input
-                        id="fname"
-                        name="fname"
+                        id="uname"
+                        name="uname"
                         type="text"
-                        value={formData.fname}
+                        value={formData.uname ?? ""}
                         onChange={handleChange}
                         required
-                        placeholder="Jan"
+                        placeholder="Vaše přezdívka"
                     />
-                </div>
+                </FormField>
+            ) : (
+                <FormField label="Přezdívka">
+                    <p className="form-readonly">{formData.uname}</p>
+                </FormField>
+            )}
 
-                <div className="form-field">
-                    <label htmlFor="lname">Příjmení</label>
+            <FormField label="Jméno" htmlFor="fname">
+                <input
+                    id="fname"
+                    name="fname"
+                    type="text"
+                    value={formData.fname}
+                    onChange={handleChange}
+                    required
+                    placeholder="Jan"
+                />
+            </FormField>
+
+            <FormField label="Příjmení" htmlFor="lname">
+                <input
+                    id="lname"
+                    name="lname"
+                    type="text"
+                    value={formData.lname}
+                    onChange={handleChange}
+                    required
+                    placeholder="Novák"
+                />
+            </FormField>
+
+            <FormField label="Email" htmlFor="email">
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="jan@email.cz"
+                />
+            </FormField>
+
+            <FormField label="Telefon" htmlFor="phone">
+                <input
+                    id="phone"
+                    name="phone"
+                    type="text"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    placeholder="777 123 456"
+                />
+            </FormField>
+
+            {showPassword && (
+                <FormField label="Heslo" htmlFor="password">
                     <input
-                        id="lname"
-                        name="lname"
-                        type="text"
-                        value={formData.lname}
+                        id="password"
+                        name="password"
+                        type="password"
+                        value={formData.password ?? ""}
                         onChange={handleChange}
                         required
-                        placeholder="Novák"
+                        placeholder="••••••••"
                     />
-                </div>
+                </FormField>
+            )}
 
-                <div className="form-field">
-                    <label htmlFor="email">Email</label>
-                    <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        placeholder="jan@email.cz"
-                    />
-                </div>
-
-                <div className="form-field">
-                    <label htmlFor="phone">Telefon</label>
-                    <input
-                        id="phone"
-                        name="phone"
-                        type="text"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        required
-                        placeholder="777 123 456"
-                    />
-                </div>
-
-                {showPassword && (
-                    <div className="form-field">
-                        <label htmlFor="password">Heslo</label>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            value={formData.password ?? ""}
-                            onChange={handleChange}
-                            required
-                            placeholder="••••••••"
-                        />
-                    </div>
-                )}
-
-                <div className="form-actions">
-                    <button type="submit" className="btn">
-                        {submitText}
-                    </button>
-                </div>
-
-            </form>
-
-        </div>
+            <FormActions>
+                <Button type="submit">
+                    {submitText}
+                </Button>
+            </FormActions>
+        </Form>
     );
 }
-
 
 export default UserForm;
