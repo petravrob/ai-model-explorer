@@ -1,5 +1,5 @@
 import { UserFormProps } from "../../types";
-import { Button, Form, FormActions, FormField } from "../../../../ui";
+import { Button, Form, FormActions, FormField } from "@/ui";
 
 /** Formulář pro úpravu nebo registraci údajů o uživateli. */
 function UserForm({

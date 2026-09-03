@@ -1,9 +1,6 @@
 import { Routes, Route } from "react-router-dom";
-import SignUp from "../../../user/components/SignUp/SignUp.tsx";
-import AddBookAdvertisement from "../../../books/components/AddBookAdvertisement/AddBookAdvertisement.tsx";
-import BookBrowser from "../../../books/components/BookBrowser/BookBrowser.tsx";
-import LogIn from "../../../user/components/LogIn/LogIn.tsx";
-import User from "../../../user/components/User/User.tsx";
+import { AddBookAdvertisement, BookBrowser } from "@/features/books";
+import { LogIn, SignUp, User } from "@/features/user";
 
 function Main() {
     return (

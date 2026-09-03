@@ -13,7 +13,7 @@ import {
 } from "../../../api/booksApi";
 
 import useBookForm from "./useBookForm";
-import useCurrentUser from "../../user/hooks/useCurrentUser";
+import { useCurrentUser } from "@/features/user";
 
 /** Obstarává logiku zobrazení, výběru, úpravy a mazání knih */
 function useBookBrowser(mode: BookBrowserMode) {

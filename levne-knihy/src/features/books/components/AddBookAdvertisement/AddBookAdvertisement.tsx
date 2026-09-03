@@ -1,6 +1,6 @@
 import useAddBookAdvertisement from "../../hooks/useAddBookAdvertisement.ts";
 import BookForm from "../BookForm/BookForm.tsx";
-import { PageContainer, PageMessage, PageTitle } from "../../../../ui";
+import { PageContainer, PageMessage, PageTitle } from "@/ui";
 
 /** Rozhraní pro přidání nové knihy. */
 function AddBookAdvertisement() {

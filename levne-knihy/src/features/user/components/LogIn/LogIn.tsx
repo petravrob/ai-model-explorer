@@ -1,5 +1,5 @@
 import useLogIn from "../../hooks/useLogin";
-import { Button, Form, FormActions, FormField, PageContainer } from "../../../../ui";
+import { Button, Form, FormActions, FormField, PageContainer } from "@/ui";
 
 /** Přihlášení uživatele. */
 function LogIn() {

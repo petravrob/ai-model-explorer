@@ -1,7 +1,7 @@
 import useSignUp from "../../hooks/useSignUp";
 
 import UserForm from "../UserForm/UserForm";
-import { PageContainer, PageTitle } from "../../../../ui";
+import { PageContainer, PageTitle } from "@/ui";
 
 /** Registrace uživatele. */
 function SignUp() {

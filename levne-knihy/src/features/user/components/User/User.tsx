@@ -1,6 +1,5 @@
 import useUser from "../../hooks/useUser";
-import PageContainer from "../../../../ui/PageContainer/PageContainer";
-import PageMessage from "../../../../ui/PageMessage/PageMessage";
+import { PageContainer, PageMessage } from "@/ui";
 
 import UserDetails from "../UserDetails/UserDetails";
 import UserForm from "../UserForm/UserForm";

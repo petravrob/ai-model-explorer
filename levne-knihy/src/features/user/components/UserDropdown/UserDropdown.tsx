@@ -2,7 +2,7 @@ import "./UserDropdown.css";
 
 import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
-import Avatar from "../../../../ui/Avatar/Avatar";
+import { Avatar } from "@/ui";
 
 interface UserDropdownProps {
     uname: string;

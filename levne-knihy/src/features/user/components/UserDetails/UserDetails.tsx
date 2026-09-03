@@ -1,5 +1,5 @@
 import { UserDetailsProps } from "../../types";
-import { Avatar, Button } from "../../../../ui";
+import { Avatar, Button } from "@/ui";
 import "./UserDetails.css";
 
 /** Zobrazuje základní informace o uživateli. */

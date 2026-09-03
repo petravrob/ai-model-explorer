@@ -5,7 +5,7 @@ import { BookBrowserProps } from "../../types";
 import BookDetail from "../BookDetail/BookDetail";
 import BookForm from "../BookForm/BookForm";
 import BookList from "../BookList/BookList";
-import { Button, PageContainer, PageMessage, PageTitle } from "../../../../ui";
+import { Button, PageContainer, PageMessage, PageTitle } from "@/ui";
 
 /** Rozhraní pro zobrazení inzerátu knih, jejich detailu, umožňuje také jejich úpravu. */
 function BookBrowser({
