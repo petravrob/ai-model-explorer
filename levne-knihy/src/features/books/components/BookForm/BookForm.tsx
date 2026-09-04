@@ -1,6 +1,7 @@
 import "./BookForm.css";
 
 import { BookFormProps, BookState } from "../../types";
+import { Button, Form, FormActions, FormField } from "../../../../ui";
 
 /** Zobrazuje formulář pro vytvoření nebo úpravu inzerátu knihy */
 function BookForm({
@@ -13,10 +14,9 @@ function BookForm({
 }: BookFormProps) {
 
     return (
-        <form onSubmit={onSubmit} className="book-form">
+        <Form onSubmit={onSubmit}>
 
-            <div className="form-field">
-                <label htmlFor="name">Název</label>
+            <FormField label="Název" htmlFor="name">
                 <input
                     type="text"
                     id="name"
@@ -26,10 +26,9 @@ function BookForm({
                     onChange={onChange}
                     placeholder="Např. Malý princ"
                 />
-            </div>
+            </FormField>
 
-            <div className="form-field">
-                <label htmlFor="author">Autor</label>
+            <FormField label="Autor" htmlFor="author">
                 <input
                     type="text"
                     id="author"
@@ -39,10 +38,9 @@ function BookForm({
                     onChange={onChange}
                     placeholder="Např. Antoine de Saint-Exupéry"
                 />
-            </div>
+            </FormField>
 
-            <div className="form-field">
-                <label htmlFor="description">Popis</label>
+            <FormField label="Popis" htmlFor="description">
                 <textarea
                     id="description"
                     name="description"
@@ -51,11 +49,10 @@ function BookForm({
                     placeholder="Krátký popis stavu a obsahu knihy..."
                     rows={4}
                 />
-            </div>
+            </FormField>
 
             <div className="form-row form-row-2">
-                <div className="form-field">
-                    <label htmlFor="pages">Počet stránek</label>
+                <FormField label="Počet stránek" htmlFor="pages">
                     <input
                         type="number"
                         id="pages"
@@ -66,12 +63,10 @@ function BookForm({
                         placeholder="0"
                         min="1"
                     />
-                </div>
-
+                </FormField>
 
                 {showImage && (
-                    <div className="form-field">
-                        <label htmlFor="image">Obrázek obálky</label>
+                    <FormField label="Obrázek obálky" htmlFor="image">
                         <input
                             type="file"
                             id="image"
@@ -80,14 +75,11 @@ function BookForm({
                             required
                             onChange={onImageChange}
                         />
-                    </div>
+                    </FormField>
                 )}
-
             </div>
 
-
-            <div className="form-field">
-                <label>Stav knihy</label>
+            <FormField label="Stav knihy">
                 <div className="book-form__states">
                     {Object.values(BookState).map((state) => (
                         <label
@@ -108,11 +100,10 @@ function BookForm({
                         </label>
                     ))}
                 </div>
-            </div>
+            </FormField>
 
             <div className="form-row form-row-2">
-                <div className="form-field">
-                    <label htmlFor="price">Cena (Kč)</label>
+                <FormField label="Cena (Kč)" htmlFor="price">
                     <input
                         type="number"
                         id="price"
@@ -123,10 +114,9 @@ function BookForm({
                         placeholder="0"
                         min="0"
                     />
-                </div>
+                </FormField>
 
-                <div className="form-field">
-                    <label htmlFor="delivery">Poštovné (Kč)</label>
+                <FormField label="Poštovné (Kč)" htmlFor="delivery">
                     <input
                         type="number"
                         id="delivery"
@@ -137,15 +127,15 @@ function BookForm({
                         placeholder="0"
                         min="0"
                     />
-                </div>
+                </FormField>
             </div>
 
-            <div className="form-actions">
-                <button className="btn" type="submit">
+            <FormActions>
+                <Button type="submit">
                     {submitText}
-                </button>
-            </div>
-        </form>
+                </Button>
+            </FormActions>
+        </Form>
     );
 }
 

@@ -1,7 +1,3 @@
-.book-form {
-    margin: auto;
-}
-
 .book-form__states {
     display: flex;
     gap: .5rem;
