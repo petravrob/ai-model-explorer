@@ -1,8 +1,8 @@
 import { toast } from "react-toastify";
 
-import { addBook } from "../../../api/booksApi";
 import useBookForm from "./useBookForm";
 import useCurrentUser from "../../user/hooks/useCurrentUser";
+import { addBook } from "./api/booksApi";
 
 
 /** Umožňuje vytvoření nového inzerátu */

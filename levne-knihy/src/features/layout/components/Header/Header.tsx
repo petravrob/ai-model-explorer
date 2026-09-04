@@ -2,8 +2,8 @@ import "./Header.css";
 
 import { NavLink } from "react-router-dom";
 
-import useLogout from "@/api/userApi";
 import { UserDropdown, useCurrentUser } from "@/features/user";
+import useLogout from "@/features/user/api/userApi";
 
 function Header() {
     const { user } = useCurrentUser();

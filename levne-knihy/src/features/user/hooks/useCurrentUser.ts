@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { getCurrentUser } from "../../../api/userApi";
 import { User } from "../types";
+import { getCurrentUser } from "../api/userApi";
 
 
 /** Načte aktuálně přihlášeného uživatele */

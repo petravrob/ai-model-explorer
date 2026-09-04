@@ -1,19 +1,10 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-import {
-    Book,
-    BookBrowserMode,
-} from "../types";
-
-import {
-    getBooks,
-    updateBook,
-    deleteBook,
-} from "../../../api/booksApi";
-
+import { Book, BookBrowserMode } from "../types";
 import useBookForm from "./useBookForm";
 import { useCurrentUser } from "@/features/user";
+import { getBooks, updateBook, deleteBook } from "./api/booksApi";
 
 /** Obstarává logiku zobrazení, výběru, úpravy a mazání knih */
 function useBookBrowser(mode: BookBrowserMode) {
