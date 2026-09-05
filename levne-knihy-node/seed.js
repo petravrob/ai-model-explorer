@@ -390,10 +390,6 @@ function getUserByUsername(username) {
     return users.find(user => user.uname === username);
 }
 
-const booksWithImages = books.map((book) => ({
-    ...book,
-    image: `https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg`
-}));
 
 // #region SEED
 
@@ -426,7 +422,7 @@ async function seedDatabase() {
 
         await User.insertMany(usersWithHashedPasswords);
 
-        console.log(`Vytvořeno uživatelů: ${users.length}`); //!!
+        console.log(`Vytvořeno uživatelů: ${users.length}`);
 
         // Vytvoří knihy
 
@@ -451,11 +447,11 @@ async function seedDatabase() {
 
         await Book.insertMany(booksWithUserData);
 
-        console.log(`Vytvořeno knih: ${books.length}`); //!!
+        console.log(`Vytvořeno knih: ${books.length}`);
 
         console.log("Data do databáze byla úspěšně přidána.\n");
 
-        console.log(""); //!!
+        console.log("");
         console.log("TESTOVACÍ PŘIHLÁŠENÍ:");
         console.log("------------------------------------");
         console.log("Uživatelské jméno: petra");
