@@ -1,30 +1,16 @@
-import "./BookBrowser.css";
-
 import useBookBrowser from "../../hooks/useBookBrowser";
 import { BookBrowserProps } from "../../types";
-import BookDetail from "../BookDetail/BookDetail";
-import BookForm from "../BookForm/BookForm";
 import BookList from "../BookList/BookList";
-import { Button, PageContainer, PageMessage, PageTitle } from "@/ui";
+import { PageContainer, PageMessage } from "@/ui";
 
-/** Rozhraní pro zobrazení inzerátu knih, jejich detailu, umožňuje také jejich úpravu. */
+/** Rozhraní pro zobrazení seznamu inzerátů knih. */
 function BookBrowser({
     mode,
 }: BookBrowserProps) {
 
     const {
         books,
-        selectedBook,
-        update,
-        editedBook,
-
         handleBookClick,
-        handleBack,
-        handleEdit,
-        handleChange,
-        handleImageChange,
-        handleSubmit,
-        handleDelete,
 
         loading,
         error,
@@ -47,55 +33,15 @@ function BookBrowser({
         );
     }
 
-    if (update) {
-        return (
-            <PageContainer>
-                <PageTitle centered>Upravit inzerát</PageTitle>
-
-                <BookForm
-                    book={editedBook}
-                    onChange={handleChange}
-                    onSubmit={handleSubmit}
-                    submitText="Upravit inzerát"
-                    showImage={false}
-                    onImageChange={handleImageChange}
-                />
-            </PageContainer>
-        );
-    }
-
-    if (!selectedBook) {
-        return (
-            <PageContainer>
-                <BookList
-                    books={books}
-                    onBookClick={handleBookClick}
-                />
-            </PageContainer>
-        );
-    }
-
     return (
         <PageContainer>
-            <Button variant="outline" onClick={handleBack}>
-                Zpět na seznam
-            </Button>
-
-            <BookDetail book={selectedBook} />
-
-            {mode === "user" && (
-                <div className="book-browser__actions">
-                    <Button variant="outline" onClick={handleDelete}>
-                        Smazat inzerát
-                    </Button>
-
-                    <Button onClick={handleEdit}>
-                        Upravit inzerát
-                    </Button>
-                </div>
-            )}
+            <BookList
+                books={books}
+                onBookClick={handleBookClick}
+            />
         </PageContainer>
     );
 }
 
 export default BookBrowser;
+

@@ -2,8 +2,8 @@ import "./Header.css";
 
 import { NavLink } from "react-router-dom";
 
-import { UserDropdown, useCurrentUser } from "@/features/user";
-import useLogout from "@/features/user/api/userApi";
+import { ROUTE_PATHS } from "@/routes/paths";
+import { UserDropdown, useCurrentUser, useLogout } from "@/features/user";
 import { LinkButton } from "@/ui";
 
 function Header() {
@@ -18,11 +18,11 @@ function Header() {
 
                     {!user ? (
                         <div className="header__auth">
-                            <NavLink to="/prihlasit-se" className="header__login">
+                            <NavLink to={ROUTE_PATHS.login} className="header__login">
                                 Přihlásit se
                             </NavLink>
 
-                            <LinkButton to="/registrovat-se">
+                            <LinkButton to={ROUTE_PATHS.signUp}>
                                 Registrovat se
                             </LinkButton>
                         </div>
@@ -39,20 +39,20 @@ function Header() {
                 <nav>
                     <ul>
                         <li>
-                            <NavLink to="/" end>
+                            <NavLink to={ROUTE_PATHS.home} end>
                                 Knihy
                             </NavLink>
                         </li>
 
                         <li>
-                            <NavLink to="/pridat-inzerat">
+                            <NavLink to={ROUTE_PATHS.addAdvertisement}>
                                 Přidat inzerát
                             </NavLink>
                         </li>
 
                         {user && (
                             <li>
-                                <NavLink to="/moje-inzeraty">
+                                <NavLink to={ROUTE_PATHS.myAdvertisements}>
                                     Moje inzeráty
                                 </NavLink>
                             </li>

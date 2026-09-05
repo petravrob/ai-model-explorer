@@ -3,10 +3,12 @@ import "./App.css";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AuthProvider } from "@/features/user";
 import { Footer, Header, Main } from "@/features/layout";
 
 function App() {
   return (
+    <AuthProvider>
     <div className="app">
       <Header/>
       <Main/>
@@ -22,6 +24,7 @@ function App() {
                 theme="light"
             />
     </div>
+    </AuthProvider>
   );
 }
 

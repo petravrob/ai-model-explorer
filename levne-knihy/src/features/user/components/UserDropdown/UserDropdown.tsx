@@ -2,6 +2,7 @@ import "./UserDropdown.css";
 
 import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
+import { ROUTE_PATHS } from "@/routes/paths";
 import { Avatar } from "@/ui";
 
 interface UserDropdownProps {
@@ -107,7 +108,7 @@ function UserDropdown({
                     <div className="user-dropdown__divider"></div>
 
                     <NavLink
-                        to="/uzivatel"
+                        to={ROUTE_PATHS.user}
                         className="user-dropdown__item"
                         onClick={() => setOpen(false)}
                     >

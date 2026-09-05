@@ -1,8 +1,10 @@
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import useBookForm from "./useBookForm";
-import useCurrentUser from "../../user/hooks/useCurrentUser";
-import { addBook } from "./api/booksApi";
+import { useCurrentUser } from "@/features/user";
+import { ROUTE_PATHS } from "@/routes/paths";
+import { addBook } from "../api/booksApi";
 
 
 /** Umožňuje vytvoření nového inzerátu */
@@ -13,13 +15,13 @@ function useAddBookAdvertisement() {
         user,
     } = useCurrentUser();
 
+    const navigate = useNavigate();
 
     // Stav formuláře a převod obrázku
     const {
         book: newBook,
         handleChange,
         handleImageChange,
-        resetBook,
     } = useBookForm();
 
 
@@ -40,8 +42,8 @@ function useAddBookAdvertisement() {
 
             toast.success("Kniha byla přidána.");
 
-            // Reset formuláře po úspěšném přidání knihy
-            resetBook();
+            // Přechod na seznam inzerátů uživatele
+            navigate(ROUTE_PATHS.myAdvertisements);
 
         } catch (error) {
 
@@ -62,8 +64,6 @@ function useAddBookAdvertisement() {
 
 
     return {
-        user,
-
         newBook,
 
         handleChange,
@@ -75,3 +75,4 @@ function useAddBookAdvertisement() {
 
 
 export default useAddBookAdvertisement;
+

@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import { UserFormData } from "../types";
 import { registerUser } from "../api/userApi";
+import { useAuthContext } from "../context/AuthContext";
+import { ROUTE_PATHS } from "@/routes/paths";
 
 
 const emptySignUp: UserFormData = {
@@ -20,6 +23,10 @@ function useSignUp() {
 
     const [formData, setFormData] =
         useState<UserFormData>(emptySignUp);
+
+    const navigate = useNavigate();
+
+    const { login } = useAuthContext();
 
     // Obstará změnu polí v registrovacím formuláři
     const handleChange = (
@@ -47,7 +54,7 @@ function useSignUp() {
 
         try {
 
-            await registerUser({
+            const token = await registerUser({
                 uname: formData.uname ?? "",
                 fname: formData.fname,
                 lname: formData.lname,
@@ -55,10 +62,14 @@ function useSignUp() {
                 email: formData.email,
                 password: formData.password ?? "",
             });
-        
-            setFormData(emptySignUp);
+
+            // Po registraci je uživatel rovnou přihlášen
+            login(token);
 
             toast.success("Registrace byla úspěšná.");
+
+            // Přechod na hlavní stránku
+            navigate(ROUTE_PATHS.home);
 
         } catch (error) {
 
@@ -87,3 +98,4 @@ function useSignUp() {
 
 
 export default useSignUp;
+

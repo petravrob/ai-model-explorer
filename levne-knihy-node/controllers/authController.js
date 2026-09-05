@@ -45,8 +45,21 @@ const register = async (req, res) => {
             password: encryptedPassword,
         });
 
+        // Po úspěšné registraci se rovnou vystaví token,
+        // aby mohl být uživatel ihned přihlášen.
+        const token = jwt.sign(
+            {
+                uname: uname,
+            },
+            JWT_SECRET,
+            {
+                expiresIn: "1h",
+            }
+        );
+
         return res.status(201).json({
             status: "ok",
+            token,
         });
     } catch (error) {
         console.error("Registration failed:", error);

@@ -1,5 +1,6 @@
 import useLogIn from "../../hooks/useLogin";
-import { Button, Form, FormActions, FormField, PageContainer, PageTitle } from "@/ui";
+import { Button, LinkButton, Form, FormActions, FormField, PageContainer, PageMessage, PageTitle } from "@/ui";
+import { ROUTE_PATHS } from "@/routes/paths";
 
 /** Přihlášení uživatele. */
 function LogIn() {
@@ -44,8 +45,14 @@ function LogIn() {
                     </Button>
                 </FormActions>
             </Form>
+
+            <PageMessage>
+                Nemáte ještě účet?{" "}
+                <LinkButton to={ROUTE_PATHS.signUp}>Registrovat se</LinkButton>
+            </PageMessage>
         </PageContainer>
     );
 }
 
 export default LogIn;
+
