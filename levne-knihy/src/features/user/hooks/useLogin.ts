@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-import {
-    loginUser,
-} from "../../../api/userApi";
 import { LoginData } from "../types";
+import { loginUser } from "../api/userApi";
 
 
 const emptyLogin: LoginData = {

@@ -1,13 +1,13 @@
-import "./UserDetails.css";
-
 import { UserDetailsProps } from "../../types";
+import { Avatar, Button, DetailItem } from "@/ui";
+import "./UserDetails.css";
 
 /** Zobrazuje základní informace o uživateli. */
 function UserDetails({ user, onEdit }: UserDetailsProps) {
     return (
         <div className="user-details">
             <div className="user-details__header">
-                <div className="user-details__avatar" aria-hidden="true"></div>
+                <Avatar size="large" />
 
                 <div>
                     <h2>{user.fname} {user.lname}</h2>
@@ -16,23 +16,13 @@ function UserDetails({ user, onEdit }: UserDetailsProps) {
             </div>
 
             <div className="user-details__info">
-                <div>
-                    <span>Email</span>
-                    <strong>{user.email}</strong>
-                </div>
-
-                <div>
-                    <span>Telefon</span>
-                    <strong>{user.phone}</strong>
-                </div>
+                <DetailItem label="Email" value={user.email} />
+                <DetailItem label="Telefon" value={user.phone} />
             </div>
 
-            <button
-                type="button"
-                onClick={onEdit}
-            >
+            <Button onClick={onEdit}>
                 Upravit osobní údaje
-            </button>
+            </Button>
         </div>
     );
 }

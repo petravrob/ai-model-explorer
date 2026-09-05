@@ -1,0 +1,19 @@
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.detail-item__label {
+    color: #999;
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.detail-item__value {
+    color: var(--text);
+    font-size: .95rem;
+    font-weight: 600;
+}

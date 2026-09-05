@@ -1,38 +1,39 @@
-footer {
+.footer {
   background-color: #fcd6b3;
 }
 
-#school-project-information {
+.footer__container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.75rem;
+}
+
+.footer__info {
   padding: 45px 0 10px;
   text-align: center;
 }
 
-#autor-contact {
+.footer__columns {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
 }
 
-.autor-contact-section {
+.footer__section {
   max-width: 390px;
   padding: 10px;
 }
 
-footer h2 {
+.footer h2 {
   font-size: 18px;
 }
 
-#copyright {
+.footer__copyright {
   margin: 0;
   padding: 10px 0 15px;
   text-align: center;
 }
 
-#contact-doesnt-exist {
-  padding-top: 60px;
-  text-align: center;
-}
-
-footer a {
+.footer a {
   color: #00034b;
 }

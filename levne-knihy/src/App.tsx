@@ -3,17 +3,13 @@ import "./App.css";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Footer from './features/layout/components/Footer/Footer.tsx';
-import Header from "./features/layout/components/Header/Header.tsx"
-import Main from "./features/layout/components/Main/Main.tsx"
+import { Footer, Header, Main } from "@/features/layout";
 
 function App() {
   return (
-    <div className="App">
-      <div className='container'>
+    <div className="app">
       <Header/>
       <Main/>
-      </div>
       <Footer/>
       <ToastContainer
                 position="bottom-left"

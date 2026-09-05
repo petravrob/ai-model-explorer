@@ -1,7 +1,7 @@
-import { API_URL } from "../config.js";
-import { getAuthHeaders } from "./authApi.js";
-import { handleApiResponse } from "./apiUtils";
-import { Book, BookFormData } from "../features/books/types.js";
+import { handleApiResponse } from "@/api/apiUtils";
+import { API_URL } from "@/config";
+import { Book, BookFormData } from "@/features/books";
+import { getAuthHeaders } from "@/features/user/api/authApi";
 
 /** Načte všechny inzeráty. */
 export const getBooks = async (): Promise<Book[]> => {

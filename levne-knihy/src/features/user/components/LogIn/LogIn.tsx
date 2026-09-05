@@ -1,6 +1,5 @@
-import "./Login.css";
-
 import useLogIn from "../../hooks/useLogin";
+import { Button, Form, FormActions, FormField, PageContainer, PageTitle } from "@/ui";
 
 /** Přihlášení uživatele. */
 function LogIn() {
@@ -11,10 +10,11 @@ function LogIn() {
     } = useLogIn();
 
     return (
-        <div className="login">
-            <form onSubmit={handleSubmit}>
-                <div className="form-field">
-                    <label htmlFor="uname">Přezdívka</label>
+        <PageContainer>
+            <PageTitle centered>Přihlásit se</PageTitle>
+
+            <Form onSubmit={handleSubmit}>
+                <FormField label="Přezdívka" htmlFor="uname">
                     <input
                         id="uname"
                         name="uname"
@@ -24,10 +24,9 @@ function LogIn() {
                         required
                         placeholder="Vaše přezdívka"
                     />
-                </div>
+                </FormField>
 
-                <div className="form-field">
-                    <label htmlFor="password">Heslo</label>
+                <FormField label="Heslo" htmlFor="password">
                     <input
                         id="password"
                         name="password"
@@ -37,15 +36,15 @@ function LogIn() {
                         required
                         placeholder="••••••••"
                     />
-                </div>
+                </FormField>
 
-                <div className="form-actions">
-                    <button type="submit" className="btn">
+                <FormActions>
+                    <Button type="submit">
                         Přihlásit se
-                    </button>
-                </div>
-            </form>
-        </div>
+                    </Button>
+                </FormActions>
+            </Form>
+        </PageContainer>
     );
 }
 

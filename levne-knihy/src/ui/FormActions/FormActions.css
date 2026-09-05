@@ -1,0 +1,15 @@
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.form-actions .btn {
+    padding: .8rem 2rem;
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .form-actions .btn {
+        width: 100%;
+    }
+}

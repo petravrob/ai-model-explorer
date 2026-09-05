@@ -1,8 +1,9 @@
-import { User, LoginData, UserFormData } from "../features/user/types";
-import { API_URL } from "../config";
-import { getAuthHeaders } from "./authApi";
-import { handleApiResponse } from "./apiUtils";
 import { toast } from "react-toastify";
+
+import { handleApiResponse } from "@/api/apiUtils";
+import { API_URL } from "@/config";
+import { User, LoginData, UserFormData } from "@/features/user/types";
+import { getAuthHeaders } from "./authApi";
 
 /** Načte aktuálně přihlášeného uživatele. */
 export const getCurrentUser = async (): Promise<User> => {

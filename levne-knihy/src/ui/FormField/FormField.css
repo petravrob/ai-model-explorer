@@ -1,0 +1,12 @@
+.form-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-field > label {
+    margin-bottom: .4rem;
+    color: #666;
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}

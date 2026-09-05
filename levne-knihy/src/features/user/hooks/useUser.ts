@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-import {
-    updateUser,
-} from "../../../api/userApi";
-
 import useCurrentUser from "./useCurrentUser";
 import useUserForm from "./useUserForm";
+import { updateUser } from "../api/userApi";
 
 
 /** Umožňuje úpravu uživatele */

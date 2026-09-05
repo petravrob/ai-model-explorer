@@ -1,8 +1,3 @@
-.book-form {
-    max-width: var(--form-max-width);
-    margin: auto;
-}
-
 .book-form__states {
     display: flex;
     gap: .5rem;

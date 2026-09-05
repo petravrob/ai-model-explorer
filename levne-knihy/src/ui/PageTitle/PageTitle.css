@@ -1,0 +1,11 @@
+.page-title {
+    margin: 0 0 1.5rem;
+    color: var(--text);
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.page-title--centered {
+    max-width: var(--form-max-width);
+    margin: 0 auto 1.5rem;
+}

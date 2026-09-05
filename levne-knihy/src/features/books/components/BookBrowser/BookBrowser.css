@@ -1,24 +1,3 @@
-.book-browser {
-    width: 100%;
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: 1.75rem 1.5rem 3.5rem;
-}
-
-.book-browser h2 {
-    max-width: var(--form-max-width);
-    margin: 0 auto 1.5rem;
-    color: var(--text);
-    font-size: 1.4rem;
-    font-weight: 600;
-}
-
-.book-browser__message {
-    margin: 3.5rem 0;
-    color: var(--text-muted);
-    text-align: center;
-}
-
 .book-browser__actions {
     display: flex;
     flex-wrap: wrap;
@@ -29,10 +8,6 @@
 }
 
 @media (max-width: 600px) {
-    .book-browser {
-        padding: 1.25rem 1rem 2.5rem;
-    }
-
     .book-browser__actions {
         flex-direction: column;
     }

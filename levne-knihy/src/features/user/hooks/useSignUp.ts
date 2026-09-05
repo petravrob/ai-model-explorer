@@ -1,13 +1,8 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-import {
-    registerUser,
-} from "../../../api/userApi";
-
-import {
-    UserFormData,
-} from "../types";
+import { UserFormData } from "../types";
+import { registerUser } from "../api/userApi";
 
 
 const emptySignUp: UserFormData = {

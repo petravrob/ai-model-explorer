@@ -1,6 +1,6 @@
 import useAddBookAdvertisement from "../../hooks/useAddBookAdvertisement.ts";
 import BookForm from "../BookForm/BookForm.tsx";
-import "./AddBookAdvertisement.css";
+import { PageContainer, PageMessage, PageTitle } from "@/ui";
 
 /** Rozhraní pro přidání nové knihy. */
 function AddBookAdvertisement() {
@@ -15,15 +15,14 @@ function AddBookAdvertisement() {
 
 
     return (
-        <div className="add-book">
-
+        <PageContainer>
             {!user ? (
-                <p className="add-book__message">
+                <PageMessage>
                     Do této sekce mohou přispívat pouze přihlášení uživatelé.
-                </p>
+                </PageMessage>
             ) : (
                 <>
-                    <h2>Přidat inzerát</h2>
+                    <PageTitle centered>Přidat inzerát</PageTitle>
 
                     <BookForm
                         book={newBook}
@@ -35,7 +34,7 @@ function AddBookAdvertisement() {
                     />
                 </>
             )}
-        </div>
+        </PageContainer>
     );
 }
 

@@ -5,6 +5,7 @@ import { BookBrowserProps } from "../../types";
 import BookDetail from "../BookDetail/BookDetail";
 import BookForm from "../BookForm/BookForm";
 import BookList from "../BookList/BookList";
+import { Button, PageContainer, PageMessage, PageTitle } from "@/ui";
 
 /** Rozhraní pro zobrazení inzerátu knih, jejich detailu, umožňuje také jejich úpravu. */
 function BookBrowser({
@@ -32,24 +33,24 @@ function BookBrowser({
 
     if (loading) {
         return (
-            <div className="book-browser">
-                <p className="book-browser__message">Načítání knih...</p>
-            </div>
+            <PageContainer>
+                <PageMessage>Načítání knih...</PageMessage>
+            </PageContainer>
         );
     }
 
     if (error) {
         return (
-            <div className="book-browser">
-                <p className="book-browser__message">{error}</p>
-            </div>
+            <PageContainer>
+                <PageMessage>{error}</PageMessage>
+            </PageContainer>
         );
     }
 
     if (update) {
         return (
-            <div className="book-browser">
-                <h2>Upravit inzerát</h2>
+            <PageContainer>
+                <PageTitle centered>Upravit inzerát</PageTitle>
 
                 <BookForm
                     book={editedBook}
@@ -59,53 +60,41 @@ function BookBrowser({
                     showImage={false}
                     onImageChange={handleImageChange}
                 />
-            </div>
+            </PageContainer>
         );
     }
 
     if (!selectedBook) {
         return (
-            <div className="book-browser">
+            <PageContainer>
                 <BookList
                     books={books}
                     onBookClick={handleBookClick}
                 />
-            </div>
+            </PageContainer>
         );
     }
 
     return (
-        <div className="book-browser">
-            <button
-                type="button"
-                className="btn"
-                onClick={handleBack}
-            >
+        <PageContainer>
+            <Button variant="outline" onClick={handleBack}>
                 Zpět na seznam
-            </button>
+            </Button>
 
             <BookDetail book={selectedBook} />
 
             {mode === "user" && (
                 <div className="book-browser__actions">
-                    <button
-                        type="button"
-                        className="btn"
-                        onClick={handleDelete}
-                    >
+                    <Button variant="outline" onClick={handleDelete}>
                         Smazat inzerát
-                    </button>
+                    </Button>
 
-                    <button
-                        type="button"
-                        className="btn"
-                        onClick={handleEdit}
-                    >
+                    <Button onClick={handleEdit}>
                         Upravit inzerát
-                    </button>
+                    </Button>
                 </div>
             )}
-        </div>
+        </PageContainer>
     );
 }
 
