@@ -4,14 +4,17 @@ import "./App.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider } from "@/features/user";
-import { Footer, Header, Main } from "@/features/layout";
+import { Footer, Header } from "@/features/layout";
+import { AppRoutes } from "@/routes";
 
 function App() {
   return (
     <AuthProvider>
     <div className="app">
       <Header/>
-      <Main/>
+      <main>
+        <AppRoutes />
+      </main>
       <Footer/>
       <ToastContainer
                 position="bottom-left"
