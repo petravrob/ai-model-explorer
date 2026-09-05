@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 
 import { AddBookAdvertisement, BookBrowser, BookDetailPage } from "@/features/books";
-import { LogIn, SignUp, UserProfile } from "@/features/user";
+import { LogIn, SignUp, User } from "@/features/user";
 import NotFound from "@/features/layout/components/NotFound/NotFound";
 import { RequireAuth, RequireGuest } from "./guards";
 import { ROUTE_PATHS } from "./paths";
@@ -48,7 +48,7 @@ function AppRoutes() {
 
                 <Route
                     path={ROUTE_PATHS.user}
-                    element={<UserProfile />}
+                    element={<User />}
                 />
             </Route>
 
