@@ -33,25 +33,14 @@
     gap: .85rem;
 }
 
-.header__auth a {
+.header__login {
     color: #444;
     font-size: .9rem;
     text-decoration: none;
 }
 
-.header__auth a:hover {
+.header__login:hover {
     color: var(--primary);
-}
-
-.header .register {
-    padding: .4rem 1rem;
-    border-radius: 999px;
-    background: var(--primary);
-    color: white;
-}
-
-.header .register:hover {
-    background: var(--primary-hover);
 }
 
 .header nav ul {

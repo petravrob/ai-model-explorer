@@ -7,11 +7,9 @@ import { Footer, Header, Main } from "@/features/layout";
 
 function App() {
   return (
-    <div className="App">
-      <div className='container'>
+    <div className="app">
       <Header/>
       <Main/>
-      </div>
       <Footer/>
       <ToastContainer
                 position="bottom-left"

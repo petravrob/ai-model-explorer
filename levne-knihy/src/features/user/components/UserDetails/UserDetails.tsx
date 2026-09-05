@@ -1,5 +1,5 @@
 import { UserDetailsProps } from "../../types";
-import { Avatar, Button } from "@/ui";
+import { Avatar, Button, DetailItem } from "@/ui";
 import "./UserDetails.css";
 
 /** Zobrazuje základní informace o uživateli. */
@@ -16,15 +16,8 @@ function UserDetails({ user, onEdit }: UserDetailsProps) {
             </div>
 
             <div className="user-details__info">
-                <div>
-                    <span>Email</span>
-                    <strong>{user.email}</strong>
-                </div>
-
-                <div>
-                    <span>Telefon</span>
-                    <strong>{user.phone}</strong>
-                </div>
+                <DetailItem label="Email" value={user.email} />
+                <DetailItem label="Telefon" value={user.phone} />
             </div>
 
             <Button onClick={onEdit}>

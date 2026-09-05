@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 
 import { UserDropdown, useCurrentUser } from "@/features/user";
 import useLogout from "@/features/user/api/userApi";
+import { LinkButton } from "@/ui";
 
 function Header() {
     const { user } = useCurrentUser();
@@ -17,16 +18,13 @@ function Header() {
 
                     {!user ? (
                         <div className="header__auth">
-                            <NavLink to="/prihlasit-se">
+                            <NavLink to="/prihlasit-se" className="header__login">
                                 Přihlásit se
                             </NavLink>
 
-                            <NavLink
-                                to="/registrovat-se"
-                                className="register"
-                            >
+                            <LinkButton to="/registrovat-se">
                                 Registrovat se
-                            </NavLink>
+                            </LinkButton>
                         </div>
                     ) : (
                         <UserDropdown

@@ -77,7 +77,7 @@ function BookBrowser({
 
     return (
         <PageContainer>
-            <Button onClick={handleBack}>
+            <Button variant="outline" onClick={handleBack}>
                 Zpět na seznam
             </Button>
 
@@ -85,7 +85,7 @@ function BookBrowser({
 
             {mode === "user" && (
                 <div className="book-browser__actions">
-                    <Button onClick={handleDelete}>
+                    <Button variant="outline" onClick={handleDelete}>
                         Smazat inzerát
                     </Button>
 

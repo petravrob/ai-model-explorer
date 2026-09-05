@@ -4,9 +4,8 @@ import { LogIn, SignUp, User } from "@/features/user";
 
 function Main() {
     return (
-        <div id="main">
-            <main>
-            <Routes> 
+        <main>
+            <Routes>
                 <Route path="/" element={<BookBrowser mode={"all"} />} />
                 <Route path="/pridat-inzerat" element={<AddBookAdvertisement />} />
                 <Route path="/prihlasit-se" element={<LogIn />} />
@@ -14,9 +13,8 @@ function Main() {
                 <Route path="/moje-inzeraty" element={<BookBrowser mode={"user"} />} />
                 <Route path="/uzivatel" element={<User />} />
             </Routes>
-            </main>
-        </div>
-    )
+        </main>
+    );
 }
 
 export default Main;

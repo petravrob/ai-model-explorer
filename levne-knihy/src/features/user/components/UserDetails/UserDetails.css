@@ -34,26 +34,6 @@
     border-bottom: 1px solid var(--border);
 }
 
-.user-details__info div {
-    display: flex;
-    flex-direction: column;
-    gap: .25rem;
-}
-
-.user-details__info span {
-    color: #999;
-    font-size: .7rem;
-    font-weight: 600;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-}
-
-.user-details__info strong {
-    color: var(--text);
-    font-size: 1rem;
-    font-weight: 500;
-}
-
 @media (max-width: 480px) {
     .user-details__header {
         flex-direction: column;

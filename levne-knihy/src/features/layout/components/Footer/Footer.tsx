@@ -3,11 +3,11 @@ import "./Footer.css";
 function Footer() {
 
     return (
-        <footer>
+        <footer className="footer">
 
-            <div className="container">
+            <div className="footer__container">
 
-                <div id="school-project-information">
+                <div className="footer__info">
 
                     <p>
                         Tato webová stránka je studentský zápočtový
@@ -28,9 +28,9 @@ function Footer() {
                 </div>
 
 
-                <div id="autor-contact">
+                <div className="footer__columns">
 
-                    <div className="autor-contact-section">
+                    <div className="footer__section">
 
                         <h2>Autor</h2>
 
@@ -40,7 +40,7 @@ function Footer() {
                     </div>
 
 
-                    <div className="autor-contact-section">
+                    <div className="footer__section">
 
                         <h2>Kontakt</h2>
 
@@ -59,7 +59,7 @@ function Footer() {
                     </div>
 
 
-                    <div className="autor-contact-section">
+                    <div className="footer__section">
 
                         <h2>Další projekty a LinkedIn</h2>
 
@@ -86,7 +86,7 @@ function Footer() {
                     </div>
 
 
-                    <div className="autor-contact-section">
+                    <div className="footer__section">
 
                         <h2>Technologie</h2>
 
@@ -101,7 +101,7 @@ function Footer() {
                 </div>
 
 
-                <p id="copyright">
+                <p className="footer__copyright">
                     © Petra Vrobelová 2022
                 </p>
 

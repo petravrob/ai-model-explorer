@@ -1,5 +1,5 @@
 import useLogIn from "../../hooks/useLogin";
-import { Button, Form, FormActions, FormField, PageContainer } from "@/ui";
+import { Button, Form, FormActions, FormField, PageContainer, PageTitle } from "@/ui";
 
 /** Přihlášení uživatele. */
 function LogIn() {
@@ -11,6 +11,8 @@ function LogIn() {
 
     return (
         <PageContainer>
+            <PageTitle centered>Přihlásit se</PageTitle>
+
             <Form onSubmit={handleSubmit}>
                 <FormField label="Přezdívka" htmlFor="uname">
                     <input

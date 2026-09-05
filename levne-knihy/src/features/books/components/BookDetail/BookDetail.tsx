@@ -1,6 +1,7 @@
 import "./BookDetail.css";
 
 import { Book } from "../../types";
+import { DetailItem, SectionTitle } from "@/ui";
 
 /** Zobrazuje detailní informace o knize. */
 function BookDetail({ book }: { book: Book }) {
@@ -21,29 +22,18 @@ function BookDetail({ book }: { book: Book }) {
                 </header>
 
                 <div className="book-detail__details">
-                    <div>
-                        <span>Stav</span>
-                        <strong>{book.state}</strong>
-                    </div>
-
-                    <div>
-                        <span>Stránek</span>
-                        <strong>{book.pages}</strong>
-                    </div>
-
-                    <div>
-                        <span>Poštovné</span>
-                        <strong>{book.delivery} Kč</strong>
-                    </div>
+                    <DetailItem label="Stav" value={book.state} />
+                    <DetailItem label="Stránek" value={book.pages} />
+                    <DetailItem label="Poštovné" value={`${book.delivery} Kč`} />
                 </div>
 
                 <section>
-                    <h3>Popis</h3>
+                    <SectionTitle>Popis</SectionTitle>
                     <p>{book.description}</p>
                 </section>
 
                 <section>
-                    <h3>Prodejce</h3>
+                    <SectionTitle>Prodejce</SectionTitle>
                     <p className="seller">{book.fname} {book.lname}</p>
                     <p className="phone">{book.phone}</p>
                 </section>
