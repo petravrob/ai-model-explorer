@@ -1,5 +1,3 @@
-import { toast } from "react-toastify";
-
 import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
 import { User, LoginData, UserFormData } from "@/features/user/types";
@@ -51,10 +49,10 @@ export const updateUser = async (
     );
 };
 
-/** Zaregistruje uživatele. */
+/** Zaregistruje uživatele a vrátí token pro okamžité přihlášení. */
 export const registerUser = async (
     user: UserFormData
-): Promise<void> => {
+): Promise<string> => {
 
     const response = await fetch(`${API_URL}/registrovat-se`, {
         method: "POST",
@@ -65,10 +63,14 @@ export const registerUser = async (
         body: JSON.stringify(user),
     });
 
-    await handleApiResponse(
+    const data = await handleApiResponse<{
+        token: string;
+    }>(
         response,
         "Registrace nebyla úspěšná."
     );
+
+    return data.token;
 };
 
 /** Přihlásí uživatele. */
@@ -94,23 +96,3 @@ export const loginUser = async (
 
     return data.token;
 };
-
-/** Odhlásí uživatele. */
-function useLogout() {
-
-    const logout = (): void => {
-
-        window.localStorage.clear();
-
-        window.location.href = "./";
-
-        toast.success("Byli jste odhlášeni.");
-
-    };
-
-    return {
-        logout,
-    };
-}
-
-export default useLogout; 

@@ -19,6 +19,26 @@ export const getBooks = async (): Promise<Book[]> => {
 };
 
 
+/** Načte jeden inzerát podle jeho identifikátoru. */
+export const getBook = async (
+    bookId: string
+): Promise<Book> => {
+
+    const response = await fetch(
+        `${API_URL}/kniha/${bookId}`,
+        {
+            method: "GET",
+        }
+    );
+
+    const data = await handleApiResponse<Book>(
+        response,
+        "Nepodařilo se načíst inzerát."
+    );
+
+    return data.data as Book;
+};
+
 /** Přidá nový inzerát. */
 export const addBook = async (
     book: BookFormData

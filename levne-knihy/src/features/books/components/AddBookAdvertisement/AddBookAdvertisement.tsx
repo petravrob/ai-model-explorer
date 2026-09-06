@@ -1,12 +1,11 @@
-import useAddBookAdvertisement from "../../hooks/useAddBookAdvertisement.ts";
-import BookForm from "../BookForm/BookForm.tsx";
-import { PageContainer, PageMessage, PageTitle } from "@/ui";
+import useAddBookAdvertisement from "../../hooks/useAddBookAdvertisement";
+import BookForm from "../BookForm/BookForm";
+import { PageContainer, PageTitle } from "@/ui";
 
-/** Rozhraní pro přidání nové knihy. */
+/** Rozhraní pro přidání nové knihy. Stránka je dostupná pouze přihlášeným. */
 function AddBookAdvertisement() {
 
     const {
-        user,
         newBook,
         handleChange,
         handleImageChange,
@@ -16,26 +15,19 @@ function AddBookAdvertisement() {
 
     return (
         <PageContainer>
-            {!user ? (
-                <PageMessage>
-                    Do této sekce mohou přispívat pouze přihlášení uživatelé.
-                </PageMessage>
-            ) : (
-                <>
-                    <PageTitle centered>Přidat inzerát</PageTitle>
+            <PageTitle centered>Přidat inzerát</PageTitle>
 
-                    <BookForm
-                        book={newBook}
-                        onChange={handleChange}
-                        onSubmit={handleSubmit}
-                        submitText="Uložit knihu"
-                        showImage={true}
-                        onImageChange={handleImageChange}
-                    />
-                </>
-            )}
+            <BookForm
+                book={newBook}
+                onChange={handleChange}
+                onSubmit={handleSubmit}
+                submitText="Uložit knihu"
+                showImage={true}
+                onImageChange={handleImageChange}
+            />
         </PageContainer>
     );
 }
 
 export default AddBookAdvertisement;
+

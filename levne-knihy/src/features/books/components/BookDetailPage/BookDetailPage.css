@@ -1,4 +1,4 @@
-.book-browser__actions {
+.book-detail-page__actions {
     display: flex;
     flex-wrap: wrap;
     gap: .65rem;
@@ -8,11 +8,11 @@
 }
 
 @media (max-width: 600px) {
-    .book-browser__actions {
+    .book-detail-page__actions {
         flex-direction: column;
     }
 
-    .book-browser__actions .btn {
+    .book-detail-page__actions .btn {
         width: 100%;
     }
 }

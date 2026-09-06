@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import { LoginData } from "../types";
 import { loginUser } from "../api/userApi";
+import { useAuthContext } from "../context/AuthContext";
+import { AuthRedirectState, ROUTE_PATHS } from "@/routes/paths";
 
 
 const emptyLogin: LoginData = {
@@ -15,6 +18,17 @@ function useLogIn() {
 
     const [formData, setFormData] =
         useState<LoginData>(emptyLogin);
+
+    const navigate = useNavigate();
+
+    const location = useLocation();
+
+    const { login } = useAuthContext();
+
+    // Stránka, ze které byl uživatel na přihlášení přesměrován
+    const from =
+        (location.state as AuthRedirectState | null)?.from?.pathname
+        ?? ROUTE_PATHS.home;
 
     // Obstará změnu polí v přihlašovacím formuláři
     const handleChange = (
@@ -42,21 +56,14 @@ function useLogIn() {
 
         try {
 
-            const response = await loginUser(formData);
-        
-            localStorage.setItem("token", response);
+            const token = await loginUser(formData);
 
-            window.localStorage.setItem(
-                "loggedIn",
-                "true"
-            );
+            login(token);
 
-            window.localStorage.setItem(
-                "user",
-                formData.uname
-            );
+            toast.success("Přihlášení bylo úspěšné.");
 
-            window.location.href = "./";
+            // Návrat na stránku, ze které přišel uživatel
+            navigate(from, { replace: true });
 
         } catch (error) {
 
@@ -85,3 +92,4 @@ function useLogIn() {
 
 
 export default useLogIn;
+

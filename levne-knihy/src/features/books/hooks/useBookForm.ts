@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Book, BookFormData, BookState } from "../types";
 
-export const emptyBook: BookFormData = {
+const emptyBook: BookFormData = {
     name: "",
     author: "",
     description: "",
@@ -79,17 +79,11 @@ function useBookForm() {
         setBook(bookForForm);
     };
 
-    // Reset formuláře
-    const resetBook = (): void => {
-        setBook(emptyBook);
-    };
-
     return {
         book,
         handleChange,
         handleImageChange,
         initializeBook,
-        resetBook,
     };
 }
 
