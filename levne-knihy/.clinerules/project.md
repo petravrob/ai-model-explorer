@@ -2,6 +2,7 @@
 
 ## General
 
+- Never commit your changes. I will commit what I want by myself.
 - Inspect the existing code before making changes.
 - Preserve existing functionality and business logic unless the task explicitly requires changing it.
 - Do not modify unrelated files.

@@ -2,7 +2,13 @@ import "./Button.css";
 
 import type { ButtonHTMLAttributes } from "react";
 
-type ButtonVariant = "primary" | "outline";
+type ButtonVariant = "primary" | "outline" | "icon";
+
+const VARIANT_CLASSES: Record<ButtonVariant, string> = {
+    primary: "",
+    outline: " btn-outline",
+    icon: " btn-icon",
+};
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: ButtonVariant;
@@ -16,7 +22,7 @@ function Button({
     children,
     ...rest
 }: ButtonProps) {
-    const variantClass = variant === "outline" ? " btn-outline" : "";
+    const variantClass = VARIANT_CLASSES[variant];
 
     return (
         <button
