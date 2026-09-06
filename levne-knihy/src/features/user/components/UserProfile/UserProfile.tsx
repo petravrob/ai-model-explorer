@@ -5,7 +5,7 @@ import UserDetails from "../UserDetails/UserDetails";
 import UserForm from "../UserForm/UserForm";
 
 /** Zobrazuje údaje uživatele a umožňuje jejich upravení. */
-function User() {
+function UserProfile() {
 
     const {
         user,
@@ -62,4 +62,5 @@ function User() {
     );
 }
 
-export default User;
+export default UserProfile;
+

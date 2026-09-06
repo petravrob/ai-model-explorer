@@ -6,7 +6,7 @@ import { Book } from "../types";
 import useBookForm from "./useBookForm";
 import { useCurrentUser } from "@/features/user";
 import { ROUTE_PATHS } from "@/routes/paths";
-import { getBook, updateBook, deleteBook } from "../api/booksApi";
+import { getBooks, updateBook, deleteBook } from "./api/booksApi";
 
 /** Obstarává logiku stránky detailu knihy včetně její úpravy a mazání */
 function useBookDetail(bookId: string | undefined) {
@@ -55,9 +55,12 @@ function useBookDetail(bookId: string | undefined) {
                 setLoading(true);
                 setError(null);
 
-                const loadedBook = await getBook(bookId);
+                const data = await getBooks();
 
-                setBook(loadedBook);
+                const foundBook =
+                    data.find((item) => item._id === bookId) ?? null;
+
+                setBook(foundBook);
 
             } catch (error) {
 

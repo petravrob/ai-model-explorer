@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Book, BookBrowserMode } from "../types";
 import { useCurrentUser } from "@/features/user";
 import { bookDetailUrl } from "@/routes/paths";
-import { getBooks } from "../api/booksApi";
+import { getBooks } from "./api/booksApi";
 
 /** Obstarává logiku zobrazení seznamu knih a přechodu na jejich detail */
 function useBookBrowser(mode: BookBrowserMode) {
