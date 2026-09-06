@@ -8,4 +8,5 @@ export { default as LinkButton } from "./LinkButton/LinkButton";
 export { default as PageContainer } from "./PageContainer/PageContainer";
 export { default as PageMessage } from "./PageMessage/PageMessage";
 export { default as PageTitle } from "./PageTitle/PageTitle";
+export { default as SearchField } from "./SearchField/SearchField";
 export { default as SectionTitle } from "./SectionTitle/SectionTitle";

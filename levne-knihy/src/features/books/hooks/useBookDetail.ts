@@ -6,7 +6,7 @@ import { Book } from "../types";
 import useBookForm from "./useBookForm";
 import { useCurrentUser } from "@/features/user";
 import { ROUTE_PATHS } from "@/routes/paths";
-import { getBooks, updateBook, deleteBook } from "./api/booksApi";
+import { getBooks, updateBook, deleteBook } from "../api/booksApi";
 
 /** Obstarává logiku stránky detailu knihy včetně její úpravy a mazání */
 function useBookDetail(bookId: string | undefined) {

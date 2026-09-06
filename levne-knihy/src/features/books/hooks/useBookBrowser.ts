@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { Book, BookBrowserMode } from "../types";
 import { useCurrentUser } from "@/features/user";
-import { bookDetailUrl } from "@/routes/paths";
-import { getBooks } from "./api/booksApi";
+import { SEARCH_QUERY_PARAM, bookDetailUrl } from "@/routes/paths";
+import { getBooks } from "../api/booksApi";
+
+/** Převede text na malá písmena bez diakritiky pro nezávislé vyhledávání. */
+const normalizeText = (text: string): string =>
+    text
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .toLowerCase();
 
 /** Obstarává logiku zobrazení seznamu knih a přechodu na jejich detail */
 function useBookBrowser(mode: BookBrowserMode) {
@@ -19,10 +26,15 @@ function useBookBrowser(mode: BookBrowserMode) {
 
     const navigate = useNavigate();
 
+    const [searchParams] = useSearchParams();
+
     const {
         user,
         error: userError,
     } = useCurrentUser();
+
+    // Hledaný výraz z URL (např. „/?q=tolkien“)
+    const searchQuery = searchParams.get(SEARCH_QUERY_PARAM) ?? "";
 
 
     // Načtení všech knih
@@ -75,6 +87,17 @@ function useBookBrowser(mode: BookBrowserMode) {
             )
             : books;
 
+    // Filtrování podle hledaného výrazu (název i autor, bez rozlišení velikosti písmen a diakritiky)
+    const normalizedQuery = normalizeText(searchQuery);
+
+    const searchedBooks: Book[] = normalizedQuery
+        ? filteredBooks.filter(
+            (book) =>
+                normalizeText(book.name).includes(normalizedQuery) ||
+                normalizeText(book.author).includes(normalizedQuery)
+        )
+        : filteredBooks;
+
 
     // Přechod na stránku detailu knihy
     const handleBookClick = (
@@ -87,7 +110,9 @@ function useBookBrowser(mode: BookBrowserMode) {
 
 
     return {
-        books: filteredBooks,
+        books: searchedBooks,
+
+        searchQuery,
 
         handleBookClick,
 

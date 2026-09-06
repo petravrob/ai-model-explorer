@@ -1,0 +1,9 @@
+.book-browser__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.book-browser__empty .page-message {
+    margin: 3.5rem 0 1.5rem;
+}
