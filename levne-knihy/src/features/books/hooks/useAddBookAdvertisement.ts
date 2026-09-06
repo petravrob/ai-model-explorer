@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import useBookForm from "./useBookForm";
 import { useCurrentUser } from "@/features/user";
 import { ROUTE_PATHS } from "@/routes/paths";
-import { addBook } from "../api/booksApi";
+import { addBook } from "./api/booksApi";
 
 
 /** Umožňuje vytvoření nového inzerátu */
