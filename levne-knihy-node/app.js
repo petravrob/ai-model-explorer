@@ -3,7 +3,7 @@ const cors = require("cors");
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
-const bookRoutes = require("./routes/bookRoutes");
+const modelRoutes = require("./routes/modelRoutes");
 
 const {
     notFound,
@@ -35,7 +35,7 @@ app.use(
 
 app.use("/", authRoutes);
 app.use("/", userRoutes);
-app.use("/", bookRoutes);
+app.use("/", modelRoutes);
 
 
 // Error handling

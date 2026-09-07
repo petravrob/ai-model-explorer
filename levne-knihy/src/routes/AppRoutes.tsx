@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 
-import { AddBookAdvertisement, BookBrowser, BookDetailPage } from "@/features/books";
+import { ModelBrowser, ModelDetailPage } from "@/features/models";
 import { LogIn, SignUp, User } from "@/features/user";
 import NotFound from "@/features/layout/components/NotFound/NotFound";
 import { RequireAuth, RequireGuest } from "./guards";
@@ -13,12 +13,12 @@ function AppRoutes() {
             {/* Veřejné stránky */}
             <Route
                 path={ROUTE_PATHS.home}
-                element={<BookBrowser mode="all" />}
+                element={<ModelBrowser />}
             />
 
             <Route
-                path={ROUTE_PATHS.bookDetail}
-                element={<BookDetailPage />}
+                path={ROUTE_PATHS.modelDetail}
+                element={<ModelDetailPage />}
             />
 
             {/* Stránky pouze pro nepřihlášené uživatele */}
@@ -36,16 +36,6 @@ function AppRoutes() {
 
             {/* Stránky pouze pro přihlášené uživatele */}
             <Route element={<RequireAuth />}>
-                <Route
-                    path={ROUTE_PATHS.addAdvertisement}
-                    element={<AddBookAdvertisement />}
-                />
-
-                <Route
-                    path={ROUTE_PATHS.myAdvertisements}
-                    element={<BookBrowser mode="user" />}
-                />
-
                 <Route
                     path={ROUTE_PATHS.user}
                     element={<User />}

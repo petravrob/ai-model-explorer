@@ -8,7 +8,7 @@ import { LinkButton } from "@/ui";
 
 import SearchBar from "./SearchBar";
 
-/** Hlavička aplikace – logo, vyhledávání knih a přihlášení/účet uživatele. */
+/** Hlavička aplikace – logo, vyhledávání modelů a přihlášení/účet uživatele. */
 function Header() {
     const { user } = useCurrentUser();
     const { logout } = useLogout();
@@ -21,7 +21,7 @@ function Header() {
                         to={ROUTE_PATHS.home}
                         className="header__brand"
                     >
-                        <h1>Levneknihy</h1>
+                        <h1>AI Modely</h1>
                     </NavLink>
 
                     <SearchBar />
@@ -50,23 +50,9 @@ function Header() {
                     <ul>
                         <li>
                             <NavLink to={ROUTE_PATHS.home} end>
-                                Knihy
+                                Modely
                             </NavLink>
                         </li>
-
-                        <li>
-                            <NavLink to={ROUTE_PATHS.addAdvertisement}>
-                                Přidat inzerát
-                            </NavLink>
-                        </li>
-
-                        {user && (
-                            <li>
-                                <NavLink to={ROUTE_PATHS.myAdvertisements}>
-                                    Moje inzeráty
-                                </NavLink>
-                            </li>
-                        )}
                     </ul>
                 </nav>
             </div>
