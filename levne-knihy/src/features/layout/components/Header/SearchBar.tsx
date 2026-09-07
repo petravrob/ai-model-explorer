@@ -10,8 +10,8 @@ import {
 import { SearchField } from "@/ui";
 
 /**
- * Vyhledávání knih v hlavičce.
- * Na stránkách se seznamem knih (domovská stránka, moje inzeráty) filtruje knihy průběžně při psaní,
+ * Vyhledávání modelů v hlavičce.
+ * Na stránkách se seznamem modelů (domovská stránka, moje inzeráty) filtruje modely průběžně při psaní,
  * na ostatních stránkách po odeslání přesune na domovskou stránku s výsledky.
  */
 function SearchBar() {
@@ -59,7 +59,7 @@ function SearchBar() {
 
         setValue(event.target.value);
 
-        // Průběžné filtrování pouze na stránkách se seznamem knih
+        // Průběžné filtrování pouze na stránkách se seznamem modelů
         if (isSearchablePage) {
             applySearch(event.target.value);
         }
@@ -75,8 +75,8 @@ function SearchBar() {
         <SearchField
             className="header__search"
             value={value}
-            placeholder="Hledat knihy…"
-            ariaLabel="Hledat knihy"
+            placeholder="Hledat modely…"
+            ariaLabel="Hledat modely"
             onChange={handleChange}
             onSubmit={() => applySearch(value)}
             onClear={handleClear}

@@ -2,12 +2,12 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
 require("./models/User.js");
-require("./models/Book.js");
+require("./models/AIModel.js");
 require("dotenv").config();
 
 
 const User = mongoose.model("User");
-const Book = mongoose.model("Book");
+const AIModel = mongoose.model("AIModel");
 
 // mongodb connection
 const mongoUrl = process.env.MONGO_URI;
@@ -140,13 +140,9 @@ const users = [
 
 // #endregion
 
-// #region oprav
-// ======================================================
-// PLACEHOLDER IMAGE
-// ======================================================
+// #region MODEL PLACEHOLDER IMAGE
 
-// #region
-// Knihy dostanou jednoduchý placeholder obrázek.
+// Modely dostanou jednoduchý placeholder obrázek.
 // Později ho můžeš nahradit skutečnými obrázky.
 function createPlaceholder(title) {
     const svg = `
@@ -164,7 +160,7 @@ function createPlaceholder(title) {
                   font-family="Arial"
                   font-size="18"
                   fill="#888888">
-                Levné knihy
+                AI Modely
             </text>
         </svg>
     `;
@@ -172,16 +168,17 @@ function createPlaceholder(title) {
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
+// #endregion
 
-// #region BOOKS
-const books = [
+
+// #region MODELS
+const models = [
 
     {
-        name: "Malý princ",
-        author: "Antoine de Saint-Exupéry",
-        isbn: "9780156012195",
-        description: "Klasický příběh o přátelství, lásce, odpovědnosti a smyslu života.",
-        pages: 96,
+        name: "GPT-4o",
+        author: "OpenAI",
+        description: "Univerzální multimodální model pro text i obrázky, vhodný pro chatovací asistenty.",
+        pages: 200,
         state: "Velmi dobrý",
         price: 100,
         delivery: 55,
@@ -189,11 +186,10 @@ const books = [
     },
 
     {
-        name: "1984",
-        author: "George Orwell",
-        isbn: "9780141185064",
-        description: "Dystopický román o totalitní společnosti, všudypřítomném dohledu a manipulaci.",
-        pages: 328,
+        name: "GPT-3.5 Turbo",
+        author: "OpenAI",
+        description: "Rychlý a levný model pro běžnou konverzaci a generování textu.",
+        pages: 175,
         state: "Dobrý",
         price: 160,
         delivery: 60,
@@ -201,11 +197,10 @@ const books = [
     },
 
     {
-        name: "Farma zvířat",
-        author: "George Orwell",
-        isbn: "9780141036137",
-        description: "Satirická alegorie o moci, politice a zneužití ideálů.",
-        pages: 120,
+        name: "Claude 3.5 Sonnet",
+        author: "Anthropic",
+        description: "Konverzační model zaměřený na dlouhé dokumenty, analýzu a bezpečné odpovědi.",
+        pages: 175,
         state: "Velmi dobrý",
         price: 110,
         delivery: 55,
@@ -213,11 +208,10 @@ const books = [
     },
 
     {
-        name: "Harry Potter a Kámen mudrců",
-        author: "J. K. Rowlingová",
-        isbn: "9781408855652",
-        description: "První díl dobrodružství Harryho Pottera na škole čar a kouzel v Bradavicích.",
-        pages: 288,
+        name: "Claude 3 Haiku",
+        author: "Anthropic",
+        description: "Malý a velmi rychlý model pro jednoduché úlohy a klasifikaci textu.",
+        pages: 20,
         state: "Dobrý",
         price: 220,
         delivery: 65,
@@ -225,11 +219,10 @@ const books = [
     },
 
     {
-        name: "Harry Potter a Tajemná komnata",
-        author: "J. K. Rowlingová",
-        isbn: "9781408855669",
-        description: "Druhý díl série o Harrym Potterovi a tajemství ukrytém v Bradavicích.",
-        pages: 304,
+        name: "Gemini 1.5 Flash",
+        author: "Google",
+        description: "Rychlý multimodální model s velkým kontextovým oknem.",
+        pages: 8,
         state: "Velmi dobrý",
         price: 230,
         delivery: 65,
@@ -237,11 +230,10 @@ const books = [
     },
 
     {
-        name: "Harry Potter a vězeň z Azkabanu",
-        author: "J. K. Rowlingová",
-        isbn: "9781408855676",
-        description: "Harry se ve třetím díle dozvídá více o minulosti svých rodičů.",
-        pages: 384,
+        name: "Gemini 1.5 Pro",
+        author: "Google",
+        description: "Výkonný multimodální model pro složité úlohy a práci s dlouhými dokumenty.",
+        pages: 400,
         state: "Dobrý",
         price: 240,
         delivery: 65,
@@ -249,11 +241,10 @@ const books = [
     },
 
     {
-        name: "Pán prstenů: Společenstvo Prstenu",
-        author: "J. R. R. Tolkien",
-        isbn: "9780261103573",
-        description: "První část slavné fantasy trilogie o cestě Froda Pytlíka.",
-        pages: 432,
+        name: "Llama 3 70B",
+        author: "Meta",
+        description: "Otevřený velký jazykový model pro chat, sumarizaci i programování.",
+        pages: 70,
         state: "Dobrý",
         price: 250,
         delivery: 70,
@@ -261,11 +252,10 @@ const books = [
     },
 
     {
-        name: "Pýcha a předsudek",
-        author: "Jane Austenová",
-        isbn: "9780141439518",
-        description: "Klasický román o lásce, společenských poměrech a prvních dojmech.",
-        pages: 432,
+        name: "Llama 3 8B",
+        author: "Meta",
+        description: "Menší otevřený model vhodný pro nasazení na běžném hardwaru.",
+        pages: 8,
         state: "Dobrý",
         price: 170,
         delivery: 60,
@@ -273,11 +263,10 @@ const books = [
     },
 
     {
-        name: "Velký Gatsby",
-        author: "F. Scott Fitzgerald",
-        isbn: "9780743273565",
-        description: "Příběh lásky, bohatství a amerického snu v prostředí New Yorku.",
-        pages: 180,
+        name: "Mistral 7B",
+        author: "Mistral AI",
+        description: "Efektivní otevřený model s dobrým poměrem výkonu a rychlosti.",
+        pages: 7,
         state: "Velmi dobrý",
         price: 130,
         delivery: 55,
@@ -285,11 +274,10 @@ const books = [
     },
 
     {
-        name: "Alchymista",
-        author: "Paulo Coelho",
-        isbn: "9780061122415",
-        description: "Příběh mladého pastýře, který se vydává hledat svůj osobní poklad.",
-        pages: 208,
+        name: "Mixtral 8x7B",
+        author: "Mistral AI",
+        description: "Model smíšených expertů s vysokou kvalitou odpovědí při nízké latenci.",
+        pages: 47,
         state: "Dobrý",
         price: 120,
         delivery: 55,
@@ -297,11 +285,10 @@ const books = [
     },
 
     {
-        name: "Sto roků samoty",
-        author: "Gabriel García Márquez",
-        isbn: "9780060883287",
-        description: "Magickorealistický román o několika generacích rodiny Buendíů.",
-        pages: 408,
+        name: "Command R+",
+        author: "Cohere",
+        description: "Model optimalizovaný pro vyhledávání v dokumentech a práci s citacemi (RAG).",
+        pages: 104,
         state: "Velmi dobrý",
         price: 190,
         delivery: 65,
@@ -309,11 +296,10 @@ const books = [
     },
 
     {
-        name: "Mistr a Markétka",
-        author: "Michail Bulgakov",
-        isbn: "9780679760801",
-        description: "Výrazný román kombinující satiru, fantastické prvky a milostný příběh.",
-        pages: 416,
+        name: "DeepSeek V3",
+        author: "DeepSeek",
+        description: "Velký otevřený model silný v programování a matematickém uvažování.",
+        pages: 671,
         state: "Dobrý",
         price: 180,
         delivery: 65,
@@ -321,11 +307,10 @@ const books = [
     },
 
     {
-        name: "Zločin a trest",
-        author: "Fjodor Michajlovič Dostojevskij",
-        isbn: "9780140449136",
-        description: "Psychologický román o vině, svědomí a následcích zločinu.",
-        pages: 560,
+        name: "Qwen 2 72B",
+        author: "Alibaba",
+        description: "Vícejazyčný otevřený model s podporou mnoha jazyků a kódování.",
+        pages: 72,
         state: "Dobrý",
         price: 220,
         delivery: 75,
@@ -333,11 +318,10 @@ const books = [
     },
 
     {
-        name: "Anna Karenina",
-        author: "Lev Nikolajevič Tolstoj",
-        isbn: "9780143035008",
-        description: "Klasický román o lásce, společnosti, rodině a osobní svobodě.",
-        pages: 864,
+        name: "Grok-1",
+        author: "xAI",
+        description: "Otevřený model známý netradičním humorem v odpovědích.",
+        pages: 314,
         state: "Dobrý",
         price: 250,
         delivery: 80,
@@ -345,11 +329,10 @@ const books = [
     },
 
     {
-        name: "Proces",
-        author: "Franz Kafka",
-        isbn: "9780805209990",
-        description: "Surrealistický příběh Josefa K. a jeho nepochopitelného soudního procesu.",
-        pages: 240,
+        name: "Whisper Large v3",
+        author: "OpenAI",
+        description: "Model pro převod řeči na text s podporou mnoha jazyků.",
+        pages: 2,
         state: "Velmi dobrý",
         price: 140,
         delivery: 60,
@@ -357,11 +340,10 @@ const books = [
     },
 
     {
-        name: "Duna",
-        author: "Frank Herbert",
-        isbn: "9780441172719",
-        description: "Kultovní sci-fi román o planetě Arrakis, koření a boji o moc.",
-        pages: 688,
+        name: "Stable Diffusion XL",
+        author: "Stability AI",
+        description: "Generování obrázků z textového popisu ve vysoké kvalitě.",
+        pages: 4,
         state: "Velmi dobrý",
         price: 280,
         delivery: 75,
@@ -369,11 +351,10 @@ const books = [
     },
 
     {
-        name: "Sapiens",
-        author: "Yuval Noah Harari",
-        isbn: "9780062316097",
-        description: "Populárně naučná kniha o vývoji člověka a lidské civilizace.",
-        pages: 464,
+        name: "BERT Large",
+        author: "Google",
+        description: "Klasický model pro porozumění textu, klasifikaci a vyhledávání.",
+        pages: 1,
         state: "Velmi dobrý",
         price: 300,
         delivery: 70,
@@ -401,7 +382,7 @@ async function seedDatabase() {
 
         // Smazání aktuálních dat
         await User.deleteMany({});
-        await Book.deleteMany({});
+        await AIModel.deleteMany({});
 
         console.log("Původní testovací data byla odstraněna.\n");
 
@@ -424,30 +405,30 @@ async function seedDatabase() {
 
         console.log(`Vytvořeno uživatelů: ${users.length}`);
 
-        // Vytvoří knihy
+        // Vytvoří modely
 
-        const booksWithUserData = books.map(book => {
-            const user = getUserByUsername(book.uname);
+        const modelsWithUserData = models.map(model => {
+            const user = getUserByUsername(model.uname);
 
             return {
-                name: book.name,
-                author: book.author,
-                description: book.description,
-                pages: book.pages,
-                state: book.state,
-                price: book.price,
-                delivery: book.delivery,
+                name: model.name,
+                author: model.author,
+                description: model.description,
+                pages: model.pages,
+                state: model.state,
+                price: model.price,
+                delivery: model.delivery,
                 fname: user.fname,
                 lname: user.lname,
                 uname: user.uname,
                 phone: user.phone,
-                image: `https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg` // tady nějak insertovat skutečné obrázky
+                image: createPlaceholder(model.name)
             };
         });
 
-        await Book.insertMany(booksWithUserData);
+        await AIModel.insertMany(modelsWithUserData);
 
-        console.log(`Vytvořeno knih: ${books.length}`);
+        console.log(`Vytvořeno modelů: ${models.length}`);
 
         console.log("Data do databáze byla úspěšně přidána.\n");
 
@@ -460,7 +441,7 @@ async function seedDatabase() {
         console.log("");
 
     } catch (error) {
-        console.error("CHYBA PŘI NAPLOŇOVÁNÍ DATABÁZE:");
+        console.error("CHYBA PŘI NAPLŇOVÁNÍ DATABÁZE:");
         console.error(error);
     } finally {
         await mongoose.connection.close();

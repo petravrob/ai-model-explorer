@@ -76,72 +76,7 @@ const validateLogin = [
 ];
 
 
-// Vytvoření/úprava knihy
-const validateBook = [
-    body("name")
-        .trim()
-        .notEmpty()
-        .withMessage("Název knihy je povinný.")
-        .isLength({ max: 200 })
-        .withMessage("Název knihy nesmí obsahovat více než 200 znaků."),
-
-    body("author")
-        .trim()
-        .notEmpty()
-        .withMessage("Autor je povinný.")
-        .isLength({ max: 150 })
-        .withMessage("Jméno autora nesmí obsahovat více než 150 znaků."),
-
-    body("description")
-        .optional({ values: "falsy" })
-        .trim()
-        .isLength({ max: 2000 })
-        .withMessage("Popis nesmí obsahovat více než 2000 znaků."),
-
-    body("pages")
-        .notEmpty()
-        .withMessage("Počet stran je povinný.")
-        .isInt({ min: 1 })
-        .withMessage("Počet stran musí být kladné celé číslo.")
-        .toInt(),
-
-    body("state")
-        .trim()
-        .notEmpty()
-        .withMessage("Stav knihy je povinný.")
-        .isIn([
-            "Nový",
-            "Velmi dobrý",
-            "Dobrý",
-            "Uspokojivý",
-        ])
-        .withMessage("Neplatný stav knihy."),
-
-    body("price")
-        .notEmpty()
-        .withMessage("Cena je povinná.")
-        .isFloat({ min: 0 })
-        .withMessage("Cena musí být nezáporné číslo.")
-        .toFloat(),
-
-    body("delivery")
-        .notEmpty()
-        .withMessage("Cena dopravy je povinná.")
-        .isFloat({ min: 0 })
-        .withMessage("Cena dopravy musí být nezáporné číslo.")
-        .toFloat(),
-
-    body("base64")
-        .optional({ values: "falsy" })
-        .isString()
-        .withMessage("Obrázek musí být ve formátu textového řetězce."),
-
-    handleValidationErrors,
-];
-
-
 module.exports = {
     validateUser,
     validateLogin,
-    validateBook,
 };

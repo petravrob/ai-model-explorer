@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 
-const BOOK_STATES = {
+const MODEL_STATES = {
     NEW: "Nový",
     VERY_GOOD: "Velmi dobrý",
     GOOD: "Dobrý",
     SATISFACTORY: "Uspokojivý",
 };
 
-const bookSchema = new mongoose.Schema(
+const aiModelSchema = new mongoose.Schema(
     {
         name: {
             type: String,
@@ -30,7 +30,7 @@ const bookSchema = new mongoose.Schema(
         },
         state: {
             type: String,
-            enum: Object.values(BOOK_STATES),
+            enum: Object.values(MODEL_STATES),
             required: true,
             trim: true,
         },
@@ -65,9 +65,10 @@ const bookSchema = new mongoose.Schema(
         },
     },
     {
+        // Název kolekce zůstává kvůli kompatibilitě s existující databází
         collection: "BookInfo",
         timestamps: true,
     }
 );
 
-module.exports = mongoose.model("Book", bookSchema);
+module.exports = mongoose.model("AIModel", aiModelSchema);

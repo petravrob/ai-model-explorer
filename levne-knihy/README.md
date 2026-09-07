@@ -1,6 +1,6 @@
-# Levné knihy
+# AI Modely
 
-Webová aplikace pro inzerování a prodej použitých knih. Nepřihlášení návštěvníci mohou prohlížet inzeráty, přihlášení uživatelé navíc přidávat vlastní inzeráty, upravovat je, mazat a spravovat svůj profil.
+Webová aplikace pro prohlížení AI modelů. Nepřihlášení návštěvníci mohou prohlížet inzeráty, přihlášení uživatelé navíc spravovat svůj profil.
 
 ## Technologie
 
@@ -23,7 +23,7 @@ src/
 ├── features/         # funkční celky
 │   ├── layout/       #   Header, Footer, Main, NotFound
 │   ├── user/         #   autentizace a profil (api/, components/, context/, hooks/)
-│   └── books/        #   inzeráty knih (api/, components/, hooks/)
+│   └── models/       #   inzeráty modelů (api/, components/, hooks/)
 ├── ui/               # sdílené prezentační komponenty
 └── styles/           # globální styly
 ```
@@ -35,23 +35,22 @@ Každý funkční celek (`features/*`) má vlastní komponenty, hooky, API vrstv
 | Cesta | Stránka | Přístup |
 | --- | --- | --- |
 | `/` | Seznam všech inzerátů | veřejná |
-| `/kniha/:bookId` | Detail inzerátu | veřejná |
+| `/model/:modelId` | Detail inzerátu | veřejná |
 | `/prihlasit-se` | Přihlášení | pouze nepřihlášení |
 | `/registrovat-se` | Registrace | pouze nepřihlášení |
-| `/pridat-inzerat` | Přidání inzerátu | pouze přihlášení |
-| `/moje-inzeraty` | Seznam vlastních inzerátů | pouze přihlášení |
 | `/uzivatel` | Profil uživatele | pouze přihlášení |
 
 ## Struktura backendu
 
 ```
 levne-knihy-node/
-├── config/env.js   # načtení a kontrola proměnných prostředí
-├── controllers/    # logika endpointů (auth, user, book)
-├── middleware/     # autentizace (JWT) a validace vstupů
-├── models/         # Mongoose schémata
-├── routes/         # definice endpointů
-└── server.js       # spuštění serveru
+├── config/env.js        # načtení a kontrola proměnných prostředí
+├── controllers/         # logika endpointů (auth, user, model)
+├── middleware/          # autentizace (JWT) a validace vstupů
+├── models/              # Mongoose schémata
+├── routes/              # definice endpointů
+├── seed.js              # naplnění databáze testovacími daty
+└── server.js            # spuštění serveru
 ```
 
 ## Spuštění
@@ -65,6 +64,8 @@ npm run dev        # vývoj (nodemon), nebo npm start
 ```
 
 Backend očekává v `.env` proměnné `MONGO_URI` a `JWT_SECRET`, výchozí port je `5000`.
+
+Testovací data lze do databáze naplnit příkazem `node seed.js` (testovací přihlášení: uživatel `petra`, heslo `test123`).
 
 ### Frontend
 
