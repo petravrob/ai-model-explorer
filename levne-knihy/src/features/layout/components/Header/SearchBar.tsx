@@ -11,7 +11,7 @@ import { SearchField } from "@/ui";
 
 /**
  * Vyhledávání modelů v hlavičce.
- * Na stránkách se seznamem modelů (domovská stránka, moje inzeráty) filtruje modely průběžně při psaní,
+ * Na stránkách se seznamem modelů (domovská stránka) filtruje modely průběžně při psaní,
  * na ostatních stránkách po odeslání přesune na domovskou stránku s výsledky.
  */
 function SearchBar() {
