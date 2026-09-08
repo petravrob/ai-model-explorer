@@ -1,26 +1,21 @@
-export enum ModelState {
-    NEW = "Nový",
-    VERY_GOOD = "Velmi dobrý",
-    GOOD = "Dobrý",
-    SATISFACTORY = "Uspokojivý",
-}
-
 export interface AIModel {
     _id: string;
+    modelId: string;
     name: string;
     author: string;
-    description: string;
-    pages: number;
-    state: ModelState;
-    price: number;
-    delivery: number;
-    image: string;
-    fname: string;
-    lname: string;
-    phone: string;
-    uname: string;
+    task: string;
+    parameters: number | null;
+    downloads: number;
+    likes: number;
+    tags: string[];
+    license: string | null;
+    library: string | null;
+    lastModified: string | null;
+    url: string;
+    avatarUrl: string | null;
 }
 export interface ModelListProps {
     models: AIModel[];
     onModelClick: (model: AIModel) => void;
 }
+

@@ -1,31 +1,9 @@
 .model-detail {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 3rem;
-    max-width: 900px;
-    margin-top: 1.5rem;
-}
-
-.model-detail__cover {
-    position: sticky;
-    top: 6rem;
-}
-
-.model-detail__cover img {
-    display: block;
-    width: 100%;
-    aspect-ratio: 2 / 3;
-    object-fit: cover;
-    border-radius: 10px;
-    background: #f0ebe3;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, .1);
-}
-
-.model-detail__info {
     display: flex;
     flex-direction: column;
     gap: 1.75rem;
-    min-width: 0;
+    max-width: 900px;
+    margin-top: 1.5rem;
 }
 
 .model-detail header {
@@ -33,25 +11,14 @@
     border-bottom: 1px solid var(--border);
 }
 
-.model-detail h2 {
+.model-detail .page-title {
     margin: 0 0 .35rem;
-    color: var(--text);
-    font-size: 1.65rem;
-    font-weight: 700;
-    line-height: 1.25;
 }
 
 .model-detail .author {
-    margin: 0 0 .85rem;
+    margin: 0;
     color: var(--text-muted);
     font-size: 1.05rem;
-}
-
-.model-detail .price {
-    margin: 0;
-    color: var(--primary);
-    font-size: 1.35rem;
-    font-weight: 700;
 }
 
 .model-detail__details {
@@ -64,53 +31,44 @@
     min-width: 90px;
 }
 
-.model-detail section p {
+.model-detail__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
     margin: 0;
-    color: #333;
-    font-size: .95rem;
-    line-height: 1.6;
+    padding: 0;
+    list-style: none;
 }
 
-.model-detail section + section {
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--border);
+.model-detail__tags li {
+    padding: .25rem .65rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: white;
+    color: var(--text-muted);
+    font-size: .8rem;
 }
 
-.model-detail .seller {
-    margin-bottom: .2rem;
-    color: var(--text);
-    font-weight: 600;
-}
-
-.model-detail .phone {
-    color: #555;
-    font-size: .9rem;
+.model-detail__link {
+    align-self: flex-start;
 }
 
 @media (max-width: 700px) {
     .model-detail {
-        grid-template-columns: 1fr;
-        max-width: 400px;
+        max-width: 100%;
         margin: 1.5rem auto 0;
     }
 
-    .model-detail__cover {
-        position: static;
-        max-width: 220px;
-        margin: 0 auto;
-    }
-
     .model-detail h2,
-    .model-detail .author,
-    .model-detail .price {
+    .model-detail .author {
         text-align: center;
-    }
-
-    .model-detail h2 {
-        font-size: 1.4rem;
     }
 
     .model-detail__details {
         justify-content: center;
+    }
+
+    .model-detail__link {
+        align-self: center;
     }
 }

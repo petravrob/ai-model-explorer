@@ -9,6 +9,6 @@ const router = express.Router();
 
 router.get("/", getModels);
 
-router.get("/model/:modelId", getModel);
+router.get("/:modelId", getModel);
 
 module.exports = router;

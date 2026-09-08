@@ -4,19 +4,34 @@ import { NavLink } from "react-router-dom";
 type LinkButtonVariant = "primary" | "outline";
 
 interface LinkButtonProps {
-    to: string;
+    to?: string;
+    href?: string;
     variant?: LinkButtonVariant;
+    className?: string;
     children: ReactNode;
 }
 
-/** Univerzální odkaz ve stylu tlačítka. */
-function LinkButton({ to, variant = "primary", children }: LinkButtonProps) {
-    const variantClass = variant === "outline" ? " btn-outline" : "";
+/** Univerzální odkaz ve stylu tlačítka (interní adresa nebo externí odkaz). */
+function LinkButton({ to, href, variant = "primary", className, children }: LinkButtonProps) {
+    const classes = `btn${variant === "outline" ? " btn-outline" : ""}${className ? ` ${className}` : ""}`;
+
+    if (href) {
+        return (
+            <a
+                className={classes}
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+            >
+                {children}
+            </a>
+        );
+    }
 
     return (
         <NavLink
-            to={to}
-            className={`btn${variantClass}`}
+            to={to ?? "/"}
+            className={classes}
         >
             {children}
         </NavLink>

@@ -4,7 +4,7 @@ const AIModel = require("../models/AIModel");
 
 const getModels = async (req, res) => {
     try {
-        const models = await AIModel.find();
+        const models = await AIModel.find().sort({ downloads: -1 });
 
         return res.status(200).json({
             status: "ok",
@@ -24,14 +24,12 @@ const getModel = async (req, res) => {
     try {
         const { modelId } = req.params;
 
-        if (!mongoose.Types.ObjectId.isValid(modelId)) {
-            return res.status(404).json({
-                status: "error",
-                error: "Model nebyl nalezen.",
-            });
-        }
+        // Detail lze načíst podle MongoDB identifikátoru i podle id modelu na Hugging Face
+        const query = mongoose.Types.ObjectId.isValid(modelId)
+            ? { _id: modelId }
+            : { modelId };
 
-        const model = await AIModel.findById(modelId);
+        const model = await AIModel.findOne(query);
 
         if (!model) {
             return res.status(404).json({

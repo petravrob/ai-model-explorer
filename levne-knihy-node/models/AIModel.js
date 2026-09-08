@@ -1,14 +1,14 @@
 const mongoose = require("mongoose");
 
-const MODEL_STATES = {
-    NEW: "Nový",
-    VERY_GOOD: "Velmi dobrý",
-    GOOD: "Dobrý",
-    SATISFACTORY: "Uspokojivý",
-};
-
 const aiModelSchema = new mongoose.Schema(
     {
+        // Identifikátor modelu na Hugging Face (např. „meta-llama/Llama-3.1-8B-Instruct“)
+        modelId: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+        },
         name: {
             type: String,
             required: true,
@@ -19,54 +19,59 @@ const aiModelSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
-        description: {
+        task: {
             type: String,
-            trim: true,
-        },
-        pages: {
-            type: Number,
-            required: true,
-            min: 1,
-        },
-        state: {
-            type: String,
-            enum: Object.values(MODEL_STATES),
             required: true,
             trim: true,
         },
-        price: {
+        parameters: {
+            type: Number,
+            default: null,
+        },
+        downloads: {
             type: Number,
             required: true,
             min: 0,
+            default: 0,
         },
-        delivery: {
+        likes: {
             type: Number,
             required: true,
             min: 0,
+            default: 0,
         },
-        fname: {
+        tags: {
+            type: [String],
+            default: [],
+        },
+        license: {
+            type: String,
+            default: null,
+            trim: true,
+        },
+        library: {
+            type: String,
+            default: null,
+            trim: true,
+        },
+        lastModified: {
+            type: Date,
+            default: null,
+        },
+        url: {
             type: String,
             required: true,
+            trim: true,
         },
-        lname: {
+        avatarUrl: {
             type: String,
-            required: true,
-        },
-        phone: {
-            type: String,
-            required: true,
-        },
-        uname: {
-            type: String,
-            required: true,
-        },
-        image: {
-            type: String,
+            default: null,
+            trim: true,
         },
     },
     {
-        // Název kolekce zůstává kvůli kompatibilitě s existující databází
-        collection: "BookInfo",
+        // Vlastní kolekce pro skutečná data modelů z Hugging Face
+        collection: "models",
         timestamps: true,
     }
 );
