@@ -2,12 +2,10 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
 require("./models/User.js");
-require("./models/AIModel.js");
 require("dotenv").config();
 
 
 const User = mongoose.model("User");
-const AIModel = mongoose.model("AIModel");
 
 // mongodb connection
 const mongoUrl = process.env.MONGO_URI;

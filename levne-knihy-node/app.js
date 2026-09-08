@@ -35,7 +35,7 @@ app.use(
 
 app.use("/", authRoutes);
 app.use("/", userRoutes);
-app.use("/", modelRoutes);
+app.use("/api/models", modelRoutes);
 
 
 // Error handling
