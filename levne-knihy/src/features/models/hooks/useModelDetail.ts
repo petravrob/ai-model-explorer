@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { AIModel } from "../types";
 import { ROUTE_PATHS } from "@/routes/paths";
-import { getModels } from "../api/modelsApi";
+import { getModel } from "../api/modelsApi";
 
 /** Obstarává logiku stránky detailu modelu */
 function useModelDetail(modelId: string | undefined) {
@@ -36,12 +36,9 @@ function useModelDetail(modelId: string | undefined) {
                 setLoading(true);
                 setError(null);
 
-                const data = await getModels();
+                const data = await getModel(modelId);
 
-                const foundModel =
-                    data.find((item) => item._id === modelId) ?? null;
-
-                setModel(foundModel);
+                setModel(data);
 
             } catch (error) {
 

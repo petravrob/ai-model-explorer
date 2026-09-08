@@ -20,8 +20,9 @@ function ModelList({ models, onModelClick }: ModelListProps) {
                     <div>
                         <p className="model-list__name">{model.name}</p>
                         <p className="model-list__author">{model.author}</p>
-                        <p className="model-list__price">
-                            {model.price} Kč,-
+                        <p className="model-list__task">{model.task}</p>
+                        <p className="model-list__stats">
+                            {`${formatCount(model.downloads)} stažení · ${formatCount(model.likes)} ♥`}
                         </p>
                     </div>
                 </li>

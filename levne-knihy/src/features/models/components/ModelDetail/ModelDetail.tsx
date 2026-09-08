@@ -1,43 +1,43 @@
 import "./ModelDetail.css";
 
 import { AIModel } from "../../types";
-import { DetailItem, SectionTitle } from "@/ui";
+import { formatCount, formatDate, formatParameters } from "../../utils/formatters";
+import { DetailItem, LinkButton, PageTitle, SectionTitle } from "@/ui";
 
 /** Zobrazuje detailní informace o modelu. */
 function ModelDetail({ model }: { model: AIModel }) {
     return (
         <article className="model-detail">
-            <div className="model-detail__cover">
-                <img
-                    src={model.image}
-                    alt={model.name}
-                />
+            <header>
+                <PageTitle>{model.name}</PageTitle>
+                <p className="author">{model.author}</p>
+            </header>
+
+            <div className="model-detail__details">
+                <DetailItem label="Úloha" value={model.task} />
+                <DetailItem label="Parametrů" value={formatParameters(model.parameters)} />
+                <DetailItem label="Stažení" value={formatCount(model.downloads)} />
+                <DetailItem label="Oblíbení" value={formatCount(model.likes)} />
+                <DetailItem label="Licence" value={model.license ?? "—"} />
+                <DetailItem label="Knihovna" value={model.library ?? "—"} />
+                <DetailItem label="Naposledy aktualizováno" value={formatDate(model.lastModified)} />
             </div>
 
-            <div className="model-detail__info">
-                <header>
-                    <h2>{model.name}</h2>
-                    <p className="author">{model.author}</p>
-                    <p className="price">{model.price} Kč,-</p>
-                </header>
+            <section>
+                <SectionTitle>Štítky</SectionTitle>
+                <ul className="model-detail__tags">
+                    {model.tags.map((tag) => (
+                        <li key={tag}>{tag}</li>
+                    ))}
+                </ul>
+            </section>
 
-                <div className="model-detail__details">
-                    <DetailItem label="Stav" value={model.state} />
-                    <DetailItem label="Parametrů (mld.)" value={model.pages} />
-                    <DetailItem label="Nasazení" value={`${model.delivery} Kč`} />
-                </div>
-
-                <section>
-                    <SectionTitle>Popis</SectionTitle>
-                    <p>{model.description}</p>
-                </section>
-
-                <section>
-                    <SectionTitle>Prodejce</SectionTitle>
-                    <p className="seller">{model.fname} {model.lname}</p>
-                    <p className="phone">{model.phone}</p>
-                </section>
-            </div>
+            <LinkButton
+                href={model.url}
+                className="model-detail__link"
+            >
+                Zobrazit na Hugging Face
+            </LinkButton>
         </article>
     );
 }

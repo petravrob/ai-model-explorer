@@ -2,11 +2,7 @@ const mongoose = require("mongoose");
 
 const connectDatabase = require("../config/database");
 const AIModel = require("../models/AIModel");
-const {
-    DEFAULT_TASKS,
-    getModel,
-    getModels,
-} = require("../services/huggingFaceService");
+const { DEFAULT_TASKS, getAuthorPageHtml, getModel, getModels } = require("../services/huggingFaceService");
 
 /** Načte hodnoty volitelného opakovatelného argumentu (např. „--task=text-to-image“). */
 function getArgValues(name) {
@@ -16,26 +12,84 @@ function getArgValues(name) {
         .map((arg) => arg.slice(name.length + 3));
 }
 
-/** Načte modely podle argumentů skriptu (konkrétní id, jinak top modely úloh). */
-async function collectModels(tasks, limitPerTask, singleIds) {
-    if (singleIds.length > 0) {
-        const models = [];
+/** Vyhledá licenci v surových datech modelu (cardData, případně štítky). */
+function extractLicense(rawModel) {
+    const license = rawModel?.cardData?.license;
 
+    if (typeof license === "string" && license.length > 0) {
+        return license;
+    }
+
+    if (Array.isArray(license) && license.length > 0) {
+        return license[0];
+    }
+
+    const licenseTag = (rawModel?.tags ?? []).find((tag) => tag.startsWith("license:"));
+
+    return licenseTag ? licenseTag.slice("license:".length) : null;
+}
+
+/** Převede surová data z Hugging Face na tvar AIModel schématu. */
+function mapModelData(rawModel = {}) {
+    const modelId = rawModel.id ?? rawModel.modelId ?? null;
+    const segments = typeof modelId === "string" ? modelId.split("/") : [];
+
+    return {
+        modelId,
+        name: segments.length > 0 ? segments[segments.length - 1] : null,
+        author: rawModel.author ?? (segments.length > 1 ? segments[0] : null),
+        task: rawModel.pipeline_tag ?? null,
+        parameters: rawModel.safetensors?.total ?? null,
+        downloads: rawModel.downloads ?? 0,
+        likes: rawModel.likes ?? 0,
+        tags: rawModel.tags ?? [],
+        license: extractLicense(rawModel),
+        library: rawModel.library_name ?? null,
+        lastModified: rawModel.lastModified ? new Date(rawModel.lastModified) : null,
+        url: modelId ? `https://huggingface.co/${modelId}` : null,
+    };
+}
+
+/** Zkontroluje, že model má všechna povinná data před uložením do databáze. */
+function isValidModel(model) {
+    return Boolean(model.modelId && model.name && model.author && model.task && model.url);
+}
+
+/** Sestaví seznam modelů k uložení podle argumentů skriptu (konkrétní id, jinak top modely úloh). */
+async function collectModels(tasks, limitPerTask, singleIds) {
+    const rawModels = [];
+
+    if (singleIds.length > 0) {
         for (const modelId of singleIds) {
             try {
-                models.push(await getModel(modelId));
+                rawModels.push(await getModel(modelId));
             } catch (error) {
                 console.error(`Model „${modelId}“ se nepodařilo načíst: ${error.message}`);
             }
         }
-
-        return models;
+    } else {
+        rawModels.push(...await getModels({
+            tasks: tasks.length > 0 ? tasks : DEFAULT_TASKS,
+            limitPerTask,
+        }));
     }
 
-    return getModels({
-        tasks: tasks.length > 0 ? tasks : DEFAULT_TASKS,
-        limitPerTask,
-    });
+    // Převede a zvaliduje surová data, duplicity a neúplné modely přeskočí
+    const models = [];
+    const seenModelIds = new Set();
+
+    for (const rawModel of rawModels) {
+        const model = mapModelData(rawModel);
+
+        if (!isValidModel(model) || seenModelIds.has(model.modelId)) {
+            continue;
+        }
+
+        seenModelIds.add(model.modelId);
+        models.push(model);
+    }
+
+    return models;
 }
 
 /** Importuje modely z Hugging Face a uloží je do databáze (existující jen aktualizuje). */
@@ -52,7 +106,26 @@ async function importModels() {
     try {
         const models = await collectModels(tasks, limitPerTask, singleIds);
 
-        console.log(`Hugging Face vrátilo ${models.length} modelů.\n`);
+        console.log(`K uložení je připraveno ${models.length} modelů.\n`);
+
+        // Načte avatar autora pro každý model (jeden autor se řeší jen jednou)
+        const authors = [...new Set(models.map((model) => model.author))];
+
+        console.log(`Načítání avatarů pro ${authors.length} autorů...\n`);
+
+        const avatars = await collectAuthorAvatars(authors);
+
+        let withAvatarCount = 0;
+
+        for (const model of models) {
+            model.avatarUrl = avatars.get(model.author) ?? null;
+
+            if (model.avatarUrl) {
+                withAvatarCount++;
+            }
+        }
+
+        console.log(`\nAvatary nalezeny pro ${withAvatarCount} z ${models.length} modelů.\n`);
 
         let createdCount = 0;
         let updatedCount = 0;
