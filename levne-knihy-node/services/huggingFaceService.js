@@ -2,6 +2,9 @@ const { HUGGINGFACE_API_KEY } = require("../config/env");
 
 const HF_MODELS_API_URL = "https://huggingface.co/api/models";
 
+// Základní adresa Hugging Face (stránky autorů pro avatary)
+const HF_BASE_URL = "https://huggingface.co";
+
 // Úlohy (pipeline tagy), na které se import soustředí
 const DEFAULT_TASKS = [
     "text-generation",
@@ -77,6 +80,9 @@ async function fetchText(url) {
     return response.text();
 }
 
+/** Načte HTML stránku autora na Hugging Face (kvůli avataru). */
+async function getAuthorPageHtml(author) {
+    return fetchText(`${HF_BASE_URL}/${author}`);
 }
 
 /** Sestaví adresu výpisu nejpopulárnějších modelů pro danou úlohu. */

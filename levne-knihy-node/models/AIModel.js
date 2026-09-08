@@ -63,6 +63,11 @@ const aiModelSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        avatarUrl: {
+            type: String,
+            default: null,
+            trim: true,
+        },
     },
     {
         // Vlastní kolekce pro skutečná data modelů z Hugging Face

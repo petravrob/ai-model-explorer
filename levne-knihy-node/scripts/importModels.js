@@ -55,6 +55,62 @@ function isValidModel(model) {
     return Boolean(model.modelId && model.name && model.author && model.task && model.url);
 }
 
+/** Vyhledá adresu avataru autora v HTML jeho stránky (v datech authorData). */
+function extractAvatarUrl(html, author) {
+
+    // Data jsou v HTML escapovaná (&quot; místo uvozovek), nejdřív je dekódujeme
+    const decoded = html
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&amp;/g, '&');
+
+    const authorDataPattern = /"authorData":\{[^{}]*\}/g;
+
+    for (const match of decoded.matchAll(authorDataPattern)) {
+
+        if (!match[0].includes(`"name":"${author}"`)) {
+            continue;
+        }
+
+        const avatarMatch = match[0].match(/"avatarUrl":"([^"]+)"/);
+
+        if (avatarMatch) {
+            const avatarUrl = avatarMatch[1];
+
+            // Relativní adresy doplníme o doménu Hugging Face
+            return avatarUrl.startsWith("http")
+                ? avatarUrl
+                : `https://huggingface.co${avatarUrl}`;
+        }
+    }
+
+    return null;
+}
+
+/** Načte avatary pro všechny autory (jeden autor se načítá jen jednou). */
+async function collectAuthorAvatars(authors) {
+    const avatars = new Map();
+
+    for (const [index, author] of authors.entries()) {
+        try {
+            const html = await getAuthorPageHtml(author);
+
+            avatars.set(author, extractAvatarUrl(html, author));
+        } catch (error) {
+            console.error(`Avatar autora „${author}“ se nepodařilo načíst: ${error.message}`);
+
+            avatars.set(author, null);
+        }
+
+        console.log(`[${index + 1}/${authors.length}] ${author}: ${avatars.get(author) ? "ok" : "bez avataru"}`);
+
+        // Krátká pauza, abychom Hugging Face nezatěžovali příliš rychle
+        await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    return avatars;
+}
+
 /** Sestaví seznam modelů k uložení podle argumentů skriptu (konkrétní id, jinak top modely úloh). */
 async function collectModels(tasks, limitPerTask, singleIds) {
     const rawModels = [];
