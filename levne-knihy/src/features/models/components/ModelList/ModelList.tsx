@@ -15,9 +15,9 @@ function createModelImage(name: string, task: string): string {
     const hue = hash % 360;
     const letter = (name[0] ?? "?").toUpperCase();
 
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
-        <rect width="400" height="300" fill="hsl(${hue}, 32%, 40%)"/>
-        <text x="200" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="150" font-weight="700" fill="rgba(255, 255, 255, 0.85)">${letter}</text>
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">
+        <rect width="400" height="400" fill="hsl(${hue}, 32%, 40%)"/>
+        <text x="200" y="266" text-anchor="middle" font-family="Arial, sans-serif" font-size="150" font-weight="700" fill="rgba(255, 255, 255, 0.85)">${letter}</text>
     </svg>`;
 
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;

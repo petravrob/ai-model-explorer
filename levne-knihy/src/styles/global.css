@@ -1,11 +1,11 @@
 :root {
-  --primary: #2a5238;
-  --primary-hover: #1f3f2b;
-  --primary-light: #edf3ef;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #eef2ff;
   --text: #1a1a1a;
   --text-muted: #666;
-  --background: #faf8f4;
-  --border: #ebe6dc;
+  --background: #f8fafc;
+  --border: #e2e8f0;
   --max-width: 1120px;
   --form-max-width: 760px;
   --header-height: 64px;

@@ -1,6 +1,6 @@
 # AI Modely
 
-Webová aplikace pro prohlížení AI modelů. Nepřihlášení návštěvníci mohou prohlížet inzeráty, přihlášení uživatelé navíc spravovat svůj profil.
+Webová aplikace pro prohlížení AI modelů. Nepřihlášení návštěvníci mohou prohlížet modely, přihlášení uživatelé navíc spravovat svůj profil.
 
 ## Technologie
 
@@ -23,7 +23,7 @@ src/
 ├── features/         # funkční celky
 │   ├── layout/       #   Header, Footer, Main, NotFound
 │   ├── user/         #   autentizace a profil (api/, components/, context/, hooks/)
-│   └── models/       #   inzeráty modelů (api/, components/, hooks/)
+│   └── models/       #   modely AI (api/, components/, hooks/)
 ├── ui/               # sdílené prezentační komponenty
 └── styles/           # globální styly
 ```
@@ -34,8 +34,8 @@ Každý funkční celek (`features/*`) má vlastní komponenty, hooky, API vrstv
 
 | Cesta | Stránka | Přístup |
 | --- | --- | --- |
-| `/` | Seznam všech inzerátů | veřejná |
-| `/model/:modelId` | Detail inzerátu | veřejná |
+| `/` | Seznam všech modelů | veřejná |
+| `/model/:modelId` | Detail modelu | veřejná |
 | `/prihlasit-se` | Přihlášení | pouze nepřihlášení |
 | `/registrovat-se` | Registrace | pouze nepřihlášení |
 | `/uzivatel` | Profil uživatele | pouze přihlášení |

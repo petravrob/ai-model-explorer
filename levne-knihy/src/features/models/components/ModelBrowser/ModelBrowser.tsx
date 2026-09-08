@@ -3,7 +3,7 @@ import useModelBrowser from "../../hooks/useModelBrowser";
 import ModelList from "../ModelList/ModelList";
 import { PageContainer, PageMessage } from "@/ui";
 
-/** Rozhraní pro zobrazení seznamu inzerátů modelů. */
+/** Rozhraní pro zobrazení seznamu modelů. */
 function ModelBrowser() {
 
     const {

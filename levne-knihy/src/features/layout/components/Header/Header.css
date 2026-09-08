@@ -28,7 +28,6 @@
 .header h1 {
     margin: 0;
     color: var(--primary);
-    font-family: Georgia, "Times New Roman", serif;
     font-size: 1.5rem;
     transition: color .15s ease;
 }
