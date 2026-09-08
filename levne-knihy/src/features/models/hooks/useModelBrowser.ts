@@ -27,8 +27,8 @@ function useModelBrowser() {
 
     const [searchParams] = useSearchParams();
 
-    // Hledaný výraz z URL (např. „/?q=gpt“)
-    const searchQuery = searchParams.get(SEARCH_QUERY_PARAM) ?? "";
+    // Hledaný výraz z URL (např. „/?q=gpt“), oříznutý o okrajové mezery
+    const searchQuery = (searchParams.get(SEARCH_QUERY_PARAM) ?? "").trim();
 
 
     // Načtení všech modelů
@@ -71,15 +71,25 @@ function useModelBrowser() {
 
     }, []);
 
-    // Filtrování podle hledaného výrazu (název i autor, bez rozlišení velikosti písmen a diakritiky)
+    // Filtrování podle hledaného výrazu (název, autor, úloha, identifikátor i štítky,
+    // bez rozlišení velikosti písmen a diakritiky)
     const normalizedQuery = normalizeText(searchQuery);
 
     const searchedModels: AIModel[] = normalizedQuery
-        ? models.filter(
-            (model) =>
-                normalizeText(model.name).includes(normalizedQuery) ||
-                normalizeText(model.author).includes(normalizedQuery)
-        )
+        ? models.filter((model) => {
+
+            const searchableFields = [
+                model.name,
+                model.author,
+                model.task,
+                model.modelId,
+                model.tags.join(" "),
+            ];
+
+            return searchableFields.some(
+                (field) => normalizeText(field).includes(normalizedQuery)
+            );
+        })
         : models;
 
 

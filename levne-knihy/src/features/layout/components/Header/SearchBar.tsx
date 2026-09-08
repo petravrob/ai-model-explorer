@@ -25,7 +25,13 @@ function SearchBar() {
 
     // Synchronizace pole s URL (např. po přechodu na jinou stránku se vyprázdní)
     useEffect(() => {
-        setValue(searchParams.get(SEARCH_QUERY_PARAM) ?? "");
+        const urlValue = searchParams.get(SEARCH_QUERY_PARAM) ?? "";
+
+        // URL ukládá výraz bez okrajových mezer, takže když odpovídá právě
+        // psanému textu, pole se nepřepíše, aby se při psaní nemažaly mezery
+        setValue((current) =>
+            urlValue.trim() === current.trim() ? current : urlValue
+        );
     }, [searchParams, location.pathname]);
 
     const isSearchablePage =
@@ -68,7 +74,12 @@ function SearchBar() {
     const handleClear = (): void => {
 
         setValue("");
-        applySearch("");
+
+        // Na stránkách se seznamem modelů se vymaže i hledaný výraz v URL,
+        // jinde jen zůstane prázdné pole bez přesměrování na domovskou stránku
+        if (isSearchablePage) {
+            applySearch("");
+        }
     };
 
     return (
