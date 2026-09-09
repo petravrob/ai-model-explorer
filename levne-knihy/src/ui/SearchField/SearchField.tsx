@@ -1,6 +1,6 @@
 import "./SearchField.css";
 
-import type { ChangeEvent, FormEvent } from "react";
+import type { ChangeEvent, FormEvent, KeyboardEvent } from "react";
 
 import Button from "../Button/Button";
 
@@ -14,7 +14,7 @@ interface SearchFieldProps {
     onClear?: () => void;
 }
 
-/** Vyhledávací pole – vstup s ikonou hledání a tlačítkem pro vymazání. */
+/** Vyhledávací pole, vstup s ikonou hledání a tlačítkem pro vymazání. */
 function SearchField({
     value,
     placeholder = "Hledat…",
@@ -29,6 +29,15 @@ function SearchField({
 
         event.preventDefault();
         onSubmit();
+    };
+
+    const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
+
+        // Escape smaže hledání stejně jako tlačítko křížku (chování sjednocené napříč prohlížeči)
+        if (event.key === "Escape" && value && onClear) {
+            event.preventDefault();
+            onClear();
+        }
     };
 
     return (
@@ -66,6 +75,7 @@ function SearchField({
                 aria-label={ariaLabel}
                 autoComplete="off"
                 onChange={onChange}
+                onKeyDown={handleKeyDown}
             />
 
             {value && onClear && (

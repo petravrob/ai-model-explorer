@@ -4,7 +4,7 @@ Webová aplikace pro prohlížení AI modelů. Nepřihlášení návštěvníci 
 
 ## Technologie
 
-**Frontend** (`levne-knihy`): React 18, TypeScript, Vite, React Router v6, react-toastify
+**Frontend** (`levne-knihy`): React 18, TypeScript, Vite, React Router v6, react-toastify, Fuse.js
 
 **Backend** (`levne-knihy-node`): Node.js, Express, MongoDB (Mongoose), JWT, bcryptjs
 
