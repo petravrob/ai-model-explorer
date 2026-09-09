@@ -3,3 +3,21 @@
     color: var(--text-muted);
     font-size: .875rem;
 }
+
+/* Rozvržení stránky s levým panelem předvoleb a výpisem modelů */
+.model-browser__layout {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.model-browser__content {
+    min-width: 0;
+}
+
+@media (max-width: 900px) {
+    .model-browser__layout {
+        grid-template-columns: 1fr;
+    }
+}

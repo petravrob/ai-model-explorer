@@ -1,0 +1,29 @@
+.model-filter-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+    position: sticky;
+    top: calc(var(--header-height) + 1rem);
+}
+
+.model-filter-panel__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.model-filter-panel__reset {
+    align-self: flex-start;
+}
+
+@media (max-width: 600px) {
+    .model-filter-panel {
+        position: static;
+        padding: 1rem;
+    }
+}

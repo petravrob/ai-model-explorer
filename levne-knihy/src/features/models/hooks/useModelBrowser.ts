@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { AIModel } from "../types";
 import { SEARCH_QUERY_PARAM, modelDetailUrl } from "@/routes/paths";
 import { getModels } from "../api/modelsApi";
+import useModelFilters from "./useModelFilters";
 
 /** Převede text na malá písmena bez diakritiky pro nezávislé vyhledávání. */
 const normalizeText = (text: string): string =>
@@ -45,6 +46,16 @@ function useModelBrowser() {
 
     // Hledaný výraz z URL (např. „/?q=gpt“), oříznutý o okrajové mezery
     const searchQuery = (searchParams.get(SEARCH_QUERY_PARAM) ?? "").trim();
+
+    // Předvolby z levého panelu, které zúží výpis před samotným hledáním
+    const {
+        filters,
+        filterOptions,
+        isFilterActive,
+        handleFilterChange,
+        resetFilters,
+        filteredModels,
+    } = useModelFilters(models);
 
 
     // Načtení všech modelů
@@ -87,10 +98,10 @@ function useModelBrowser() {
 
     }, []);
 
-    // Fuzzy vyhledávání nad načtenými modely (index se sestaví jen při načtení nebo změně dat)
+    // Fuzzy vyhledávání nad modely vyfiltrovanými podle předvoleb (index se sestaví jen při načtení nebo změně dat)
     const fuzzySearch = useMemo(
-        () => new Fuse(models, FUSE_OPTIONS),
-        [models]
+        () => new Fuse(filteredModels, FUSE_OPTIONS),
+        [filteredModels]
     );
 
     // Přesné hledání podle hledaného výrazu (název, autor, úloha, identifikátor i štítky,
@@ -98,7 +109,7 @@ function useModelBrowser() {
     const normalizedQuery = normalizeText(searchQuery);
 
     const exactModels: AIModel[] = normalizedQuery
-        ? models.filter((model) => {
+        ? filteredModels.filter((model) => {
 
             const searchableFields = [
                 model.name,
@@ -112,7 +123,7 @@ function useModelBrowser() {
                 (field) => normalizeText(field).includes(normalizedQuery)
             );
         })
-        : models;
+        : filteredModels;
 
     // Když přesné hledání nic nenajde, nahradí ho fuzzy vyhledávání nejpodobnějších modelů
     const isFuzzySearch = normalizedQuery !== "" && exactModels.length === 0;
@@ -138,6 +149,16 @@ function useModelBrowser() {
         searchQuery,
 
         isFuzzySearch,
+
+        filters,
+
+        filterOptions,
+
+        isFilterActive,
+
+        handleFilterChange,
+
+        resetFilters,
 
         handleModelClick,
 

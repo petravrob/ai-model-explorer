@@ -2,6 +2,7 @@ import "./ModelBrowser.css";
 
 import useModelBrowser from "../../hooks/useModelBrowser";
 
+import ModelFilterPanel from "../ModelFilterPanel/ModelFilterPanel";
 import ModelList from "../ModelList/ModelList";
 import { PageContainer, PageMessage } from "@/ui";
 
@@ -12,6 +13,11 @@ function ModelBrowser() {
         models,
         searchQuery,
         isFuzzySearch,
+        filters,
+        filterOptions,
+        isFilterActive,
+        handleFilterChange,
+        resetFilters,
         handleModelClick,
 
         loading,
@@ -35,34 +41,43 @@ function ModelBrowser() {
         );
     }
 
-    if (models.length === 0) {
-
-        // Zpráva pro prázdný výpis, rozliší hledání a prázdnou databázi
-        const emptyMessage = searchQuery
-            ? `Pro hledaný výraz „${searchQuery}“ nebyly nalezeny žádné modely.`
+    // Zpráva pro prázdný výpis, rozliší hledání a prázdnou databázi
+    const emptyMessage = searchQuery
+        ? `Pro hledaný výraz „${searchQuery}“ nebyly nalezeny žádné modely.`
+        : isFilterActive
+            ? "Podle zvolených předvoleb nebyly nalezeny žádné modely."
             : "Nebyly nalezeny žádné modely.";
-
-        return (
-            <PageContainer>
-                <PageMessage>
-                    {emptyMessage}
-                </PageMessage>
-            </PageContainer>
-        );
-    }
 
     return (
         <PageContainer>
-            {isFuzzySearch && (
-                <p className="model-browser__fuzzy-note">
-                    Přesná shoda nenalezena, zobrazují se nejpodobnější modely.
-                </p>
-            )}
+            <div className="model-browser__layout">
+                <ModelFilterPanel
+                    filters={filters}
+                    options={filterOptions}
+                    isFilterActive={isFilterActive}
+                    onFilterChange={handleFilterChange}
+                    onReset={resetFilters}
+                />
 
-            <ModelList
-                models={models}
-                onModelClick={handleModelClick}
-            />
+                <div className="model-browser__content">
+                    {models.length === 0 ? (
+                        <PageMessage>{emptyMessage}</PageMessage>
+                    ) : (
+                        <>
+                            {isFuzzySearch && (
+                                <p className="model-browser__fuzzy-note">
+                                    Přesná shoda nenalezena, zobrazují se nejpodobnější modely.
+                                </p>
+                            )}
+
+                            <ModelList
+                                models={models}
+                                onModelClick={handleModelClick}
+                            />
+                        </>
+                    )}
+                </div>
+            </div>
         </PageContainer>
     );
 }

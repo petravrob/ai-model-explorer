@@ -18,4 +18,20 @@ export interface ModelListProps {
     models: AIModel[];
     onModelClick: (model: AIModel) => void;
 }
+/** Zvolené předvolby pro filtrování modelů v levém panelu (prázdný seznam = bez omezení). */
+export interface ModelFilters {
+    tasks: string[];
+}
+/** Nabídka hodnot jednotlivých předvoleb odvozená z načtených modelů. */
+export interface ModelFilterOptions {
+    tasks: string[];
+}
+/** Vlastnosti levého panelu s předvolbami pro filtrování modelů. */
+export interface ModelFilterPanelProps {
+    filters: ModelFilters;
+    options: ModelFilterOptions;
+    isFilterActive: boolean;
+    onFilterChange: (name: keyof ModelFilters, value: string) => void;
+    onReset: () => void;
+}
 
