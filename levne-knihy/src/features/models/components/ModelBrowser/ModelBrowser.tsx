@@ -1,3 +1,5 @@
+import "./ModelBrowser.css";
+
 import useModelBrowser from "../../hooks/useModelBrowser";
 
 import ModelList from "../ModelList/ModelList";
@@ -9,6 +11,7 @@ function ModelBrowser() {
     const {
         models,
         searchQuery,
+        isFuzzySearch,
         handleModelClick,
 
         loading,
@@ -34,7 +37,7 @@ function ModelBrowser() {
 
     if (models.length === 0) {
 
-        // Zpráva pro prázdný výpis – rozliší hledání a prázdnou databázi
+        // Zpráva pro prázdný výpis, rozliší hledání a prázdnou databázi
         const emptyMessage = searchQuery
             ? `Pro hledaný výraz „${searchQuery}“ nebyly nalezeny žádné modely.`
             : "Nebyly nalezeny žádné modely.";
@@ -50,6 +53,12 @@ function ModelBrowser() {
 
     return (
         <PageContainer>
+            {isFuzzySearch && (
+                <p className="model-browser__fuzzy-note">
+                    Přesná shoda nenalezena, zobrazují se nejpodobnější modely.
+                </p>
+            )}
+
             <ModelList
                 models={models}
                 onModelClick={handleModelClick}

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import Fuse, { type IFuseOptions } from "fuse.js";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AIModel } from "../types";
@@ -11,6 +12,21 @@ const normalizeText = (text: string): string =>
         .normalize("NFD")
         .replace(/\p{Diacritic}/gu, "")
         .toLowerCase();
+
+/** Nastavení fuzzy vyhledávání, které se použije, když přesné hledání nic nenajde. */
+const FUSE_OPTIONS: IFuseOptions<AIModel> = {
+    keys: [
+        { name: "name", weight: 0.5 },
+        { name: "author", weight: 0.25 },
+        { name: "modelId", weight: 0.15 },
+        { name: "task", weight: 0.05 },
+        { name: "tags", weight: 0.05 },
+    ],
+    threshold: 0.45,
+    ignoreLocation: true,
+    ignoreDiacritics: true,
+    minMatchCharLength: 2,
+};
 
 /** Obstarává logiku zobrazení seznamu modelů a přechodu na jejich detail */
 function useModelBrowser() {
@@ -71,11 +87,17 @@ function useModelBrowser() {
 
     }, []);
 
-    // Filtrování podle hledaného výrazu (název, autor, úloha, identifikátor i štítky,
+    // Fuzzy vyhledávání nad načtenými modely (index se sestaví jen při načtení nebo změně dat)
+    const fuzzySearch = useMemo(
+        () => new Fuse(models, FUSE_OPTIONS),
+        [models]
+    );
+
+    // Přesné hledání podle hledaného výrazu (název, autor, úloha, identifikátor i štítky,
     // bez rozlišení velikosti písmen a diakritiky)
     const normalizedQuery = normalizeText(searchQuery);
 
-    const searchedModels: AIModel[] = normalizedQuery
+    const exactModels: AIModel[] = normalizedQuery
         ? models.filter((model) => {
 
             const searchableFields = [
@@ -92,6 +114,13 @@ function useModelBrowser() {
         })
         : models;
 
+    // Když přesné hledání nic nenajde, nahradí ho fuzzy vyhledávání nejpodobnějších modelů
+    const isFuzzySearch = normalizedQuery !== "" && exactModels.length === 0;
+
+    const searchedModels: AIModel[] = isFuzzySearch
+        ? fuzzySearch.search(searchQuery).map(({ item }) => item)
+        : exactModels;
+
 
     // Přechod na stránku detailu modelu
     const handleModelClick = (
@@ -107,6 +136,8 @@ function useModelBrowser() {
         models: searchedModels,
 
         searchQuery,
+
+        isFuzzySearch,
 
         handleModelClick,
 
