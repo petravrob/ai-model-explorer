@@ -29,6 +29,33 @@ function extractLicense(rawModel) {
     return licenseTag ? licenseTag.slice("license:".length) : null;
 }
 
+/** Vyhledá jazyky modelu v surových datech (cardData, případně štítky). */
+function extractLanguages(rawModel) {
+    const languages = [];
+
+    // Jazyky můžou být v cardData jako řetězec nebo pole
+    const cardLanguages = rawModel?.cardData?.language;
+
+    if (typeof cardLanguages === "string" && cardLanguages.length > 0) {
+        languages.push(cardLanguages);
+    }
+
+    if (Array.isArray(cardLanguages)) {
+        languages.push(...cardLanguages.filter((language) => typeof language === "string" && language.length > 0));
+    }
+
+    // Některé modely mají jazyky i v štítcích (např. „language:en“)
+    (rawModel?.tags ?? []).forEach((tag) => {
+
+        if (typeof tag === "string" && tag.startsWith("language:")) {
+            languages.push(tag.slice("language:".length));
+        }
+    });
+
+    // Sjednotí velikost písmen a duplicity odstraní
+    return [...new Set(languages.map((code) => code.toLowerCase()))];
+}
+
 /** Převede surová data z Hugging Face na tvar AIModel schématu. */
 function mapModelData(rawModel = {}) {
     const modelId = rawModel.id ?? rawModel.modelId ?? null;
@@ -39,6 +66,7 @@ function mapModelData(rawModel = {}) {
         name: segments.length > 0 ? segments[segments.length - 1] : null,
         author: rawModel.author ?? (segments.length > 1 ? segments[0] : null),
         task: rawModel.pipeline_tag ?? null,
+        languages: extractLanguages(rawModel),
         parameters: rawModel.safetensors?.total ?? null,
         downloads: rawModel.downloads ?? 0,
         likes: rawModel.likes ?? 0,

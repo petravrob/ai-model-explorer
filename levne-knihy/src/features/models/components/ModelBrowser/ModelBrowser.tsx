@@ -14,7 +14,6 @@ function ModelBrowser() {
         searchQuery,
         isFuzzySearch,
         filters,
-        filterOptions,
         isFilterActive,
         handleFilterChange,
         resetFilters,
@@ -53,7 +52,6 @@ function ModelBrowser() {
             <div className="model-browser__layout">
                 <ModelFilterPanel
                     filters={filters}
-                    options={filterOptions}
                     isFilterActive={isFilterActive}
                     onFilterChange={handleFilterChange}
                     onReset={resetFilters}

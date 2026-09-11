@@ -50,7 +50,6 @@ function useModelBrowser() {
     // Předvolby z levého panelu, které zúží výpis před samotným hledáním
     const {
         filters,
-        filterOptions,
         isFilterActive,
         handleFilterChange,
         resetFilters,
@@ -151,8 +150,6 @@ function useModelBrowser() {
         isFuzzySearch,
 
         filters,
-
-        filterOptions,
 
         isFilterActive,
 

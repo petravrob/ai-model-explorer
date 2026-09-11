@@ -3,30 +3,33 @@ import "./ModelFilterPanel.css";
 import { Button, CheckboxGroup } from "@/ui";
 
 import { ModelFilterPanelProps } from "../../types";
+import { MODEL_FILTERS_CONFIG } from "../../modelFiltersConfig";
 
 /** Zobrazuje levý panel s předvolbami, podle kterých se filtrují modely. */
 function ModelFilterPanel({
     filters,
-    options,
     isFilterActive,
     onFilterChange,
     onReset,
 }: ModelFilterPanelProps) {
 
-    // Zaškrtnutím nebo odškrtnutím se hodnota přidá či odebere z vybraných úloh
-    const handleToggleTask = (task: string): void =>
-        onFilterChange("tasks", task);
-
     return (
         <aside className="model-filter-panel">
             <h2 className="model-filter-panel__title">Předvolby</h2>
 
-            <CheckboxGroup
-                title="Úloha"
-                options={options.tasks}
-                selected={filters.tasks}
-                onToggle={handleToggleTask}
-            />
+            {/* Kategorie i jejich nabídka hodnot se řídí konfigurací předvoleb */}
+            {MODEL_FILTERS_CONFIG.map((filterConfig) => (
+
+                <CheckboxGroup
+                    key={filterConfig.key}
+                    title={filterConfig.title}
+                    options={filterConfig.options}
+                    selected={filters[filterConfig.key]}
+                    onToggle={(value: string) =>
+                        onFilterChange(filterConfig.key, value)
+                    }
+                />
+            ))}
 
             {isFilterActive && (
                 <Button
@@ -42,3 +45,4 @@ function ModelFilterPanel({
 }
 
 export default ModelFilterPanel;
+

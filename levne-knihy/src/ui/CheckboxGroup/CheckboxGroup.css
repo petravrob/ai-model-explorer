@@ -1,0 +1,23 @@
+.checkbox-group {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.checkbox-group__title {
+    margin-bottom: .6rem;
+    padding: 0;
+    color: #666;
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.checkbox-group__options {
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}

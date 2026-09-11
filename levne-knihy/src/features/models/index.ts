@@ -6,8 +6,12 @@ export { default as ModelList } from "./components/ModelList/ModelList";
 
 export type {
     AIModel,
-    ModelFilters,
-    ModelFilterOptions,
     ModelFilterPanelProps,
     ModelListProps,
 } from "./types";
+export type {
+    FilterOption,
+    ModelFilterKey,
+    ModelFilters,
+} from "./modelFiltersConfig";
+
