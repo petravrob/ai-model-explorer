@@ -7,6 +7,8 @@ export interface FilterOption {
     value: string;
     // Popisek zobrazený uživateli
     label: string;
+    // Volitelně lze definovat vnořené podkategorie
+    children?: readonly FilterOption[];
 }
 
 /**
@@ -53,7 +55,15 @@ export const MODEL_FILTERS_CONFIG = [
         key: "tasks",
         title: "Úloha",
         options: [
-            { value: "text-generation", label: "generování textu" },
+            {
+                value: "text",
+                label: "text",
+                children: [
+                    { value: "text-generation", label: "generování" },
+                    { value: "text-classification", label: "klasifikace" },
+                    { value: "translation", label: "překlad" },
+                ],
+            },
             { value: "text-to-image", label: "generování obrázků" },
             { value: "image-text-to-text", label: "obraz a text na text" },
             { value: "text-to-speech", label: "text na řeč" },

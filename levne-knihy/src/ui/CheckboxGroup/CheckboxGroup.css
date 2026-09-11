@@ -21,3 +21,21 @@
     padding: 0;
     list-style: none;
 }
+
+.checkbox-group__group {
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+}
+
+.checkbox-group__group-label {
+    color: var(--text);
+    font-size: .875rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+/* Vnořené podkategorie jsou odsazené, popisky navazují na popisky nadřazené úrovně */
+.checkbox-group__group .checkbox-group__options {
+    padding-left: 1.5rem;
+}
