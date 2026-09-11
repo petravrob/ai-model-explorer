@@ -29,6 +29,9 @@ const FUSE_OPTIONS: IFuseOptions<AIModel> = {
     minMatchCharLength: 2,
 };
 
+// Zpoždění načtení po změně předvoleb, aby se rychlé po sobě jdoucí změny sloučily do jednoho požadavku
+const FILTERS_FETCH_DELAY_MS = 400;
+
 /** Obstarává logiku zobrazení seznamu modelů a přechodu na jejich detail */
 function useModelBrowser() {
 
@@ -57,8 +60,12 @@ function useModelBrowser() {
     } = useModelFilters(models);
 
 
-    // Načtení všech modelů
+    // Načtení modelů podle zvolených předvoleb (s předvolbami se filtruje přímo na serveru z Hugging Face)
+    // TODO: prověřit aktuální práci s databází, možná to upravit
     useEffect(() => {
+
+        // Zastaralá odpověď ze dřívějšího načtení se zahodí
+        let cancelled = false;
 
         const loadModels = async (): Promise<void> => {
 
@@ -67,9 +74,11 @@ function useModelBrowser() {
                 setLoading(true);
                 setError(null);
 
-                const data = await getModels();
+                const data = await getModels(filters);
 
-                setModels(data);
+                if (!cancelled) {
+                    setModels(data);
+                }
 
             } catch (error) {
 
@@ -83,19 +92,28 @@ function useModelBrowser() {
                         ? error.message
                         : "Nepodařilo se načíst modely.";
 
-                setError(errorMessage);
+                if (!cancelled) {
+                    setError(errorMessage);
+                }
 
             } finally {
 
-                setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
 
             }
 
         };
 
-        loadModels();
+        const timeoutId = setTimeout(loadModels, FILTERS_FETCH_DELAY_MS);
 
-    }, []);
+        return () => {
+            cancelled = true;
+            clearTimeout(timeoutId);
+        };
+
+    }, [filters]);
 
     // Fuzzy vyhledávání nad modely vyfiltrovanými podle předvoleb (index se sestaví jen při načtení nebo změně dat)
     const fuzzySearch = useMemo(
@@ -137,7 +155,8 @@ function useModelBrowser() {
         model: AIModel
     ): void => {
 
-        navigate(modelDetailUrl(model._id));
+        // Modely načtené živě z Hugging Face nemají databázové id, identifikátor se vezme z Hugging Face
+        navigate(modelDetailUrl(model._id ?? model.modelId));
 
     };
 

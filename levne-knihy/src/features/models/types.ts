@@ -1,7 +1,8 @@
 import type { ModelFilterKey, ModelFilters } from "./modelFiltersConfig";
 
 export interface AIModel {
-    _id: string;
+    // Databázový identifikátor (modely načtené živě z Hugging Face ho nemají)
+    _id?: string;
     modelId: string;
     name: string;
     author: string;
