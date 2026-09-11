@@ -1,11 +1,11 @@
 import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
-import { AIModel } from "@/features/models";
+import { AIModel, ModelSortKey } from "@/features/models";
 
-/** Načte všechny modely. */
-export const getModels = async (): Promise<AIModel[]> => {
+/** Načte modely seřazené podle zvoleného řazení (seřadí Hugging Face přes vlastní server). */
+export const getModels = async (sort: ModelSortKey): Promise<AIModel[]> => {
 
-    const response = await fetch(`${API_URL}/api/models`, {
+    const response = await fetch(`${API_URL}/api/models?sort=${sort}`, {
         method: "GET",
     });
 

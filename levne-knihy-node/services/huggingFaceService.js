@@ -17,6 +17,15 @@ const DEFAULT_TASKS = [
 // Kolik nejpopulárnějších modelů (podle počtu stažení) se načte pro každou úlohu
 const DEFAULT_MODELS_PER_TASK = 40;
 
+// Řazení výpisu z API přeložené na parametr Hugging Face
+const SORT_PARAMS = {
+    popularity: "downloads",
+    recent: "lastModified",
+};
+
+// Kolik modelů se načte pro seřazený výpis
+const DEFAULT_SORT_LIMIT = 100;
+
 // Metadata, která se mají od Hugging Face vyžádat
 const EXPAND_FIELDS = [
     "author",
@@ -101,6 +110,21 @@ function buildListUrl(task, limitPerTask) {
     return url.toString();
 }
 
+/** Sestaví adresu výpisu modelů seřazeného podle zvoleného klíče */
+function buildSortedListUrl(sortParam, limit) {
+    const url = new URL(HF_MODELS_API_URL);
+
+    url.searchParams.set("sort", sortParam);
+    url.searchParams.set("direction", "-1");
+    url.searchParams.set("limit", String(limit));
+
+    for (const field of EXPAND_FIELDS) {
+        url.searchParams.append("expand[]", field);
+    }
+
+    return url.toString();
+}
+
 /** Načte surová data nejpopulárnějších modelů z Hugging Face (nejstaženější modely každé úlohy). */
 async function getModels({ tasks = DEFAULT_TASKS, limitPerTask = DEFAULT_MODELS_PER_TASK } = {}) {
     const rawModels = [];
@@ -114,6 +138,11 @@ async function getModels({ tasks = DEFAULT_TASKS, limitPerTask = DEFAULT_MODELS_
     return rawModels;
 }
 
+/** Načte modely z Hugging Face seřazené podle klíče z API (např. popularity). */
+async function getSortedModels(sort, limit = DEFAULT_SORT_LIMIT) {
+    return fetchJson(buildSortedListUrl(SORT_PARAMS[sort], limit));
+}
+
 /** Načte surová data jednoho konkrétního modelu z Hugging Face podle jeho identifikátoru. */
 async function getModel(modelId) {
     return fetchJson(`${HF_MODELS_API_URL}/${modelId}`);
@@ -121,8 +150,10 @@ async function getModel(modelId) {
 
 module.exports = {
     DEFAULT_TASKS,
-    getModels,
+    SORT_PARAMS,
     getModel,
+    getModels,
+    getSortedModels,
     getAuthorPageHtml,
 };
 
