@@ -15,7 +15,6 @@ function App() {
       <main>
         <AppRoutes />
       </main>
-      <Footer/>
       <ToastContainer
                 position="bottom-left"
                 autoClose={4000}

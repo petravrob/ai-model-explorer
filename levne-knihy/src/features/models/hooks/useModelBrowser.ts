@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { AIModel } from "../types";
 import { SEARCH_QUERY_PARAM, modelDetailUrl } from "@/routes/paths";
 import { getModels } from "../api/modelsApi";
+import useModelFilters from "./useModelFilters";
 
 /** Převede text na malá písmena bez diakritiky pro nezávislé vyhledávání. */
 const normalizeText = (text: string): string =>
@@ -28,6 +29,9 @@ const FUSE_OPTIONS: IFuseOptions<AIModel> = {
     minMatchCharLength: 2,
 };
 
+// Zpoždění načtení po změně filtrů, aby se rychlé po sobě jdoucí změny sloučily do jednoho požadavku
+const FILTERS_FETCH_DELAY_MS = 400;
+
 /** Obstarává logiku zobrazení seznamu modelů a přechodu na jejich detail */
 function useModelBrowser() {
 
@@ -39,6 +43,10 @@ function useModelBrowser() {
     const [error, setError] =
         useState<string | null>(null);
 
+    // Příznak dokončeného úvodního načtení – při obnově kvůli filtrům zůstane na stránce stávající výpis
+    const [hasLoaded, setHasLoaded] =
+        useState<boolean>(false);
+
     const navigate = useNavigate();
 
     const [searchParams] = useSearchParams();
@@ -46,20 +54,38 @@ function useModelBrowser() {
     // Hledaný výraz z URL (např. „/?q=gpt“), oříznutý o okrajové mezery
     const searchQuery = (searchParams.get(SEARCH_QUERY_PARAM) ?? "").trim();
 
+    // Filtry z levého panelu, které zúží výpis před samotným hledáním
+    const {
+        filters,
+        isFilterActive,
+        handleFilterChange,
+        resetFilters,
+        filteredModels,
+    } = useModelFilters(models);
 
-    // Načtení všech modelů
+
+    // Načtení modelů podle zvolených filtrů (s filtry se filtruje přímo na serveru z Hugging Face)
+    // TODO: prověřit aktuální práci s databází, možná to upravit
     useEffect(() => {
+
+        // Zastaralá odpověď ze dřívějšího načtení se zahodí
+        let cancelled = false;
+
+        // Obnova se ohlásí hned (i během čekání na sloučení změn filtrů),
+        // dříve načtené modely přitom zůstanou zobrazené, dokud nedorazí nová data
+        setLoading(true);
+        setError(null);
 
         const loadModels = async (): Promise<void> => {
 
             try {
 
-                setLoading(true);
-                setError(null);
+                const data = await getModels(filters);
 
-                const data = await getModels();
-
-                setModels(data);
+                if (!cancelled) {
+                    setModels(data);
+                    setHasLoaded(true);
+                }
 
             } catch (error) {
 
@@ -73,24 +99,33 @@ function useModelBrowser() {
                         ? error.message
                         : "Nepodařilo se načíst modely.";
 
-                setError(errorMessage);
+                if (!cancelled) {
+                    setError(errorMessage);
+                }
 
             } finally {
 
-                setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
 
             }
 
         };
 
-        loadModels();
+        const timeoutId = setTimeout(loadModels, FILTERS_FETCH_DELAY_MS);
 
-    }, []);
+        return () => {
+            cancelled = true;
+            clearTimeout(timeoutId);
+        };
 
-    // Fuzzy vyhledávání nad načtenými modely (index se sestaví jen při načtení nebo změně dat)
+    }, [filters]);
+
+    // Fuzzy vyhledávání nad modely vyfiltrovanými podle filtrů (index se sestaví jen při načtení nebo změně dat)
     const fuzzySearch = useMemo(
-        () => new Fuse(models, FUSE_OPTIONS),
-        [models]
+        () => new Fuse(filteredModels, FUSE_OPTIONS),
+        [filteredModels]
     );
 
     // Přesné hledání podle hledaného výrazu (název, autor, úloha, identifikátor i štítky,
@@ -98,7 +133,7 @@ function useModelBrowser() {
     const normalizedQuery = normalizeText(searchQuery);
 
     const exactModels: AIModel[] = normalizedQuery
-        ? models.filter((model) => {
+        ? filteredModels.filter((model) => {
 
             const searchableFields = [
                 model.name,
@@ -112,7 +147,7 @@ function useModelBrowser() {
                 (field) => normalizeText(field).includes(normalizedQuery)
             );
         })
-        : models;
+        : filteredModels;
 
     // Když přesné hledání nic nenajde, nahradí ho fuzzy vyhledávání nejpodobnějších modelů
     const isFuzzySearch = normalizedQuery !== "" && exactModels.length === 0;
@@ -127,7 +162,8 @@ function useModelBrowser() {
         model: AIModel
     ): void => {
 
-        navigate(modelDetailUrl(model._id));
+        // Modely načtené živě z Hugging Face nemají databázové id, identifikátor se vezme z Hugging Face
+        navigate(modelDetailUrl(model._id ?? model.modelId));
 
     };
 
@@ -139,9 +175,19 @@ function useModelBrowser() {
 
         isFuzzySearch,
 
+        filters,
+
+        isFilterActive,
+
+        handleFilterChange,
+
+        resetFilters,
+
         handleModelClick,
 
         loading,
+
+        hasLoaded,
 
         error,
     };

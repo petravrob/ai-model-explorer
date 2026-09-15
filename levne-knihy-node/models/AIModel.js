@@ -24,6 +24,10 @@ const aiModelSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        languages: {
+            type: [String],
+            default: [],
+        },
         parameters: {
             type: Number,
             default: null,

@@ -1,13 +1,31 @@
 import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
-import { AIModel } from "@/features/models";
+import { AIModel, ModelFilters } from "@/features/models";
 
-/** Načte všechny modely. */
-export const getModels = async (): Promise<AIModel[]> => {
+/** Sestaví dotazovací řetězec ze zvolených filtrů (žádný filtr = bez parametrů). */
+const buildFiltersQuery = (filters: ModelFilters): string => {
 
-    const response = await fetch(`${API_URL}/api/models`, {
-        method: "GET",
-    });
+    const params = new URLSearchParams();
+
+    // Klíče kategorií filtrů se stanou názvy opakovatelných parametrů (např. „tasks=text-generation“)
+    Object.entries(filters).forEach(([key, values]) =>
+        values.forEach((value) => params.append(key, value))
+    );
+
+    const query = params.toString();
+
+    return query ? `?${query}` : "";
+};
+
+/** Načte modely – se zvolenými filtry se filtrují na serveru živě z Hugging Face. */
+export const getModels = async (filters?: ModelFilters): Promise<AIModel[]> => {
+
+    const response = await fetch(
+        `${API_URL}/api/models${filters ? buildFiltersQuery(filters) : ""}`,
+        {
+            method: "GET",
+        }
+    );
 
     const data = await handleApiResponse<AIModel[]>(
         response,
