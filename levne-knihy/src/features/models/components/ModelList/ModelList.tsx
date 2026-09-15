@@ -30,7 +30,7 @@ function ModelList({ models, onModelClick }: ModelListProps) {
             {models.map((model) => (
                 <li
                     className="model-list__item"
-                    key={model._id}
+                    key={model._id ?? model.modelId}
                     onClick={() => onModelClick(model)}
                 >
                     <img

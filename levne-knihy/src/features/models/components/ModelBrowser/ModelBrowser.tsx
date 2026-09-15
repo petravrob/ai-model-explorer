@@ -23,22 +23,17 @@ function ModelBrowser() {
         handleModelClick,
 
         loading,
+        hasLoaded,
         error,
     } = useModelBrowser();
 
 
-    if (loading) {
+    // Celostránková zpráva se ukáže jen před prvním načtením (případně při jeho neúspěchu).
+    // Při obnově kvůli změně filtrů zůstane rozvržení i stávající výpis modelů na stránce.
+    if (!hasLoaded) {
         return (
             <PageContainer>
-                <PageMessage>Načítání modelů...</PageMessage>
-            </PageContainer>
-        );
-    }
-
-    if (error) {
-        return (
-            <PageContainer>
-                <PageMessage>{error}</PageMessage>
+                <PageMessage>{error ?? "Načítání modelů..."}</PageMessage>
             </PageContainer>
         );
     }
@@ -47,7 +42,7 @@ function ModelBrowser() {
     const emptyMessage = searchQuery
         ? `Pro hledaný výraz „${searchQuery}“ nebyly nalezeny žádné modely.`
         : isFilterActive
-            ? "Podle zvolených předvoleb nebyly nalezeny žádné modely."
+            ? "Podle zvolených filtrů nebyly nalezeny žádné modely."
             : "Nebyly nalezeny žádné modely.";
 
     return (
@@ -62,11 +57,19 @@ function ModelBrowser() {
                     onReset={resetFilters}
                 />
 
-                <div className="model-browser__content">
-                    {models.length === 0 ? (
+                <div className="model-browser__content" aria-busy={loading}>
+                    {error ? (
+                        <PageMessage>{error}</PageMessage>
+                    ) : models.length === 0 ? (
                         <PageMessage>{emptyMessage}</PageMessage>
                     ) : (
                         <>
+                            {loading && (
+                                <p className="model-browser__refresh-note" role="status">
+                                    Aktualizace modelů...
+                                </p>
+                            )}
+
                             {isFuzzySearch && (
                                 <p className="model-browser__fuzzy-note">
                                     Přesná shoda nenalezena, zobrazují se nejpodobnější modely.

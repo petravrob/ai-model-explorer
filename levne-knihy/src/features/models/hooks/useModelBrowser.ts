@@ -30,6 +30,9 @@ const FUSE_OPTIONS: IFuseOptions<AIModel> = {
     minMatchCharLength: 2,
 };
 
+// Zpoždění načtení po změně filtrů, aby se rychlé po sobě jdoucí změny sloučily do jednoho požadavku
+const FILTERS_FETCH_DELAY_MS = 400;
+
 /** Obstarává logiku zobrazení seznamu modelů a přechodu na jejich detail */
 function useModelBrowser() {
 
@@ -41,6 +44,10 @@ function useModelBrowser() {
     const [error, setError] =
         useState<string | null>(null);
 
+    // Příznak dokončeného úvodního načtení – při obnově kvůli filtrům zůstane na stránce stávající výpis
+    const [hasLoaded, setHasLoaded] =
+        useState<boolean>(false);
+
     const navigate = useNavigate();
 
     const [searchParams] = useSearchParams();
@@ -48,7 +55,7 @@ function useModelBrowser() {
     // Hledaný výraz z URL (např. „/?q=gpt“), oříznutý o okrajové mezery
     const searchQuery = (searchParams.get(SEARCH_QUERY_PARAM) ?? "").trim();
 
-    // Předvolby z levého panelu, které zúží výpis před samotným hledáním
+    // Filtry z levého panelu, které zúží výpis před samotným hledáním
     const {
         filters,
         isFilterActive,
@@ -60,20 +67,28 @@ function useModelBrowser() {
     // Zvolený způsob řazení výpisu modelů
     const [sort, setSort] = useState<ModelSortKey>(DEFAULT_SORT);
 
-
-    // Načtení modelů seřazených podle zvoleného řazení (seřadí Hugging Face přes server)
+    // Načtení modelů podle zvolených filtrů (s filtry se filtruje přímo na serveru z Hugging Face)
+    // TODO: prověřit aktuální práci s databází, možná to upravit
     useEffect(() => {
+
+        // Zastaralá odpověď ze dřívějšího načtení se zahodí
+        let cancelled = false;
+
+        // Obnova se ohlásí hned (i během čekání na sloučení změn filtrů),
+        // dříve načtené modely přitom zůstanou zobrazené, dokud nedorazí nová data
+        setLoading(true);
+        setError(null);
 
         const loadModels = async (): Promise<void> => {
 
             try {
 
-                setLoading(true);
-                setError(null);
+                const data = await getModels(filters, sort);
 
-                const data = await getModels(sort);
-
-                setModels(data);
+                if (!cancelled) {
+                    setModels(data);
+                    setHasLoaded(true);
+                }
 
             } catch (error) {
 
@@ -87,21 +102,30 @@ function useModelBrowser() {
                         ? error.message
                         : "Nepodařilo se načíst modely.";
 
-                setError(errorMessage);
+                if (!cancelled) {
+                    setError(errorMessage);
+                }
 
             } finally {
 
-                setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
 
             }
 
         };
 
-        loadModels();
+        const timeoutId = setTimeout(loadModels, FILTERS_FETCH_DELAY_MS);
 
-    }, [sort]);
+        return () => {
+            cancelled = true;
+            clearTimeout(timeoutId);
+        };
 
-    // Fuzzy vyhledávání nad modely vyfiltrovanými podle předvoleb (index se sestaví jen při načtení nebo změně dat)
+    }, [filters, sort]);
+
+    // Fuzzy vyhledávání nad modely vyfiltrovanými podle filtrů (index se sestaví jen při načtení nebo změně dat)
     const fuzzySearch = useMemo(
         () => new Fuse(filteredModels, FUSE_OPTIONS),
         [filteredModels]
@@ -147,7 +171,8 @@ function useModelBrowser() {
         model: AIModel
     ): void => {
 
-        navigate(modelDetailUrl(model._id));
+        // Modely načtené živě z Hugging Face nemají databázové id, identifikátor se vezme z Hugging Face
+        navigate(modelDetailUrl(model._id ?? model.modelId));
 
     };
 
@@ -174,6 +199,8 @@ function useModelBrowser() {
         handleModelClick,
 
         loading,
+
+        hasLoaded,
 
         error,
     };

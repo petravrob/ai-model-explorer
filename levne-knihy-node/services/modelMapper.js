@@ -1,6 +1,6 @@
 /**
- * Převod surových dat z Hugging Face na tvar AIModel schématu.
- * Sdílené importovacím skriptem i API kontrolerem.
+ * Převod surových dat modelů z Hugging Face na tvar AIModel schématu.
+ * Sdílí ho importní skript i kontroler, který načítá modely živě z Hugging Face.
  */
 
 /** Vyhledá licenci v surových datech modelu (cardData, případně štítky). */
@@ -69,12 +69,32 @@ function mapModelData(rawModel = {}) {
     };
 }
 
-/** Zkontroluje, že model má všechna povinná data před uložením do databáze. */
+/** Zkontroluje, že model má všechna povinná data. */
 function isValidModel(model) {
     return Boolean(model.modelId && model.name && model.author && model.task && model.url);
 }
 
+/** Převede surové modely na platné unikátní záznamy seřazené podle počtu stažení. */
+function mapRawModels(rawModels = []) {
+    const models = [];
+    const seenModelIds = new Set();
+
+    for (const rawModel of rawModels) {
+        const model = mapModelData(rawModel);
+
+        if (!isValidModel(model) || seenModelIds.has(model.modelId)) {
+            continue;
+        }
+
+        seenModelIds.add(model.modelId);
+        models.push(model);
+    }
+
+    return models.sort((a, b) => b.downloads - a.downloads);
+}
+
 module.exports = {
-    isValidModel,
     mapModelData,
+    isValidModel,
+    mapRawModels,
 };

@@ -9,3 +9,8 @@
     max-width: var(--form-max-width);
     margin: 0 auto 1.5rem;
 }
+
+.page-title--compact {
+    margin: 0;
+    font-size: 1.25rem;
+}

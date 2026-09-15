@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const connectDatabase = require("../config/database");
 const AIModel = require("../models/AIModel");
 const { DEFAULT_TASKS, getAuthorPageHtml, getModel, getModels } = require("../services/huggingFaceService");
-const { isValidModel, mapModelData } = require("../services/modelMapper");
+const { mapRawModels } = require("../services/modelMapper");
 
 /** Načte hodnoty volitelného opakovatelného argumentu (např. „--task=text-to-image“). */
 function getArgValues(name) {
@@ -89,21 +89,7 @@ async function collectModels(tasks, limitPerTask, singleIds) {
     }
 
     // Převede a zvaliduje surová data, duplicity a neúplné modely přeskočí
-    const models = [];
-    const seenModelIds = new Set();
-
-    for (const rawModel of rawModels) {
-        const model = mapModelData(rawModel);
-
-        if (!isValidModel(model) || seenModelIds.has(model.modelId)) {
-            continue;
-        }
-
-        seenModelIds.add(model.modelId);
-        models.push(model);
-    }
-
-    return models;
+    return mapRawModels(rawModels);
 }
 
 /** Importuje modely z Hugging Face a uloží je do databáze (existující jen aktualizuje). */

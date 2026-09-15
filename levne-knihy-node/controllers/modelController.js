@@ -1,38 +1,97 @@
 const mongoose = require("mongoose");
 
 const AIModel = require("../models/AIModel");
-const { SORT_PARAMS, getModel: getHuggingFaceModel, getSortedModels } = require("../services/huggingFaceService");
-const { isValidModel, mapModelData } = require("../services/modelMapper");
+const {
+    DEFAULT_TASKS,
+    SORT_PARAMS,
+    getModels: fetchHuggingFaceModels,
+    getModel: fetchHuggingFaceModel,
+    getSortedModels,
+} = require("../services/huggingFaceService");
+const { isValidModel, mapModelData, mapRawModels } = require("../services/modelMapper");
+
+/** Převede opakovatelný parametr dotazu na pole hodnot (např. „?tasks=a&tasks=b“). */
+const toArrayParam = (param) => {
+
+    if (Array.isArray(param)) {
+        return param.filter((value) => typeof value === "string" && value.length > 0);
+    }
+
+    return typeof param === "string" && param.length > 0 ? [param] : [];
+};
+
+/** Načte modely živě z Hugging Face a zúží je podle zvolených filtrů (úlohy, jazyky). */
+const getFilteredModelsFromHuggingFace = async (tasks, languages) => {
+
+    const rawModels = await fetchHuggingFaceModels({
+        tasks: tasks.length > 0 ? tasks : DEFAULT_TASKS,
+    });
+
+    const models = mapRawModels(rawModels);
+
+    // Jazyky Hugging Face filtrovat neumí, zúží se až z převedených dat modelů
+    if (languages.length === 0) {
+        return models;
+    }
+
+    return models.filter((model) =>
+        model.languages.some((language) => languages.includes(language))
+    );
+};
+
+/** Načte model živě z Hugging Face a převede ho na tvar AIModel (když neexistuje, vrátí null). */
+const getHuggingFaceModel = async (modelId) => {
+
+    try {
+        const model = mapModelData(await fetchHuggingFaceModel(modelId));
+
+        return isValidModel(model) ? model : null;
+    } catch (error) {
+        console.error(`Model „${modelId}“ se nepodařilo načíst z Hugging Face: ${error.message}`);
+
+        return null;
+    }
+};
 
 const getModels = async (req, res) => {
     try {
         const { sort } = req.query;
+        const tasks = toArrayParam(req.query.tasks);
+        const languages = toArrayParam(req.query.languages);
 
-        // Seřazený výpis se načte přímo z Hugging Face, databáze obsahuje jen část modelů
-        if (sort) {
-
-            if (!SORT_PARAMS[sort]) {
-                return res.status(400).json({
-                    status: "error",
-                    error: "Neznámé řazení.",
-                });
-            }
-
-            const rawModels = await getSortedModels(sort);
-
-            // Modely z Hugging Face nemají identifikátor databáze, použije se modelId
-            const models = rawModels
-                .map(mapModelData)
-                .filter(isValidModel)
-                .map((model) => ({ ...model, _id: model.modelId }));
-
-            return res.status(200).json({
-                status: "ok",
-                data: models,
+        if (sort && !SORT_PARAMS[sort]) {
+            return res.status(400).json({
+                status: "error",
+                error: "Neznámé řazení.",
             });
         }
 
-        const models = await AIModel.find().sort({ downloads: -1 });
+        // Řazený výpis se načte z Hugging Face, filtry se zachovají nad výslednými modely.
+        if (sort) {
+            let models = (await getSortedModels(sort))
+                .map(mapModelData)
+                .filter(isValidModel);
+
+            if (tasks.length > 0) {
+                models = models.filter((model) => tasks.includes(model.task));
+            }
+
+            if (languages.length > 0) {
+                models = models.filter((model) =>
+                    model.languages.some((language) => languages.includes(language))
+                );
+            }
+
+            return res.status(200).json({
+                status: "ok",
+                data: models.map((model) => ({ ...model, _id: model.modelId })),
+            });
+        }
+
+        // Bez filtrů se vrací importované modely z databáze, s filtry se načtou živě z Hugging Face.
+        const models = tasks.length === 0 && languages.length === 0
+            ? await AIModel.find().sort({ downloads: -1 })
+            : await getFilteredModelsFromHuggingFace(tasks, languages);
 
         return res.status(200).json({
             status: "ok",
@@ -59,18 +118,9 @@ const getModel = async (req, res) => {
 
         let model = await AIModel.findOne(query);
 
-        // Model ze seřazeného výpisu nemusí být v databázi, dotáhne se přímo z Hugging Face
+        // Model, který dosud není v databázi, se zkusí načíst živě z Hugging Face
         if (!model && !mongoose.Types.ObjectId.isValid(modelId)) {
-            try {
-                const rawModel = await getHuggingFaceModel(modelId);
-                const mappedModel = mapModelData(rawModel);
-
-                if (isValidModel(mappedModel)) {
-                    model = { ...mappedModel, _id: mappedModel.modelId };
-                }
-            } catch (huggingFaceError) {
-                console.error("Fetching model from Hugging Face failed:", huggingFaceError);
-            }
+            model = await getHuggingFaceModel(modelId);
         }
 
         if (!model) {
