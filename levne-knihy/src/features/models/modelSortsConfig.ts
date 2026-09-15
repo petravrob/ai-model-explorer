@@ -8,17 +8,25 @@ export interface SortOption {
 
 /**
  * Možnosti řazení modelů, jejich pořadí odpovídá zobrazení ve výběru.
- * První možnost je výchozí řazení. Nové řazení = nový záznam tady
- * (hodnotu musí umět přeložit i server, viz SORT_PARAMS v huggingFaceService).
+ * První možnost je výchozí řazení. Každá hodnota musí mít odpovídající
+ * překlad na serveru v SORT_PARAMS v huggingFaceService.
  */
 export const MODEL_SORTS_CONFIG = [
     {
         value: "popularity",
-        label: "Nejpopulárnější",
+        label: "Popularita",
     },
     {
-        value: "recent",
-        label: "Nejnovější",
+        value: "downloads",
+        label: "Počet stažení",
+    },
+    {
+        value: "likes",
+        label: "Počet oblíbených",
+    },
+    {
+        value: "created",
+        label: "Datum přidání",
     },
 ] as const satisfies readonly SortOption[];
 

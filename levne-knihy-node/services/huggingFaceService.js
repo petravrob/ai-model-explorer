@@ -19,8 +19,10 @@ const DEFAULT_MODELS_PER_TASK = 40;
 
 // Řazení výpisu z API přeložené na parametr Hugging Face
 const SORT_PARAMS = {
-    popularity: "downloads",
-    recent: "lastModified",
+    popularity: "trendingScore",
+    downloads: "downloads",
+    likes: "likes",
+    created: "createdAt",
 };
 
 // Kolik modelů se načte pro seřazený výpis
@@ -29,6 +31,7 @@ const DEFAULT_SORT_LIMIT = 100;
 // Metadata, která se mají od Hugging Face vyžádat
 const EXPAND_FIELDS = [
     "author",
+    "createdAt",
     "lastModified",
     "safetensors",
     "cardData",
