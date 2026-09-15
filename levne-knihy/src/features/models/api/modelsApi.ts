@@ -2,12 +2,12 @@ import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
 import { AIModel, ModelFilters } from "@/features/models";
 
-/** Sestaví dotazovací řetězec ze zvolených předvoleb (žádná předvolba = bez parametrů). */
+/** Sestaví dotazovací řetězec ze zvolených filtrů (žádný filtr = bez parametrů). */
 const buildFiltersQuery = (filters: ModelFilters): string => {
 
     const params = new URLSearchParams();
 
-    // Klíče kategorií předvoleb se stanou názvy opakovatelných parametrů (např. „tasks=text-generation“)
+    // Klíče kategorií filtrů se stanou názvy opakovatelných parametrů (např. „tasks=text-generation“)
     Object.entries(filters).forEach(([key, values]) =>
         values.forEach((value) => params.append(key, value))
     );
@@ -17,7 +17,7 @@ const buildFiltersQuery = (filters: ModelFilters): string => {
     return query ? `?${query}` : "";
 };
 
-/** Načte modely – se zvolenými předvolbami se filtrují na serveru živě z Hugging Face. */
+/** Načte modely – se zvolenými filtry se filtrují na serveru živě z Hugging Face. */
 export const getModels = async (filters?: ModelFilters): Promise<AIModel[]> => {
 
     const response = await fetch(

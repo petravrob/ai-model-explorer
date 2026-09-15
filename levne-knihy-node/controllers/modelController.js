@@ -18,7 +18,7 @@ const toArrayParam = (param) => {
     return typeof param === "string" && param.length > 0 ? [param] : [];
 };
 
-/** Načte modely živě z Hugging Face a zúží je podle zvolených předvoleb (úlohy, jazyky). */
+/** Načte modely živě z Hugging Face a zúží je podle zvolených filtrů (úlohy, jazyky). */
 const getFilteredModelsFromHuggingFace = async (tasks, languages) => {
 
     const rawModels = await fetchHuggingFaceModels({
@@ -56,7 +56,7 @@ const getModels = async (req, res) => {
         const tasks = toArrayParam(req.query.tasks);
         const languages = toArrayParam(req.query.languages);
 
-        // Bez předvoleb se vrací importované modely z databáze, s předvolbami se načtou živě z Hugging Face
+        // Bez filtrů se vrací importované modely z databáze, s filtry se načtou živě z Hugging Face
         const models = tasks.length === 0 && languages.length === 0
             ? await AIModel.find().sort({ downloads: -1 })
             : await getFilteredModelsFromHuggingFace(tasks, languages);

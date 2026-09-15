@@ -1,7 +1,7 @@
 import type { AIModel } from "./types";
 
 
-/** Jedna hodnota v nabídce kategorie předvoleb. */
+/** Jedna hodnota v nabídce kategorie filtrů. */
 export interface FilterOption {
     // Hodnota, která se ukládá do výběru a používá při filtrování
     value: string;
@@ -12,12 +12,12 @@ export interface FilterOption {
 }
 
 /**
- * Konfigurace jedné kategorie předvoleb v levém panelu.
+ * Konfigurace jedné kategorie filtrů v levém panelu.
  * Každá kategorie umožňuje vybrat jednu či více hodnot, model vyhoví,
  * když má aspoň jednu zvolenou hodnotu (kategorie se kombinují současně).
  */
 export interface FilterCategoryConfig {
-    // Jedinečný klíč kategorie, z něj se odvodí klíče ve stavu předvoleb
+    // Jedinečný klíč kategorie, z něj se odvodí klíče ve stavu filtrů
     key: string;
     // Titulek kategorie zobrazený v panelu
     title: string;
@@ -47,8 +47,8 @@ export const fromModelField =
 
 
 /**
- * Kategorie předvoleb v levém panelu, jejich pořadí odpovídá zobrazení.
- * Nová předvolba = nový záznam tady, stav, filtrování i panel se odvodí samy.
+ * Kategorie filtrů v levém panelu, jejich pořadí odpovídá zobrazení.
+ * Nový filtr = nový záznam tady, stav, filtrování i panel se odvodí samy.
  */
 export const MODEL_FILTERS_CONFIG = [
     {
@@ -88,9 +88,9 @@ export const MODEL_FILTERS_CONFIG = [
 
 type FilterConfigEntry = (typeof MODEL_FILTERS_CONFIG)[number];
 
-/** Klíče kategorií předvoleb odvozené z konfigurace. */
+/** Klíče kategorií filtrů odvozené z konfigurace. */
 export type ModelFilterKey = FilterConfigEntry["key"];
 
-/** Stav předvoleb odvozený z konfigurace, u každé kategorie seznam zvolených hodnot (prázdný = bez omezení). */
+/** Stav filtrů odvozený z konfigurace, u každé kategorie seznam zvolených hodnot (prázdný = bez omezení). */
 export type ModelFilters = Record<ModelFilterKey, string[]>;
 
