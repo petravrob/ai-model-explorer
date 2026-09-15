@@ -22,7 +22,7 @@
     height: 0.9rem;
     margin: 0;
     flex-shrink: 0;
-    background: #fff;
+    background: var(--surface);
     border: 1.4px solid #b9c5d4;
     border-radius: 4px;
     cursor: pointer;

@@ -4,8 +4,14 @@
   --primary-light: #eef2ff;
   --text: #1a1a1a;
   --text-muted: #666;
+  --text-subtle: #888;
+  --text-faint: #999;
   --background: #f8fafc;
+  --surface: #fff;
+  --surface-soft: #f8fbff;
+  --surface-warm: #f5f2eb;
   --border: #e2e8f0;
+  --border-muted: #cbd5e1;
   --max-width: 1600px;
   --form-max-width: 760px;
   --header-height: 64px;

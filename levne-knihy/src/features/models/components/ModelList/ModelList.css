@@ -54,7 +54,7 @@
 
 .model-list__author {
     margin: 0;
-    color: #888;
+    color: var(--text-subtle);
     font-size: .8rem;
     line-height: 1.3;
 }

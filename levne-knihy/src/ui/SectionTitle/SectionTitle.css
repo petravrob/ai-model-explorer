@@ -1,6 +1,6 @@
 .section-title {
     margin: 0 0 .5rem;
-    color: #999;
+    color: var(--text-faint);
     font-size: .7rem;
     font-weight: 600;
     letter-spacing: .04em;

@@ -27,7 +27,7 @@
     height: 0;
     border-right: 4px solid transparent;
     border-left: 4px solid transparent;
-    border-top: 5px solid #666;
+    border-top: 5px solid var(--text-muted);
     transition: transform .15s ease;
 }
 
@@ -86,7 +86,7 @@
 }
 
 .user-dropdown__item:hover {
-    background: #f5f2eb;
+    background: var(--surface-warm);
 }
 
 .user-dropdown__item--logout {

@@ -7,7 +7,7 @@
     min-height: 3.7rem;
     padding: 0.6rem 0.7rem;
     color: var(--text);
-    background: #fff;
+    background: var(--surface);
     border: 1px solid #dfe6ee;
     border-radius: 9px;
     text-align: left;
@@ -17,7 +17,7 @@
 
 .checkbox-group__trigger:hover,
 .checkbox-group--open .checkbox-group__trigger {
-    background: #f8fbff;
+    background: var(--surface-soft);
     border-color: #cbd9ed;
 }
 

@@ -34,7 +34,7 @@
 .model-sort__select:hover,
 .model-sort__control--open .model-sort__select {
     border-color: #b7c7db;
-    background: #f8fbff;
+    background: var(--surface-soft);
 }
 
 .model-sort__select:focus-visible,
@@ -68,7 +68,7 @@
     padding: .3rem;
     border: 1px solid #d7e1ed;
     border-radius: 8px;
-    background: #fff;
+    background: var(--surface);
     box-shadow: 0 8px 20px rgba(15, 23, 42, .12);
 }
 
