@@ -21,16 +21,13 @@
     padding-bottom: 0.9rem;
     margin-bottom: 0.8rem;
     border-bottom: 1px solid #e2e8f0;
-    Line-height: 2rem;
-}
-
-.model-filter-panel__title {
-    margin: 0;
-    font-size: 1.25rem;
+    line-height: 2rem;
 }
 
 .model-filter-panel__actions {
     display: flex;
+    min-height: 2.7rem;
+    align-items: center;
     gap: 0.5rem;
 }
 
@@ -38,6 +35,7 @@
 .model-filter-panel__reset {
     padding: 0.35rem 0.8rem;
     font-size: 0.8rem;
+    line-height: 1rem;
 }
 
 .model-filter-panel__categories {

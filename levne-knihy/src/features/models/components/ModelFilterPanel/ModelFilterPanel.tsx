@@ -1,6 +1,6 @@
 import "./ModelFilterPanel.css";
 
-import { Button, CheckboxGroup } from "@/ui";
+import { Button, CheckboxGroup, PageTitle } from "@/ui";
 
 import { ModelFilterPanelProps } from "../../types";
 import { MODEL_FILTERS_CONFIG } from "../../filters";
@@ -15,7 +15,7 @@ function ModelFilterPanel({
     return (
         <aside className="model-filter-panel">
             <div className="model-filter-panel__header">
-                <h2 className="model-filter-panel__title">Filtry</h2>
+                <PageTitle compact>Filtry</PageTitle>
 
                 <div className="model-filter-panel__actions">
                     {isFilterActive && (

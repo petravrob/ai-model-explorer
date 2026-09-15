@@ -5,12 +5,21 @@ import type { ReactNode } from "react";
 interface PageTitleProps {
     children: ReactNode;
     centered?: boolean;
+    compact?: boolean;
 }
 
 /** Nadpis stránky (h2). */
-function PageTitle({ children, centered = false }: PageTitleProps) {
+function PageTitle({ children, centered = false, compact = false }: PageTitleProps) {
+    const classNames = [
+        "page-title",
+        centered && "page-title--centered",
+        compact && "page-title--compact",
+    ]
+        .filter(Boolean)
+        .join(" ");
+
     return (
-        <h2 className={centered ? "page-title page-title--centered" : "page-title"}>
+        <h2 className={classNames}>
             {children}
         </h2>
     );
