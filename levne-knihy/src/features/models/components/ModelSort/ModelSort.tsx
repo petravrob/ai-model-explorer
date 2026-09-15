@@ -1,6 +1,6 @@
 import "./ModelSort.css";
 
-import type { ChangeEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { MODEL_SORTS_CONFIG, type ModelSortKey } from "../../modelSortsConfig";
 
@@ -12,16 +12,38 @@ interface ModelSortProps {
 /** Výběr řazení modelů nad výpisem. */
 function ModelSort({ value, onChange }: ModelSortProps) {
 
-    // Hodnota z výběru se převede zpět na možnost z konfigurace
-    const handleChange = (event: ChangeEvent<HTMLSelectElement>): void => {
+    const [isOpen, setIsOpen] = useState(false);
+    const controlRef = useRef<HTMLDivElement>(null);
 
-        const sortOption = MODEL_SORTS_CONFIG.find(
-            (entry) => entry.value === event.target.value
-        );
+    const selectedSort = MODEL_SORTS_CONFIG.find(
+        (sortOption) => sortOption.value === value
+    ) ?? MODEL_SORTS_CONFIG[0];
 
-        if (sortOption) {
-            onChange(sortOption.value);
-        }
+    useEffect(() => {
+        const handlePointerDown = (event: PointerEvent): void => {
+            if (!controlRef.current?.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+
+        const handleKeyDown = (event: KeyboardEvent): void => {
+            if (event.key === "Escape") {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("pointerdown", handlePointerDown);
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.removeEventListener("pointerdown", handlePointerDown);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, []);
+
+    const handleOptionClick = (sortKey: ModelSortKey): void => {
+        onChange(sortKey);
+        setIsOpen(false);
     };
 
     return (
@@ -33,18 +55,52 @@ function ModelSort({ value, onChange }: ModelSortProps) {
                 Seřadit:
             </label>
 
-            <select
-                id="model-sort-select"
-                className="model-sort__select"
-                value={value}
-                onChange={handleChange}
+            <div
+                ref={controlRef}
+                className={`model-sort__control${isOpen ? " model-sort__control--open" : ""}`}
             >
-                {MODEL_SORTS_CONFIG.map((sortOption) => (
-                    <option key={sortOption.value} value={sortOption.value}>
-                        {sortOption.label}
-                    </option>
-                ))}
-            </select>
+                <button
+                    id="model-sort-select"
+                    type="button"
+                    className="model-sort__select"
+                    aria-haspopup="listbox"
+                    aria-expanded={isOpen}
+                    onClick={() => setIsOpen((open) => !open)}
+                >
+                    <span>{selectedSort.label}</span>
+                    <span className="model-sort__chevron" aria-hidden="true" />
+                </button>
+
+                {isOpen && (
+                    <div
+                        className="model-sort__menu"
+                        role="listbox"
+                        aria-label="Možnosti řazení"
+                    >
+                        {MODEL_SORTS_CONFIG.map((sortOption) => (
+                            <button
+                                key={sortOption.value}
+                                type="button"
+                                role="option"
+                                aria-selected={sortOption.value === value}
+                                className={`model-sort__option${
+                                    sortOption.value === value
+                                        ? " model-sort__option--active"
+                                        : ""
+                                }`}
+                                onClick={() => handleOptionClick(sortOption.value)}
+                            >
+                                <span>{sortOption.label}</span>
+                                {sortOption.value === value && (
+                                    <span className="model-sort__check" aria-hidden="true">
+                                        ✓
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
