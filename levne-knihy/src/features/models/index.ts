@@ -13,5 +13,5 @@ export type {
     FilterOption,
     ModelFilterKey,
     ModelFilters,
-} from "./modelFiltersConfig";
+} from "./filters";
 

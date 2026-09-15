@@ -1,4 +1,4 @@
-import type { ModelFilterKey, ModelFilters } from "./modelFiltersConfig";
+import type { ModelFilterKey, ModelFilters } from "./filters";
 
 export interface AIModel {
     // Databázový identifikátor (modely načtené živě z Hugging Face ho nemají)

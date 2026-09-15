@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { AIModel } from "../types";
-import { ModelFilterKey, ModelFilters } from "../modelFiltersConfig";
+import { ModelFilterKey, ModelFilters } from "../filters";
 import { applyFilters, buildEmptyFilters, isAnyFilterActive, toggleFilterValue } from "../utils/modelFilterUtils";
 
 /** Obstarává zvolené filtry levého panelu a filtrování modelů podle nich */
