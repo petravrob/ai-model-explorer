@@ -2,7 +2,7 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: .5rem;
+    gap: var(--space-2);
     margin-bottom: 1rem;
 }
 
@@ -18,7 +18,7 @@
     width: 100%;
     padding: .4rem .6rem;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     background: white;
     color: var(--text);
     font: inherit;
@@ -67,7 +67,7 @@
     width: 100%;
     padding: .3rem;
     border: 1px solid #d7e1ed;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     background: var(--surface);
     box-shadow: 0 8px 20px rgba(15, 23, 42, .12);
 }
@@ -79,7 +79,7 @@
     width: 100%;
     padding: .55rem .6rem;
     border: 0;
-    border-radius: 5px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--text);
     font: inherit;

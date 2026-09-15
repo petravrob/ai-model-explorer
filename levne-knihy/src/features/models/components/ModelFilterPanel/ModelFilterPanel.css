@@ -7,7 +7,7 @@
     padding: 1.15rem;
     background: var(--surface);
     border: 1px solid #e1e7ef;
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     box-shadow:
         0 1px 2px rgba(15, 23, 42, 0.03),
         0 5px 14px rgba(15, 23, 42, 0.05);
@@ -28,7 +28,7 @@
     display: flex;
     min-height: 2.7rem;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--space-2);
 }
 
 /* Kompaktní tlačítko „Vymazat filtry“ v hlavičce panelu */
@@ -56,7 +56,7 @@
 
 .model-filter-panel__categories::-webkit-scrollbar-thumb {
     background: var(--border-muted);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
 }
 
 /* Na mobilu panel není přichycený a roste s obsahem */
