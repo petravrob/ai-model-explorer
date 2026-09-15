@@ -21,7 +21,7 @@
 
 .user-details__header p {
     margin: 0;
-    color: #888;
+    color: var(--text-subtle);
     font-size: .95rem;
 }
 

@@ -1,6 +1,7 @@
 import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
 import { AIModel, ModelFilters } from "@/features/models";
+import type { ModelSortKey } from "../modelSortsConfig";
 
 /** Sestaví dotazovací řetězec ze zvolených filtrů (žádný filtr = bez parametrů). */
 const buildFiltersQuery = (filters: ModelFilters): string => {
@@ -17,11 +18,20 @@ const buildFiltersQuery = (filters: ModelFilters): string => {
     return query ? `?${query}` : "";
 };
 
-/** Načte modely – se zvolenými filtry se filtrují na serveru živě z Hugging Face. */
-export const getModels = async (filters?: ModelFilters): Promise<AIModel[]> => {
+/** Načte modely se zvolenými filtry a řazením ze serveru. */
+export const getModels = async (
+    filters?: ModelFilters,
+    sort?: ModelSortKey
+): Promise<AIModel[]> => {
+
+    const params = filters ? new URLSearchParams(buildFiltersQuery(filters).slice(1)) : new URLSearchParams();
+
+    if (sort) {
+        params.set("sort", sort);
+    }
 
     const response = await fetch(
-        `${API_URL}/api/models${filters ? buildFiltersQuery(filters) : ""}`,
+        `${API_URL}/api/models${params.toString() ? `?${params.toString()}` : ""}`,
         {
             method: "GET",
         }

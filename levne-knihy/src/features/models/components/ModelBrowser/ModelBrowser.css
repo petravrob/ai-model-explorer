@@ -15,7 +15,7 @@
 .model-browser__layout {
     display: grid;
     grid-template-columns: 370px minmax(0, 1fr);
-    gap: 1.5rem;
+    gap: var(--space-6);
     align-items: start;
 }
 

@@ -1,0 +1,107 @@
+.model-sort {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: 1rem;
+}
+
+.model-sort__label {
+    color: var(--text-muted);
+    font-size: .9rem;
+}
+
+.model-sort__select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: .4rem .6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: white;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.model-sort__control {
+    position: relative;
+    width: 13rem;
+}
+
+.model-sort__select:hover,
+.model-sort__control--open .model-sort__select {
+    border-color: #b7c7db;
+    background: var(--surface-soft);
+}
+
+.model-sort__select:focus-visible,
+.model-sort__option:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.model-sort__chevron {
+    width: .55rem;
+    height: .55rem;
+    flex-shrink: 0;
+    margin: -.25rem .15rem 0 .75rem;
+    border-right: 1.5px solid var(--text-muted);
+    border-bottom: 1.5px solid var(--text-muted);
+    transform: rotate(45deg);
+    transition: transform .15s ease;
+}
+
+.model-sort__control--open .model-sort__chevron {
+    margin-top: .35rem;
+    transform: rotate(225deg);
+}
+
+.model-sort__menu {
+    position: absolute;
+    z-index: 10;
+    top: calc(100% + .35rem);
+    right: 0;
+    width: 100%;
+    padding: .3rem;
+    border: 1px solid #d7e1ed;
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, .12);
+}
+
+.model-sort__option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: .55rem .6rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.model-sort__option:hover,
+.model-sort__option--active {
+    background: #eef4ff;
+    color: var(--primary);
+}
+
+.model-sort__check {
+    margin-left: .75rem;
+    font-size: .9rem;
+    font-weight: 700;
+}
+
+@media (max-width: 600px) {
+    .model-sort__control {
+        flex: 1;
+        width: auto;
+    }
+}

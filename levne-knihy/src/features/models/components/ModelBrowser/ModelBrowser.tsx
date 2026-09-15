@@ -4,6 +4,7 @@ import useModelBrowser from "../../hooks/useModelBrowser";
 
 import ModelFilterPanel from "../ModelFilterPanel/ModelFilterPanel";
 import ModelList from "../ModelList/ModelList";
+import ModelSort from "../ModelSort/ModelSort";
 import { PageContainer, PageMessage } from "@/ui";
 
 /** Rozhraní pro zobrazení seznamu modelů. */
@@ -17,6 +18,8 @@ function ModelBrowser() {
         isFilterActive,
         handleFilterChange,
         resetFilters,
+        sort,
+        handleSortChange,
         handleModelClick,
 
         loading,
@@ -44,6 +47,8 @@ function ModelBrowser() {
 
     return (
         <PageContainer>
+            <ModelSort value={sort} onChange={handleSortChange} />
+
             <div className="model-browser__layout">
                 <ModelFilterPanel
                     filters={filters}

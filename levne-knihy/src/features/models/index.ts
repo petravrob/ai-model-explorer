@@ -3,6 +3,7 @@ export { default as ModelDetail } from "./components/ModelDetail/ModelDetail";
 export { default as ModelDetailPage } from "./components/ModelDetailPage/ModelDetailPage";
 export { default as ModelFilterPanel } from "./components/ModelFilterPanel/ModelFilterPanel";
 export { default as ModelList } from "./components/ModelList/ModelList";
+export { default as ModelSort } from "./components/ModelSort/ModelSort";
 
 export type {
     AIModel,
@@ -14,4 +15,5 @@ export type {
     ModelFilterKey,
     ModelFilters,
 } from "./filters";
+export type { ModelSortKey } from "./modelSortsConfig";
 

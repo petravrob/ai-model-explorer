@@ -3,8 +3,10 @@ const mongoose = require("mongoose");
 const AIModel = require("../models/AIModel");
 const {
     DEFAULT_TASKS,
+    SORT_PARAMS,
     getModels: fetchHuggingFaceModels,
     getModel: fetchHuggingFaceModel,
+    getSortedModels,
 } = require("../services/huggingFaceService");
 const { isValidModel, mapModelData, mapRawModels } = require("../services/modelMapper");
 
@@ -53,10 +55,40 @@ const getHuggingFaceModel = async (modelId) => {
 
 const getModels = async (req, res) => {
     try {
+        const { sort } = req.query;
         const tasks = toArrayParam(req.query.tasks);
         const languages = toArrayParam(req.query.languages);
 
-        // Bez filtrů se vrací importované modely z databáze, s filtry se načtou živě z Hugging Face
+        if (sort && !SORT_PARAMS[sort]) {
+            return res.status(400).json({
+                status: "error",
+                error: "Neznámé řazení.",
+            });
+        }
+
+        // Řazený výpis se načte z Hugging Face, filtry se zachovají nad výslednými modely.
+        if (sort) {
+            let models = (await getSortedModels(sort))
+                .map(mapModelData)
+                .filter(isValidModel);
+
+            if (tasks.length > 0) {
+                models = models.filter((model) => tasks.includes(model.task));
+            }
+
+            if (languages.length > 0) {
+                models = models.filter((model) =>
+                    model.languages.some((language) => languages.includes(language))
+                );
+            }
+
+            return res.status(200).json({
+                status: "ok",
+                data: models.map((model) => ({ ...model, _id: model.modelId })),
+            });
+        }
+
+        // Bez filtrů se vrací importované modely z databáze, s filtry se načtou živě z Hugging Face.
         const models = tasks.length === 0 && languages.length === 0
             ? await AIModel.find().sort({ downloads: -1 })
             : await getFilteredModelsFromHuggingFace(tasks, languages);

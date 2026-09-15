@@ -6,6 +6,7 @@ import { AIModel } from "../types";
 import { SEARCH_QUERY_PARAM, modelDetailUrl } from "@/routes/paths";
 import { getModels } from "../api/modelsApi";
 import useModelFilters from "./useModelFilters";
+import { DEFAULT_SORT, type ModelSortKey } from "../modelSortsConfig";
 
 /** Převede text na malá písmena bez diakritiky pro nezávislé vyhledávání. */
 const normalizeText = (text: string): string =>
@@ -63,6 +64,8 @@ function useModelBrowser() {
         filteredModels,
     } = useModelFilters(models);
 
+    // Zvolený způsob řazení výpisu modelů
+    const [sort, setSort] = useState<ModelSortKey>(DEFAULT_SORT);
 
     // Načtení modelů podle zvolených filtrů (s filtry se filtruje přímo na serveru z Hugging Face)
     // TODO: prověřit aktuální práci s databází, možná to upravit
@@ -80,7 +83,7 @@ function useModelBrowser() {
 
             try {
 
-                const data = await getModels(filters);
+                const data = await getModels(filters, sort);
 
                 if (!cancelled) {
                     setModels(data);
@@ -120,7 +123,7 @@ function useModelBrowser() {
             clearTimeout(timeoutId);
         };
 
-    }, [filters]);
+    }, [filters, sort]);
 
     // Fuzzy vyhledávání nad modely vyfiltrovanými podle filtrů (index se sestaví jen při načtení nebo změně dat)
     const fuzzySearch = useMemo(
@@ -156,6 +159,12 @@ function useModelBrowser() {
         ? fuzzySearch.search(searchQuery).map(({ item }) => item)
         : exactModels;
 
+    // Změní řazení výpisu modelů (výpis se načte znovu z Hugging Face)
+    const handleSortChange = (newSort: ModelSortKey): void => {
+
+        setSort(newSort);
+    };
+
 
     // Přechod na stránku detailu modelu
     const handleModelClick = (
@@ -182,6 +191,10 @@ function useModelBrowser() {
         handleFilterChange,
 
         resetFilters,
+
+        sort,
+
+        handleSortChange,
 
         handleModelClick,
 
