@@ -25,6 +25,10 @@ export const toggleFilterValue = (
     key: ModelFilterKey,
     value: string
 ): ModelFilters => {
+    if (typeof value !== "string" || value.length === 0) {
+        return filters;
+    }
+
     const selectedValues = filters[key];
 
     const newValues = selectedValues.includes(value)

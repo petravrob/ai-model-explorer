@@ -1,5 +1,5 @@
 import Fuse, { type IFuseOptions } from "fuse.js";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AIModel } from "../types";
@@ -36,7 +36,9 @@ const FILTERS_FETCH_DELAY_MS = 400;
 /** Obstarává logiku zobrazení seznamu modelů a přechodu na jejich detail */
 function useModelBrowser() {
 
-    const [models, setModels] = useState<AIModel[]>([]);
+    // Uložená plná sada modelů z posledního serverového načtení. Filtry ji jen zúží,
+    // nesmí ji přepsat prázdným seznamem po konkrétním vyfiltrování.
+    const [allModels, setAllModels] = useState<AIModel[]>([]);
 
     const [loading, setLoading] =
         useState<boolean>(true);
@@ -51,6 +53,7 @@ function useModelBrowser() {
     const navigate = useNavigate();
 
     const [searchParams] = useSearchParams();
+    const latestRequestIdRef = useRef(0);
 
     // Hledaný výraz z URL (např. „/?q=gpt“), oříznutý o okrajové mezery
     const searchQuery = (searchParams.get(SEARCH_QUERY_PARAM) ?? "").trim();
@@ -62,7 +65,7 @@ function useModelBrowser() {
         handleFilterChange,
         resetFilters,
         filteredModels,
-    } = useModelFilters(models);
+    } = useModelFilters(allModels);
 
     // Zvolený způsob řazení výpisu modelů
     const [sort, setSort] = useState<ModelSortKey>(DEFAULT_SORT);
@@ -71,8 +74,8 @@ function useModelBrowser() {
     // TODO: prověřit aktuální práci s databází, možná to upravit
     useEffect(() => {
 
-        // Zastaralá odpověď ze dřívějšího načtení se zahodí
-        let cancelled = false;
+        const requestId = ++latestRequestIdRef.current;
+        const controller = new AbortController();
 
         // Obnova se ohlásí hned (i během čekání na sloučení změn filtrů),
         // dříve načtené modely přitom zůstanou zobrazené, dokud nedorazí nová data
@@ -83,14 +86,20 @@ function useModelBrowser() {
 
             try {
 
-                const data = await getModels(filters, sort);
+                const data = await getModels(filters, sort, controller.signal);
 
-                if (!cancelled) {
-                    setModels(data);
-                    setHasLoaded(true);
+                if (controller.signal.aborted || requestId !== latestRequestIdRef.current) {
+                    return;
                 }
 
+                setAllModels(data);
+                setHasLoaded(true);
+
             } catch (error) {
+
+                if (controller.signal.aborted || requestId !== latestRequestIdRef.current) {
+                    return;
+                }
 
                 console.error(
                     "Nepodařilo se načíst modely:",
@@ -102,24 +111,29 @@ function useModelBrowser() {
                         ? error.message
                         : "Nepodařilo se načíst modely.";
 
-                if (!cancelled) {
-                    setError(errorMessage);
-                }
+                setError(errorMessage);
 
             } finally {
 
-                if (!cancelled) {
-                    setLoading(false);
+                if (controller.signal.aborted || requestId !== latestRequestIdRef.current) {
+                    return;
                 }
+
+                setLoading(false);
 
             }
 
         };
 
-        const timeoutId = setTimeout(loadModels, FILTERS_FETCH_DELAY_MS);
+        // Úvodní načtení se spustí hned, zpoždění slouží jen ke sloučení rychlých změn filtrů
+        const fetchDelay = hasLoaded ? FILTERS_FETCH_DELAY_MS : 0;
+
+        const timeoutId = setTimeout(() => {
+            void loadModels();
+        }, fetchDelay);
 
         return () => {
-            cancelled = true;
+            controller.abort();
             clearTimeout(timeoutId);
         };
 
