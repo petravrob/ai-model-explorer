@@ -61,6 +61,9 @@ function mapModelData(rawModel = {}) {
         parameters: rawModel.safetensors?.total ?? null,
         downloads: rawModel.downloads ?? 0,
         likes: rawModel.likes ?? 0,
+        // Hodnoty pro řazení sloučených výpisů (trendingScore není vždy k dispozici)
+        trendingScore: rawModel.trendingScore ?? null,
+        createdAt: rawModel.createdAt ? new Date(rawModel.createdAt) : null,
         tags: rawModel.tags ?? [],
         license: extractLicense(rawModel),
         library: rawModel.library_name ?? null,

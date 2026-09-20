@@ -21,7 +21,8 @@ const buildFiltersQuery = (filters: ModelFilters): string => {
 /** Načte modely se zvolenými filtry a řazením ze serveru. */
 export const getModels = async (
     filters?: ModelFilters,
-    sort?: ModelSortKey
+    sort?: ModelSortKey,
+    signal?: AbortSignal
 ): Promise<AIModel[]> => {
 
     const params = filters ? new URLSearchParams(buildFiltersQuery(filters).slice(1)) : new URLSearchParams();
@@ -34,6 +35,7 @@ export const getModels = async (
         `${API_URL}/api/models${params.toString() ? `?${params.toString()}` : ""}`,
         {
             method: "GET",
+            signal,
         }
     );
 
@@ -45,6 +47,49 @@ export const getModels = async (
     return data.data as AIModel[];
 };
 
+
+// Probíhající a hotové dotazy na avatary autorů – stejný autor se stahuje jen jednou
+const avatarRequests = new Map<string, Promise<string | null>>();
+
+/** Načte adresu avataru autora ze serveru (na pozadí, neblokuje výpis modelů). */
+export const getAuthorAvatar = async (
+    author: string
+): Promise<string | null> => {
+
+    const pendingRequest = avatarRequests.get(author);
+
+    if (pendingRequest) {
+        return pendingRequest;
+    }
+
+    const request = (async (): Promise<string | null> => {
+
+        try {
+
+            const response = await fetch(
+                `${API_URL}/api/models/avatar/${encodeURIComponent(author)}`,
+                { method: "GET" }
+            );
+
+            const data = await handleApiResponse<{ avatarUrl: string | null }>(
+                response,
+                "Nepodařilo se načíst avatar."
+            );
+
+            return (data.data as { avatarUrl: string | null }).avatarUrl;
+
+        } catch {
+
+            // Avatar není podstatný – při chybě zůstane zástupný obrázek modelu
+            return null;
+
+        }
+    })();
+
+    avatarRequests.set(author, request);
+
+    return request;
+};
 
 /** Načte jeden model podle jeho identifikátoru. */
 export const getModel = async (

@@ -15,8 +15,13 @@
 .model-browser__layout {
     display: grid;
     grid-template-columns: 370px minmax(0, 1fr);
-    gap: var(--space-6);
     align-items: start;
+}
+
+/* Řádek řazení je součástí mřížky a roztáhne se přes oba sloupce nad nimi */
+.model-browser__layout > .model-sort {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
 }
 
 .model-browser__content {
