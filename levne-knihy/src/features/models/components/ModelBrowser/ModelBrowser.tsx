@@ -47,9 +47,8 @@ function ModelBrowser() {
 
     return (
         <PageContainer>
-            <ModelSort value={sort} onChange={handleSortChange} />
-
             <div className="model-browser__layout">
+
                 <ModelFilterPanel
                     filters={filters}
                     isFilterActive={isFilterActive}
@@ -58,6 +57,7 @@ function ModelBrowser() {
                 />
 
                 <div className="model-browser__content" aria-busy={loading}>
+                    <ModelSort value={sort} onChange={handleSortChange} />
                     {error ? (
                         <PageMessage>{error}</PageMessage>
                     ) : models.length === 0 ? (
