@@ -1,31 +1,139 @@
 import type { AIModel } from "../types";
+import { AUTHOR_FILTER_OPTIONS, LANGUAGE_FILTER_OPTIONS, TASK_FILTER_OPTIONS } from "../filters/filterOptions";
 
-/**
- * Odvozené údaje pro kartu modelu.
- *
- * Karta nesmí zobrazovat vymyšlené hodnoty, proto se odznak, štítky
- * i popis skládají jen z dat, která model opravdu má.
+/** Odvozené údaje pro kartu modelu, složené z dat, která o sobě model poskytuje. */
+
+// Autoři z nabídky filtrů mají v kartě čitelný název poskytovatele (Meta, OpenAI…)
+const PROVIDER_LABELS = new Map(
+    AUTHOR_FILTER_OPTIONS.map((option) => [option.value.toLowerCase(), option.label] as const)
+);
+
+// Jazyky z nabídky filtrů mají v kartě český název (angličtina, čeština…)
+const LANGUAGE_LABELS = new Map<string, string>(
+    LANGUAGE_FILTER_OPTIONS.map((option) => [option.value, option.label])
+);
+
+// Názvy úloh se berou z nabídky filtrů, aby karta mluvila stejnými slovy jako panel filtrů
+const TASK_LABELS = new Map<string, string>();
+
+TASK_FILTER_OPTIONS.forEach((group) => {
+    group.children.forEach((task) => TASK_LABELS.set(task.value, task.label));
+});
+
+// Kolik doplňkových štítků se vejde do karty vedle úlohy a jazyka
+const MAX_SECONDARY_TAGS = 4;
+
+/*
+ * České názvy štítků, které nabídka filtrů nezná (schopnosti, zaměření, známé rodiny modelů).
+ * Ostatní štítky bez názvu se do karty neposílají, aby v ní nezůstávala anglická slova.
  */
-
-/** Počet stažení, od kterého se model v kartě označí jako populární. */
-const POPULAR_DOWNLOADS = 1_000_000;
-
-/** Počet dní od poslední změny, po který se model v kartě označí jako nový. */
-const NEW_MODEL_DAYS = 90;
-
-/** Kolik doplňkových štítků se vejde do karty vedle hlavní úlohy modelu. */
-const MAX_SECONDARY_TAGS = 3;
-
-/** Dvojpísmenné štítky jsou kódy jazyků, ty mají v kartě vlastní místo. */
-const LANGUAGE_CODE_PATTERN = /^[a-z]{2}$/;
-
-/** Technické štítky z Hugging Face, které o schopnostech modelu nic neříkají. */
-const TECHNICAL_TAGS = new Set([
-    "transformers", "pytorch", "tensorflow", "tf", "jax", "flax", "onnx", "safetensors", "openvino", "rust",
-    "gguf", "ggml", "coreml", "keras", "mlx", "diffusers", "peft", "sentence-transformers", "spacy", "espeak",
-    "fastai", "joblib", "tf-keras", "adapters", "text-generation-inference", "text-embeddings-inference",
-    "endpoints_compatible", "eval-results", "custom_code", "mergekit", "unsloth", "quantized", "4-bit", "8-bit",
-    "fp16", "bf16", "int8", "license", "dataset", "base_model", "arxiv", "region", "deploy",
+const TAG_LABELS = new Map<string, string>([
+    // úlohy, které v nabídce filtrů nejsou
+    ["text2text-generation", "Generování"],
+    ["unconditional-image-generation", "Generování"],
+    ["fill-mask", "Doplňování textu"],
+    ["zero-shot-classification", "Klasifikace bez příkladů"],
+    ["multiple-choice", "Výběr odpovědí"],
+    ["zero-shot-image-classification", "Rozpoznávání obrázků bez příkladů"],
+    ["depth-estimation", "Odhad hloubky"],
+    ["mask-generation", "Generování masek"],
+    // schopnosti a oblasti použití
+    ["conversational", "Konverzace"],
+    ["reasoning", "Uvažování"],
+    ["code", "Kód"],
+    ["coding", "Kód"],
+    ["math", "Matematika"],
+    ["chat", "Chat"],
+    ["moe", "Směs expertů"],
+    ["vision", "Zpracování obrazu"],
+    ["multimodal", "Multimodální"],
+    ["multilingual", "Vícejazyčný"],
+    ["long-context", "Dlouhý kontext"],
+    ["tool-calling", "Volání nástrojů"],
+    ["function-calling", "Volání funkcí"],
+    ["instruction-following", "Dodržování instrukcí"],
+    ["agents", "Agenti"],
+    ["rag", "RAG"],
+    ["ocr", "OCR"],
+    ["embeddings", "Embeddingy"],
+    ["embedding", "Embeddingy"],
+    ["zero-shot", "Bez příkladů"],
+    ["distillation", "Destilace"],
+    ["speculative-decoding", "Spekulativní dekódování"],
+    ["uncensored", "Necenzurovaný"],
+    ["image-generation", "Generování"],
+    ["diffusion", "Difúze"],
+    ["lora", "LoRA"],
+    ["controlnet", "ControlNet"],
+    ["stable-diffusion", "Stable Diffusion"],
+    ["stable-diffusion-xl", "Stable Diffusion XL"],
+    ["sdxl", "Stable Diffusion XL"],
+    ["flux", "FLUX"],
+    ["inpainting", "Domalování"],
+    ["style-transfer", "Přenos stylu"],
+    ["upscaling", "Zvětšování"],
+    ["photorealistic", "Fotorealistické"],
+    ["photography", "Fotografie"],
+    ["cinematic", "Filmové"],
+    ["portrait", "Portréty"],
+    ["realistic", "Realistické"],
+    ["illustration", "Ilustrace"],
+    ["anime", "Anime"],
+    ["art", "Umění"],
+    ["artistic", "Umělecké"],
+    // řeč a zvuk
+    ["audio", "Zvuk"],
+    ["speech", "Řeč"],
+    ["voice", "Hlas"],
+    ["tts", "Převod textu na řeč"],
+    ["asr", "Přepis řeči"],
+    ["speech-synthesis", "Převod textu na řeč"],
+    ["speech-generation", "Generování řeči"],
+    ["speech-to-text", "Přepis řeči"],
+    ["voice-cloning", "Klonování hlasu"],
+    ["voice-clone", "Klonování hlasu"],
+    ["voice-conversion", "Převod hlasu"],
+    ["voice-design", "Návrh hlasu"],
+    ["voice-agent", "Hlasový agent"],
+    ["speaker", "Mluvčí"],
+    ["speaker-diarization", "Rozlišení mluvčích"],
+    ["speaker-recognition", "Rozpoznávání mluvčích"],
+    ["speaker-verification", "Ověřování mluvčích"],
+    ["speaker-identification", "Identifikace mluvčích"],
+    ["speaker-change-detection", "Změny mluvčích"],
+    ["source-separation", "Oddělování zvuků"],
+    ["emotion", "Emoce"],
+    ["emotions", "Emoce"],
+    ["emotion-control", "Řízení emocí"],
+    ["expressive-speech", "Expresivní řeč"],
+    ["forced-alignment", "Časování slov"],
+    ["whisper", "Whisper"],
+    ["wav2vec2", "wav2vec 2.0"],
+    ["streaming", "Streamování"],
+    ["low-latency", "Nízká latence"],
+    ["realtime", "V reálném čase"],
+    // známé rodiny a architektury modelů (jejich názvy se nepřekládají)
+    ["bert", "BERT"],
+    ["distilbert", "DistilBERT"],
+    ["roberta", "RoBERTa"],
+    ["xlm-roberta", "XLM-RoBERTa"],
+    ["electra", "ELECTRA"],
+    ["t5", "T5"],
+    ["clip", "CLIP"],
+    ["vit", "ViT"],
+    ["yolo", "YOLO"],
+    ["sam", "SAM"],
+    ["llama", "Llama"],
+    ["mistral", "Mistral"],
+    ["gemma", "Gemma"],
+    ["phi", "Phi"],
+    ["qwen", "Qwen"],
+    ["deepseek", "DeepSeek"],
+    ["granite", "Granite"],
+    ["hubert", "HuBERT"],
+    ["mms", "MMS"],
+    ["kokoro", "Kokoro"],
+    ["piper", "Piper"],
 ]);
 
 /** Převede technickou hodnotu ze zdroje na čitelný popisek (např. „text-generation“ na „Text generation“). */
@@ -36,68 +144,82 @@ const toLabel = (value: string): string => {
     return label.charAt(0).toUpperCase() + label.slice(1);
 };
 
-/** Odznak stavu karty. */
-export interface ModelBadge {
-    label: string;
-    variant: "popular" | "new";
-}
+/** Najde český název štítku, stejnými slovy jako v nabídce filtrů. Neznámý štítek vrátí null. */
+const toTagLabel = (tag: string): string | null => {
 
-/** Štítky karty: hlavní úloha modelu a k ní doplňkové schopnosti. */
+    const value = tag.toLowerCase();
+    const taskLabel = TASK_LABELS.get(value);
+
+    return taskLabel ? toLabel(taskLabel) : (TAG_LABELS.get(value) ?? null);
+};
+
+/** Jazyk do řady štítků, u vícejazyčných modelů „Vícejazyčný“, jinak název jazyka. */
+const toLanguageTag = (languages: string[]): string | null => {
+
+    if (languages.length === 0) {
+        return null;
+    }
+
+    if (languages.length > 1) {
+        return "Vícejazyčný";
+    }
+
+    const [language] = languages;
+    const languageLabel = LANGUAGE_LABELS.get(language);
+
+    if (languageLabel) {
+        return toLabel(languageLabel);
+    }
+
+    // Neznámý jazyk zůstane v řadě štítků jako kód (např. „AR“)
+    return language.length <= 3 ? language.toUpperCase() : toLabel(language);
+};
+
+/** Údaje pro řadu štítků v kartě. */
 export interface ModelTagList {
     // Hlavní úloha modelu (pipeline_tag)
     primary: string | null;
     // Doplňkové schopnosti, které se do karty vejdou
     secondary: string[];
+    // Jazyk modelu do řady štítků, případně null
+    language: string | null;
     // Kolik dalších štítků zůstalo mimo kartu
     remaining: number;
 }
 
-/** Vybere odznak karty. Když pro něj nejsou data, karta odznak nezobrazí. */
-export const getModelBadge = (model: AIModel): ModelBadge | null => {
+/** Čitelný název poskytovatele modelu. Neznámé autory necháme tak, jak je uvádí Hugging Face. */
+export const getModelProvider = (author: string): string =>
+    PROVIDER_LABELS.get(author.toLowerCase()) ?? author;
 
-    if (model.downloads >= POPULAR_DOWNLOADS) {
-        return { label: "Populární", variant: "popular" };
-    }
-
-    const lastModified = model.lastModified ? new Date(model.lastModified).getTime() : null;
-
-    const isNew = lastModified !== null
-        && Date.now() - lastModified < NEW_MODEL_DAYS * 24 * 60 * 60 * 1000;
-
-    return isNew ? { label: "Nový", variant: "new" } : null;
-};
-
-/** Sestaví štítky karty: hlavní úlohu modelu a k ní nejvýš tři doplňkové schopnosti. */
+/** Poskládá štítky karty z úlohy modelu, několika doplňkových štítků a jazyka. */
 export const getModelTagList = (model: AIModel): ModelTagList => {
 
-    const primary = model.task ? toLabel(model.task) : null;
+    // Úlohu modelu ukazujeme vždy, i když pro ni český název nemáme
+    const primary = model.task ? (toTagLabel(model.task) ?? toLabel(model.task)) : null;
+    const language = toLanguageTag(model.languages);
     const secondary: string[] = [];
     let remaining = 0;
 
     model.tags.forEach((tag) => {
 
-        // Štítky s dvojtečkou nesou technický údaj (licence, dataset), ne schopnost modelu
-        if (typeof tag !== "string" || tag.length === 0 || tag.includes(":")) {
+        // Ostatní štítky bez českého názvu (knihovny, formáty, licence, kódy jazyků) karta vynechává
+        const label = typeof tag === "string" ? toTagLabel(tag) : null;
+
+        // Úloha ani jazyk modelu se v řadě štítků neopakuje
+        if (label === null || label === language || label.toLowerCase() === primary?.toLowerCase()) {
             return;
         }
 
-        if (TECHNICAL_TAGS.has(tag.toLowerCase())) {
+        // Překrývající se štítky se v kartě neopakují: zůstane jen ten konkrétnější
+        // (např. „RoBERTa“ místo „BERT“ nebo „Stable Diffusion XL“ místo „Stable Diffusion“)
+        const generalIndex = secondary.findIndex((existing) => label.includes(existing));
+
+        if (generalIndex >= 0) {
+            secondary[generalIndex] = label;
             return;
         }
 
-        // Jazyky mají v kartě vlastní místo
-        if (LANGUAGE_CODE_PATTERN.test(tag) || model.languages.includes(tag.toLowerCase())) {
-            return;
-        }
-
-        const label = toLabel(tag);
-
-        // Úloha se v řadě štítků neopakuje
-        if (label.toLowerCase() === primary?.toLowerCase()) {
-            return;
-        }
-
-        if (secondary.some((existing) => existing.toLowerCase() === label.toLowerCase())) {
+        if (secondary.some((existing) => existing.includes(label))) {
             return;
         }
 
@@ -108,10 +230,10 @@ export const getModelTagList = (model: AIModel): ModelTagList => {
         }
     });
 
-    return { primary, secondary, remaining };
+    return { primary, secondary, language, remaining };
 };
 
-/** Sestaví krátký popis karty. Když zdroj popis neposkytuje, složí se jen z údajů modelu. */
+/** Krátký popis do karty. Když ho zdroj neuvádí, složí se z ostatních údajů modelu. */
 export const getModelSummary = (model: AIModel): string => {
 
     const description = model.description?.trim();
@@ -120,7 +242,7 @@ export const getModelSummary = (model: AIModel): string => {
         return description;
     }
 
-    const parts = [`Model pro úlohu „${toLabel(model.task)}“`];
+    const parts = [`Model pro úlohu „${toTagLabel(model.task) ?? toLabel(model.task)}“`];
 
     if (model.library) {
         parts.push(`knihovna ${model.library}`);
