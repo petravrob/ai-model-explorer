@@ -1,5 +1,5 @@
 import type { AIModel } from "../types";
-import { AUTHOR_FILTER_OPTIONS, LANGUAGE_FILTER_OPTIONS, TASK_FILTER_OPTIONS } from "../filters/filterOptions";
+import { AUTHOR_FILTER_OPTIONS, TASK_FILTER_OPTIONS } from "../filters/filterOptions";
 
 /** Odvozené údaje pro kartu modelu, složené z dat, která o sobě model poskytuje. */
 
@@ -8,19 +8,34 @@ const PROVIDER_LABELS = new Map(
     AUTHOR_FILTER_OPTIONS.map((option) => [option.value.toLowerCase(), option.label] as const)
 );
 
-// Jazyky z nabídky filtrů mají v kartě český název (angličtina, čeština…)
-const LANGUAGE_LABELS = new Map<string, string>(
-    LANGUAGE_FILTER_OPTIONS.map((option) => [option.value, option.label])
-);
-
-// Názvy úloh se berou z nabídky filtrů, aby karta mluvila stejnými slovy jako panel filtrů
+// Názvy úloh se berou z nabídky filtrů, aby karta mluvila stejnými slovy jako panel filtrů.
+// K popisku si proto pamatujeme i skupinu, ve které se v nabídce nachází.
 const TASK_LABELS = new Map<string, string>();
+const TASK_GROUPS = new Map<string, string>();
+const taskLabelGroups = new Map<string, Set<string>>();
 
 TASK_FILTER_OPTIONS.forEach((group) => {
-    group.children.forEach((task) => TASK_LABELS.set(task.value, task.label));
+    group.children.forEach((task) => {
+        TASK_LABELS.set(task.value, task.label);
+        TASK_GROUPS.set(task.value, group.label);
+        taskLabelGroups.set(task.label, (taskLabelGroups.get(task.label) ?? new Set()).add(group.label));
+    });
 });
 
-// Kolik doplňkových štítků se vejde do karty vedle úlohy a jazyka
+// Názvy skupin v druhém pádě, aby se daly spojit s popiskem úlohy (např. „generování obrázků“)
+const GROUP_GENITIVES = new Map<string, string>([
+    ["text", "textu"],
+    ["obrázky", "obrázků"],
+    ["zvuk a řeč", "zvuku a řeči"],
+    ["video", "videa"],
+    ["dokumenty", "dokumentů"],
+    ["vyhledávání a podobnost", "vyhledávání a podobnosti"],
+    ["data a predikce", "dat a predikcí"],
+    ["robotika", "robotiky"],
+    ["ostatní", "ostatních"],
+]);
+
+// Kolik doplňkových štítků se vejde do karty vedle úlohy
 const MAX_SECONDARY_TAGS = 4;
 
 /*
@@ -29,90 +44,99 @@ const MAX_SECONDARY_TAGS = 4;
  */
 const TAG_LABELS = new Map<string, string>([
     // úlohy, které v nabídce filtrů nejsou
-    ["text2text-generation", "Generování"],
-    ["unconditional-image-generation", "Generování"],
-    ["fill-mask", "Doplňování textu"],
-    ["zero-shot-classification", "Klasifikace bez příkladů"],
-    ["multiple-choice", "Výběr odpovědí"],
-    ["zero-shot-image-classification", "Rozpoznávání obrázků bez příkladů"],
-    ["depth-estimation", "Odhad hloubky"],
-    ["mask-generation", "Generování masek"],
+
+    ["text2text-generation", "Převod a generování textu"],
+    ["unconditional-image-generation", "Generování obrázků bez zadání"],
+    ["fill-mask", "Doplňování chybějících slov"],
+    ["zero-shot-classification", "Klasifikace bez předchozích příkladů"],
+    ["multiple-choice", "Řešení otázek s výběrem odpovědi"],
+    ["zero-shot-image-classification", "Rozpoznávání obrázků bez předchozích příkladů"],
+    ["depth-estimation", "Odhad hloubky v obraze"],
+    ["mask-generation", "Vytváření obrazových masek"],
+
     // schopnosti a oblasti použití
+
     ["conversational", "Konverzace"],
-    ["reasoning", "Uvažování"],
-    ["code", "Kód"],
-    ["coding", "Kód"],
-    ["math", "Matematika"],
-    ["chat", "Chat"],
-    ["moe", "Směs expertů"],
-    ["vision", "Zpracování obrazu"],
-    ["multimodal", "Multimodální"],
-    ["multilingual", "Vícejazyčný"],
-    ["long-context", "Dlouhý kontext"],
-    ["tool-calling", "Volání nástrojů"],
+    ["reasoning", "Logické uvažování a řešení problémů"],
+    ["code", "Práce s programovacím kódem"],
+    ["coding", "Programování a práce s kódem"],
+    ["math", "Matematické úlohy"],
+    ["chat", "Chat a dialog"],
+    ["moe", "Směs specializovaných expertů"],
+    ["vision", "Porozumění obrazovým datům"],
+    ["multimodal", "Práce s více typy dat"],
+    ["multilingual", "Práce ve více jazycích"],
+    ["long-context", "Práce s dlouhým kontextem"],
+    ["tool-calling", "Používání externích nástrojů"],
     ["function-calling", "Volání funkcí"],
-    ["instruction-following", "Dodržování instrukcí"],
-    ["agents", "Agenti"],
-    ["rag", "RAG"],
-    ["ocr", "OCR"],
-    ["embeddings", "Embeddingy"],
-    ["embedding", "Embeddingy"],
-    ["zero-shot", "Bez příkladů"],
-    ["distillation", "Destilace"],
-    ["speculative-decoding", "Spekulativní dekódování"],
-    ["uncensored", "Necenzurovaný"],
-    ["image-generation", "Generování"],
-    ["diffusion", "Difúze"],
-    ["lora", "LoRA"],
-    ["controlnet", "ControlNet"],
+    ["instruction-following", "Dodržování pokynů"],
+    ["agents", "AI agenti"],
+    ["rag", "Vyhledávání informací a práce se znalostmi (RAG)"],
+    ["ocr", "Rozpoznávání textu z obrázků (OCR)"],
+    ["embeddings", "Převod dat na vektorové reprezentace"],
+    ["embedding", "Vektorové reprezentace dat"],
+    ["zero-shot", "Použití bez předchozích příkladů"],
+    ["distillation", "Přenos znalostí do menšího modelu"],
+    ["speculative-decoding", "Zrychlené generování pomocí predikce"],
+    ["uncensored", "Model bez dodatečných obsahových omezení"],
+
+    ["image-generation", "Generování obrázků"],
+    ["diffusion", "Difuzní generování"],
+    ["lora", "Efektivní přizpůsobení modelu (LoRA)"],
+    ["controlnet", "Řízení generování obrázků (ControlNet)"],
     ["stable-diffusion", "Stable Diffusion"],
     ["stable-diffusion-xl", "Stable Diffusion XL"],
     ["sdxl", "Stable Diffusion XL"],
     ["flux", "FLUX"],
-    ["inpainting", "Domalování"],
-    ["style-transfer", "Přenos stylu"],
-    ["upscaling", "Zvětšování"],
-    ["photorealistic", "Fotorealistické"],
-    ["photography", "Fotografie"],
-    ["cinematic", "Filmové"],
+    ["inpainting", "Úprava a doplňování částí obrázku"],
+    ["style-transfer", "Přenos výtvarného stylu"],
+    ["upscaling", "Zvýšení rozlišení obrázku"],
+    ["photorealistic", "Fotorealistické obrázky"],
+    ["photography", "Fotografické obrázky"],
+    ["cinematic", "Filmový vzhled"],
     ["portrait", "Portréty"],
-    ["realistic", "Realistické"],
+    ["realistic", "Realistický vzhled"],
     ["illustration", "Ilustrace"],
-    ["anime", "Anime"],
-    ["art", "Umění"],
-    ["artistic", "Umělecké"],
+    ["anime", "Anime styl"],
+    ["art", "Umělecká tvorba"],
+    ["artistic", "Umělecký styl"],
+
     // řeč a zvuk
+
     ["audio", "Zvuk"],
     ["speech", "Řeč"],
     ["voice", "Hlas"],
     ["tts", "Převod textu na řeč"],
-    ["asr", "Přepis řeči"],
-    ["speech-synthesis", "Převod textu na řeč"],
+    ["asr", "Převod řeči na text"],
+    ["speech-synthesis", "Syntéza řeči z textu"],
     ["speech-generation", "Generování řeči"],
-    ["speech-to-text", "Přepis řeči"],
+    ["speech-to-text", "Přepis řeči na text"],
     ["voice-cloning", "Klonování hlasu"],
     ["voice-clone", "Klonování hlasu"],
-    ["voice-conversion", "Převod hlasu"],
-    ["voice-design", "Návrh hlasu"],
-    ["voice-agent", "Hlasový agent"],
+    ["voice-conversion", "Převod jednoho hlasu na jiný"],
+    ["voice-design", "Tvorba a úprava hlasu"],
+    ["voice-agent", "Hlasový AI agent"],
     ["speaker", "Mluvčí"],
-    ["speaker-diarization", "Rozlišení mluvčích"],
+    ["speaker-diarization", "Rozlišení jednotlivých mluvčích"],
     ["speaker-recognition", "Rozpoznávání mluvčích"],
-    ["speaker-verification", "Ověřování mluvčích"],
-    ["speaker-identification", "Identifikace mluvčích"],
-    ["speaker-change-detection", "Změny mluvčích"],
-    ["source-separation", "Oddělování zvuků"],
-    ["emotion", "Emoce"],
-    ["emotions", "Emoce"],
-    ["emotion-control", "Řízení emocí"],
-    ["expressive-speech", "Expresivní řeč"],
-    ["forced-alignment", "Časování slov"],
+    ["speaker-verification", "Ověření identity mluvčího"],
+    ["speaker-identification", "Identifikace mluvčího"],
+    ["speaker-change-detection", "Rozpoznávání změn mluvčích"],
+    ["source-separation", "Oddělení jednotlivých zvukových zdrojů"],
+    ["emotion", "Rozpoznávání emocí"],
+    ["emotions", "Rozpoznávání emocí"],
+    ["emotion-control", "Ovládání emocí v řeči"],
+    ["expressive-speech", "Expresivní a emocionální řeč"],
+    ["forced-alignment", "Časové zarovnání řeči a textu"],
     ["whisper", "Whisper"],
     ["wav2vec2", "wav2vec 2.0"],
-    ["streaming", "Streamování"],
-    ["low-latency", "Nízká latence"],
-    ["realtime", "V reálném čase"],
-    // známé rodiny a architektury modelů (jejich názvy se nepřekládají)
+    ["streaming", "Zpracování v reálném čase"],
+    ["low-latency", "Nízká odezva"],
+    ["realtime", "Zpracování v reálném čase"],
+
+    // známé rodiny a architektury modelů
+    // jejich názvy se nepřekládají
+
     ["bert", "BERT"],
     ["distilbert", "DistilBERT"],
     ["roberta", "RoBERTa"],
@@ -136,6 +160,33 @@ const TAG_LABELS = new Map<string, string>([
     ["piper", "Piper"],
 ]);
 
+// Běžné licence se v kartě zobrazují v obvyklé podobě („MIT“ místo „mit“)
+const LICENSE_LABELS = new Map<string, string>([
+    ["mit", "MIT"],
+    ["apache-2.0", "Apache 2.0"],
+    ["cc0-1.0", "CC0 1.0"],
+    ["cc-by-4.0", "CC BY 4.0"],
+    ["cc-by-sa-4.0", "CC BY-SA 4.0"],
+    ["cc-by-nc-4.0", "CC BY-NC 4.0"],
+    ["cc-by-nc-sa-4.0", "CC BY-NC-SA 4.0"],
+    ["gpl-2.0", "GPL 2.0"],
+    ["gpl-3.0", "GPL 3.0"],
+    ["lgpl-3.0", "LGPL 3.0"],
+    ["agpl-3.0", "AGPL 3.0"],
+    ["bsd-2-clause", "BSD 2-Clause"],
+    ["bsd-3-clause", "BSD 3-Clause"],
+    ["mpl-2.0", "MPL 2.0"],
+    ["unlicense", "Unlicense"],
+    ["openrail", "OpenRAIL"],
+    ["openrail++", "OpenRAIL++"],
+    ["creativeml-openrail-m", "CreativeML OpenRAIL-M"],
+    ["llama2", "Llama 2"],
+    ["llama3", "Llama 3"],
+    ["llama3.1", "Llama 3.1"],
+    ["gemma", "Gemma"],
+    ["other", "jiná"],
+]);
+
 /** Převede technickou hodnotu ze zdroje na čitelný popisek (např. „text-generation“ na „Text generation“). */
 const toLabel = (value: string): string => {
 
@@ -150,29 +201,21 @@ const toTagLabel = (tag: string): string | null => {
     const value = tag.toLowerCase();
     const taskLabel = TASK_LABELS.get(value);
 
-    return taskLabel ? toLabel(taskLabel) : (TAG_LABELS.get(value) ?? null);
-};
-
-/** Jazyk do řady štítků, u vícejazyčných modelů „Vícejazyčný“, jinak název jazyka. */
-const toLanguageTag = (languages: string[]): string | null => {
-
-    if (languages.length === 0) {
-        return null;
+    if (!taskLabel) {
+        return TAG_LABELS.get(value) ?? null;
     }
 
-    if (languages.length > 1) {
-        return "Vícejazyčný";
+    // Popisek, který nabídka používá ve více skupinách (např. „generování“ u textu i obrázků),
+    // dá smysl jen s názvem skupiny: „generování textu“, „generování obrázků“, „generování videa“
+    const needsGroup = (taskLabelGroups.get(taskLabel)?.size ?? 0) > 1;
+
+    if (!needsGroup) {
+        return toLabel(taskLabel);
     }
 
-    const [language] = languages;
-    const languageLabel = LANGUAGE_LABELS.get(language);
+    const group = TASK_GROUPS.get(value) ?? "";
 
-    if (languageLabel) {
-        return toLabel(languageLabel);
-    }
-
-    // Neznámý jazyk zůstane v řadě štítků jako kód (např. „AR“)
-    return language.length <= 3 ? language.toUpperCase() : toLabel(language);
+    return toLabel(`${taskLabel} ${GROUP_GENITIVES.get(group) ?? group}`);
 };
 
 /** Údaje pro řadu štítků v kartě. */
@@ -181,8 +224,6 @@ export interface ModelTagList {
     primary: string | null;
     // Doplňkové schopnosti, které se do karty vejdou
     secondary: string[];
-    // Jazyk modelu do řady štítků, případně null
-    language: string | null;
     // Kolik dalších štítků zůstalo mimo kartu
     remaining: number;
 }
@@ -191,12 +232,15 @@ export interface ModelTagList {
 export const getModelProvider = (author: string): string =>
     PROVIDER_LABELS.get(author.toLowerCase()) ?? author;
 
-/** Poskládá štítky karty z úlohy modelu, několika doplňkových štítků a jazyka. */
+/** Čitelný název licence, případně pomlčka když ji model neuvádí. */
+export const getModelLicense = (license: string | null): string =>
+    license ? (LICENSE_LABELS.get(license.toLowerCase()) ?? license) : "—";
+
+/** Poskládá štítky karty z úlohy modelu a několika doplňkových štítků. */
 export const getModelTagList = (model: AIModel): ModelTagList => {
 
     // Úlohu modelu ukazujeme vždy, i když pro ni český název nemáme
     const primary = model.task ? (toTagLabel(model.task) ?? toLabel(model.task)) : null;
-    const language = toLanguageTag(model.languages);
     const secondary: string[] = [];
     let remaining = 0;
 
@@ -205,8 +249,8 @@ export const getModelTagList = (model: AIModel): ModelTagList => {
         // Ostatní štítky bez českého názvu (knihovny, formáty, licence, kódy jazyků) karta vynechává
         const label = typeof tag === "string" ? toTagLabel(tag) : null;
 
-        // Úloha ani jazyk modelu se v řadě štítků neopakuje
-        if (label === null || label === language || label.toLowerCase() === primary?.toLowerCase()) {
+        // Úloha modelu se v řadě štítků neopakuje
+        if (label === null || label.toLowerCase() === primary?.toLowerCase()) {
             return;
         }
 
@@ -230,29 +274,14 @@ export const getModelTagList = (model: AIModel): ModelTagList => {
         }
     });
 
-    return { primary, secondary, language, remaining };
+    return { primary, secondary, remaining };
 };
 
-/** Krátký popis do karty. Když ho zdroj neuvádí, složí se z ostatních údajů modelu. */
-export const getModelSummary = (model: AIModel): string => {
-
-    const description = model.description?.trim();
-
-    if (description) {
-        return description;
-    }
-
-    const parts = [`Model pro úlohu „${toTagLabel(model.task) ?? toLabel(model.task)}“`];
-
-    if (model.library) {
-        parts.push(`knihovna ${model.library}`);
-    }
-
-    if (model.languages.length > 0) {
-        // „podpora 1 jazyka“, „podpora 3 jazyků“
-        parts.push(`podpora ${model.languages.length} ${model.languages.length === 1 ? "jazyka" : "jazyků"}`);
-    }
-
-    return `${parts.join(", ")}.`;
-};
+/**
+ * Lidský popis modelu pro kartu. Vzniká mimo aplikaci (skript generate:descriptions
+ * na serveru) a ukládá se k modelu do databáze. Dokud popis chybí, karta ho nevykresluje –
+ * žádná „strojová“ věta se do karty nedoplňuje.
+ */
+export const getModelSummary = (model: AIModel): string | null =>
+    model.description?.trim() || null;
 
