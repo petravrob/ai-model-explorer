@@ -113,7 +113,7 @@ function ModelDetail({ model, cardContent, isCardLoading }: {
             )}
 
             {cardContent
-                ? <ModelReadme content={cardContent} />
+                ? <ModelReadme modelId={model.modelId} content={cardContent} />
                 : isCardLoading && <p className="model-detail__card-note">Načítám text model card…</p>}
 
             <LinkButton
