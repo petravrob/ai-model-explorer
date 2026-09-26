@@ -21,6 +21,12 @@ export interface AIModel {
     url: string;
     avatarUrl: string | null;
 }
+/** Text model card (README) modelu tak, jak je na Hugging Face. */
+export interface ModelCardContent {
+    modelId: string;
+    // Text karty v Markdownu; null když model vlastní popis nemá
+    content: string | null;
+}
 export interface ModelListProps {
     models: AIModel[];
     onModelClick: (model: AIModel) => void;

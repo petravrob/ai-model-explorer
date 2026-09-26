@@ -7,6 +7,7 @@ const {
     getModels: fetchHuggingFaceModels,
     getAllModels,
     getModel: fetchHuggingFaceModel,
+    getModelCard: fetchHuggingFaceCard,
     getSortedModels,
     getAuthorAvatarUrl,
 } = require("../services/huggingFaceService");
@@ -143,7 +144,7 @@ const getModels = async (req, res) => {
                 );
             }
 
-            // Avatary se k výpisu nedotahují – klient si je načte zvlášť na pozadí,
+            // Avatary se k výpisu nedotahují - klient si je načte zvlášť na pozadí,
             // aby stahování stránek autorů nezdržovalo zobrazení modelů
             const modelsWithDescriptions = await attachStoredDescriptions(models);
 
@@ -265,9 +266,38 @@ const createDescriptions = async (req, res) => {
     }
 };
 
+/** Načte text model card (README) modelu z Hugging Face. */
+const getModelCard = async (req, res) => {
+    try {
+        const { modelId } = req.params;
+
+        if (!modelId) {
+            return res.status(400).json({
+                status: "error",
+                error: "Chybí identifikátor modelu.",
+            });
+        }
+
+        const content = await fetchHuggingFaceCard(modelId);
+
+        return res.status(200).json({
+            status: "ok",
+            data: { modelId, content },
+        });
+    } catch (error) {
+        console.error("Fetching model card failed:", error);
+
+        return res.status(500).json({
+            status: "error",
+            error: "Fetching model card failed.",
+        });
+    }
+};
+
 module.exports = {
     getModels,
     getModel,
+    getModelCard,
     getAvatar,
     createDescriptions,
 };

@@ -16,6 +16,9 @@ function ModelDetailPage() {
     const {
         model,
 
+        card,
+        isCardLoading,
+
         handleBack,
 
         loading,
@@ -58,7 +61,11 @@ function ModelDetailPage() {
                     </Button>
                 </div>
 
-                <ModelDetail model={model} />
+                <ModelDetail
+                    model={model}
+                    cardContent={card?.content ?? null}
+                    isCardLoading={isCardLoading}
+                />
             </div>
         </PageContainer>
     );

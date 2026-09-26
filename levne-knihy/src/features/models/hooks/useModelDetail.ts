@@ -1,15 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { AIModel } from "../types";
+import { AIModel, ModelCardContent } from "../types";
 import { ROUTE_PATHS } from "@/routes/paths";
-import { createDescriptions, getModel } from "../api/modelsApi";
+import { createDescriptions, getModel, getModelCard } from "../api/modelsApi";
 
 /** Obstarává logiku stránky detailu modelu */
 function useModelDetail(modelId: string | undefined) {
 
     const [model, setModel] =
         useState<AIModel | null>(null);
+
+    // Text model card (README) z Hugging Face – načítá se zvlášť, až pro otevřený detail
+    const [card, setCard] =
+        useState<ModelCardContent | null>(null);
+
+    const [isCardLoading, setCardLoading] =
+        useState<boolean>(false);
 
     const [loading, setLoading] =
         useState<boolean>(true);
@@ -85,6 +92,35 @@ function useModelDetail(modelId: string | undefined) {
             .catch((error) => console.error("Popisek modelu se nepodařilo vygenerovat:", error));
     }, [model]);
 
+    // Text model card se načítá zvlášť (je obsáhlý a do výpisu modelů nepatří)
+    useEffect(() => {
+        if (!modelId) {
+            return;
+        }
+
+        let cancelled = false;
+
+        setCard(null);
+        setCardLoading(true);
+
+        getModelCard(modelId)
+            .then((data) => {
+                if (!cancelled) {
+                    setCard(data);
+                }
+            })
+            .catch((error) => console.error("Text model card se nepodařilo načíst:", error))
+            .finally(() => {
+                if (!cancelled) {
+                    setCardLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [modelId]);
+
     // Návrat zpět na předchozí stránku (nebo na seznam modelů)
     const handleBack = (): void => {
 
@@ -99,6 +135,9 @@ function useModelDetail(modelId: string | undefined) {
 
     return {
         model,
+
+        card,
+        isCardLoading,
 
         handleBack,
 

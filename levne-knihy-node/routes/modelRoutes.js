@@ -3,6 +3,7 @@ const express = require("express");
 const {
     getModels,
     getModel,
+    getModelCard,
     getAvatar,
     createDescriptions,
 } = require("../controllers/modelController");
@@ -16,6 +17,9 @@ router.get("/avatar/:author", getAvatar);
 
 // Popisky se generují pro modely, které jsou na stránce vidět (maximálně tři na požadavek)
 router.post("/descriptions", createDescriptions);
+
+// Text model card (README) se načítá až pro otevřený detail modelu
+router.get("/:modelId/card", getModelCard);
 
 router.get("/:modelId", getModel);
 

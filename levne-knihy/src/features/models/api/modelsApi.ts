@@ -1,6 +1,6 @@
 import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
-import { AIModel, ModelFilters } from "@/features/models";
+import { AIModel, ModelCardContent, ModelFilters } from "@/features/models";
 import type { ModelSortKey } from "../modelSortsConfig";
 
 /** Sestaví dotazovací řetězec ze zvolených filtrů (žádný filtr = bez parametrů). */
@@ -109,6 +109,26 @@ export const getModel = async (
     );
 
     return data.data as AIModel;
+};
+
+/** Načte text model card (README) modelu z Hugging Face (načítá se až pro otevřený detail). */
+export const getModelCard = async (
+    modelId: string
+): Promise<ModelCardContent> => {
+
+    const response = await fetch(
+        `${API_URL}/api/models/${encodeURIComponent(modelId)}/card`,
+        {
+            method: "GET",
+        }
+    );
+
+    const data = await handleApiResponse<ModelCardContent>(
+        response,
+        "Nepodařilo se načíst text model card."
+    );
+
+    return data.data as ModelCardContent;
 };
 
 /** Nechá vygenerovat popisky pro modely, které jsou na stránce vidět. */

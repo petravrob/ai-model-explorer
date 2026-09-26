@@ -6,6 +6,7 @@ import { getModelLicense, getModelProvider, getModelSummary, getModelTagList } f
 import { DetailItem, LinkButton, MISSING_VALUE, PageTitle, SectionTitle } from "@/ui";
 
 import ModelImage from "../ModelList/ModelImage";
+import ModelReadme from "../ModelReadme/ModelReadme";
 
 // Ikony v hlavičce detailu (SVG cesty pro viewBox 24×24)
 const DOWNLOAD_ICON = "M12 3v12M7 10l5 5 5-5M5 21h14";
@@ -29,8 +30,13 @@ function DetailIcon({ path }: { path: string }) {
     );
 }
 
-/** Zobrazuje detail modelu – hlavička s logem, popisek, údaje a štítky. */
-function ModelDetail({ model }: { model: AIModel }) {
+/** Zobrazuje detail modelu - hlavička s logem, popisek, údaje, štítky a text z Hugging Face. */
+function ModelDetail({ model, cardContent, isCardLoading }: {
+    model: AIModel;
+    // Text model card dorazí až po modelu (načítá se zvlášť)
+    cardContent: string | null;
+    isCardLoading: boolean;
+}) {
     const tags = getModelTagList(model);
 
     // Štítky z Hugging Face bez technických hodnot (např. "region:us")
@@ -105,6 +111,10 @@ function ModelDetail({ model }: { model: AIModel }) {
                     </ul>
                 </section>
             )}
+
+            {cardContent
+                ? <ModelReadme content={cardContent} />
+                : isCardLoading && <p className="model-detail__card-note">Načítám text model card…</p>}
 
             <LinkButton
                 href={model.url}
