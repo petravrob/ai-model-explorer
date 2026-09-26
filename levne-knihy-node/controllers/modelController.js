@@ -11,7 +11,8 @@ const {
     getAuthorAvatarUrl,
 } = require("../services/huggingFaceService");
 const { isValidModel, mapModelData, mapRawModels } = require("../services/modelMapper");
-const { fillMissingDescriptions } = require("../services/descriptionService");
+const { generateDescriptions } = require("../services/descriptionService");
+const ModelDescription = require("../models/ModelDescription");
 
 // Kolik modelů se načte z Hugging Face pro filtrování na serveru (větší objem zbytečně prodlužoval načtení)
 const FILTERED_MODELS_LIMIT = 100;
@@ -97,12 +98,8 @@ const attachStoredDescriptions = async (models) => {
         return models;
     }
 
-    const storedModels = await AIModel.find(
-        { modelId: { $in: modelIds }, description: { $ne: null } },
-        { modelId: 1, description: 1 }
-    );
-
-    const descriptions = new Map(storedModels.map((model) => [model.modelId, model.description]));
+    const stored = await ModelDescription.find({ modelId: { $in: modelIds } }, { modelId: 1, description: 1 });
+    const descriptions = new Map(stored.map((item) => [item.modelId, item.description]));
 
     return models.map((model) => ({ ...model, description: descriptions.get(model.modelId) ?? null }));
 };
@@ -150,9 +147,6 @@ const getModels = async (req, res) => {
             // aby stahování stránek autorů nezdržovalo zobrazení modelů
             const modelsWithDescriptions = await attachStoredDescriptions(models);
 
-            // Chybějící popisy se doplňují na pozadí, odpověď se kvůli nim nezdržuje
-            void fillMissingDescriptions(modelsWithDescriptions);
-
             return res.status(200).json({
                 status: "ok",
                 data: modelsWithDescriptions.map((model) => ({ ...model, _id: model.modelId, avatarUrl: null })),
@@ -160,15 +154,15 @@ const getModels = async (req, res) => {
         }
 
         // Bez filtrů se vrací importované modely z databáze, s filtry se načtou živě z Hugging Face.
-        const models = tasks.length === 0 && languages.length === 0
-            ? await AIModel.find().sort({ downloads: -1 })
+        const fromDatabase = tasks.length === 0 && languages.length === 0;
+
+        const models = fromDatabase
+            ? await AIModel.find().sort({ downloads: -1 }).lean()
             : await getFilteredModelsFromHuggingFace(tasks, languages);
 
-        const responseModels = tasks.length === 0 && languages.length === 0
-            ? models
-            : (await attachStoredDescriptions(models)).map((model) => ({ ...model, avatarUrl: null }));
-
-        void fillMissingDescriptions(responseModels);
+        // Popisky se k modelům doplňují z vlastní kolekce
+        const responseModels = (await attachStoredDescriptions(models))
+            .map((model) => (fromDatabase ? model : { ...model, avatarUrl: null }));
 
         return res.status(200).json({
             status: "ok",

@@ -48,7 +48,7 @@ const aiModelSchema = new mongoose.Schema(
             type: [String],
             default: [],
         },
-        // Krátký český popis do karty modelu (doplňuje ho skript scripts/generateDescriptions.js)
+        // Krátký český popisek do karty modelu (doplňuje ho aplikace podle potřeby)
         description: {
             type: String,
             default: null,
