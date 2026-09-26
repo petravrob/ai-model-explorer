@@ -1,0 +1,32 @@
+.stat {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    color: var(--text-subtle);
+    font-size: .85rem;
+}
+
+.stat strong {
+    color: var(--text);
+    font-weight: 700;
+}
+
+.stat__icon {
+    width: 1rem;
+    height: 1rem;
+    color: var(--primary);
+}
+
+/* Menší varianta pro karty v seznamu modelů */
+.stat--sm {
+    font-size: .78rem;
+}
+
+.stat--sm strong {
+    font-size: .85rem;
+}
+
+.stat--sm .stat__icon {
+    width: .9rem;
+    height: .9rem;
+}

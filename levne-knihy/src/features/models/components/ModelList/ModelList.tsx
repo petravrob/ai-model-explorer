@@ -3,31 +3,9 @@ import "./ModelList.css";
 import { ModelListProps } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
 import { getModelLicense, getModelProvider, getModelSummary, getModelTagList } from "../../utils/modelCard";
-import { DetailItem, MISSING_VALUE } from "@/ui";
+import { ChipList, DetailItem, DOWNLOAD_ICON, LIKE_ICON, MISSING_VALUE, Stat } from "@/ui";
 
 import ModelImage from "./ModelImage";
-
-// Ikony v kartě (SVG cesty pro viewBox 24×24)
-const DOWNLOAD_ICON = "M12 3v12M7 10l5 5 5-5M5 21h14";
-const LIKE_ICON = "M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z";
-
-/** Ikona karty ze SVG cesty, barvu dědí z okolního textu. */
-function CardIcon({ path }: { path: string }) {
-    return (
-        <svg
-            className="model-list__icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d={path} />
-        </svg>
-    );
-}
 
 /** Zobrazuje seznam modelů */
 function ModelList({ models, onModelClick }: ModelListProps) {
@@ -73,19 +51,12 @@ function ModelList({ models, onModelClick }: ModelListProps) {
                             </p>
 
                             {chipTags.length > 0 && (
-                                <ul className="model-list__tags">
-                                    {chipTags.map((tag) => (
-                                        <li className="model-list__tag" key={tag}>
-                                            {tag}
-                                        </li>
-                                    ))}
-
-                                    {tags.remaining > 0 && (
-                                        <li className="model-list__tag" title="Další štítky modelu">
-                                            +{tags.remaining}
-                                        </li>
-                                    )}
-                                </ul>
+                                <ChipList
+                                    items={chipTags}
+                                    remaining={tags.remaining}
+                                    remainingTitle="Další štítky modelu"
+                                    variant="muted"
+                                />
                             )}
 
                             <div className="model-list__meta">
@@ -98,15 +69,19 @@ function ModelList({ models, onModelClick }: ModelListProps) {
                             </div>
 
                             <div className="model-list__stats">
-                                <span className="model-list__stat">
-                                    <CardIcon path={DOWNLOAD_ICON} />
-                                    <strong>{formatCount(model.downloads)}</strong> stažení
-                                </span>
+                                <Stat
+                                    size="sm"
+                                    icon={DOWNLOAD_ICON}
+                                    value={formatCount(model.downloads)}
+                                    label="stažení"
+                                />
 
-                                <span className="model-list__stat">
-                                    <CardIcon path={LIKE_ICON} />
-                                    <strong>{formatCount(model.likes)}</strong> oblíbení
-                                </span>
+                                <Stat
+                                    size="sm"
+                                    icon={LIKE_ICON}
+                                    value={formatCount(model.likes)}
+                                    label="oblíbení"
+                                />
                             </div>
                         </div>
                     </li>

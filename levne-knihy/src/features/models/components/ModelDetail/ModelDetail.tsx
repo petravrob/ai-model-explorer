@@ -2,33 +2,22 @@ import "./ModelDetail.css";
 
 import { AIModel, ModelBenchmark, ModelInsights } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
-import { getModelLicense, getModelProvider, getModelSummary, getModelTagList } from "../../utils/modelCard";
+import { getModelLicense, getModelProvider, getModelSummary, getModelTagList, isModelItself } from "../../utils/modelCard";
 import { getModelHighlights } from "../../utils/modelHighlights";
-import { DetailItem, LinkButton, MISSING_VALUE, PageTitle, SectionTitle } from "@/ui";
+import {
+    ChipList,
+    DetailItem,
+    DOWNLOAD_ICON,
+    LIKE_ICON,
+    LinkButton,
+    MISSING_VALUE,
+    Note,
+    PageTitle,
+    Section,
+    Stat,
+} from "@/ui";
 
 import ModelImage from "../ModelList/ModelImage";
-
-// Ikony v hlavičce detailu (SVG cesty pro viewBox 24×24)
-const DOWNLOAD_ICON = "M12 3v12M7 10l5 5 5-5M5 21h14";
-const LIKE_ICON = "M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z";
-
-/** Ikona detailu ze SVG cesty, barvu dědí z okolního textu. */
-function DetailIcon({ path }: { path: string }) {
-    return (
-        <svg
-            className="model-detail__icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d={path} />
-        </svg>
-    );
-}
 
 // Kolik oblastí použití se nejvýš vypíše (delší výčet už se nedá prohlédnout)
 const MAX_BEST_FOR = 8;
@@ -65,12 +54,20 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
         : (tags.secondary.length > 0 ? tags.secondary : (tags.primary ? [tags.primary] : []))
     ).slice(0, MAX_BEST_FOR);
 
-    // Vlastnosti, které model odlišují (nesmí se opakovat s ostatními sekcemi)
-    const highlights = getModelHighlights(model, insights);
+    // Vlastnosti, které model odlišují: přednost má výčet z dokumentace,
+    // jinak se odvodí z doložených údajů (nesmí se opakovat s ostatními sekcemi)
+    const highlights = insights?.highlights?.length
+        ? insights.highlights
+        : getModelHighlights(model, insights);
 
     const limitations = insights?.limitations ?? [];
     const deployment = insights?.inferenceFrameworks ?? [];
     const settings = insights?.recommendedSettings ?? [];
+    const hardware = insights?.hardwareRequirements ?? [];
+    const notes = insights?.notes ?? [];
+
+    // Varianta se stejným názvem, jako má model sám, se neuvádí
+    const variants = (insights?.variants ?? []).filter((variant) => !isModelItself(model, variant));
 
     // U modelů typu MoE se rozlišují celkové a aktivní parametry
     const parameters = insights?.activeParameters
@@ -84,6 +81,7 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
         { label: "Parametry", value: parameters === MISSING_VALUE ? null : parameters },
         { label: "Architektura", value: insights?.architecture ?? null },
         { label: "Kontext", value: insights?.contextLength ?? null },
+        { label: "Verze", value: insights?.version ?? null },
         { label: "Knihovna", value: model.library },
         { label: "Licence", value: model.license ? getModelLicense(model.license) : null },
         { label: "Jazyky", value: model.languages?.length ? formatLanguages(model.languages, 12) : null },
@@ -128,24 +126,20 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
 
                     <p className="model-detail__provider">{getModelProvider(model.author)}</p>
 
-                    {headerTags.length > 0 && (
-                        <ul className="model-detail__chips">
-                            {headerTags.map((tag) => (
-                                <li className="model-detail__chip" key={tag}>{tag}</li>
-                            ))}
-                        </ul>
-                    )}
+                    {headerTags.length > 0 && <ChipList items={headerTags} />}
 
                     <div className="model-detail__stats">
-                        <span className="model-detail__stat">
-                            <DetailIcon path={DOWNLOAD_ICON} />
-                            <strong>{formatCount(model.downloads)}</strong> stažení
-                        </span>
+                        <Stat
+                            icon={DOWNLOAD_ICON}
+                            value={formatCount(model.downloads)}
+                            label="stažení"
+                        />
 
-                        <span className="model-detail__stat">
-                            <DetailIcon path={LIKE_ICON} />
-                            <strong>{formatCount(model.likes)}</strong> oblíbení
-                        </span>
+                        <Stat
+                            icon={LIKE_ICON}
+                            value={formatCount(model.likes)}
+                            label="oblíbení"
+                        />
                     </div>
 
                     <a className="model-detail__hero-link" href={model.url} target="_blank" rel="noreferrer">
@@ -155,80 +149,66 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
             </header>
 
             {overview && (
-                <section className="model-detail__section">
-                    <SectionTitle>Přehled</SectionTitle>
-
+                <Section title="Přehled">
                     <p className="model-detail__summary">{overview}</p>
-                </section>
+                </Section>
             )}
 
             {isInsightsLoading && !insights && (
-                <p className="model-detail__note">Zpracovávám dokumentaci modelu…</p>
+                <Note>Zpracovávám dokumentaci modelu…</Note>
             )}
 
             {(highlights.length > 0 || bestFor.length > 0) && (
                 <div className="model-detail__split">
                     {highlights.length > 0 && (
-                        <section className="model-detail__section">
-                            <SectionTitle>Proč tento model?</SectionTitle>
-
+                        <Section title="Proč tento model?">
                             <ul className="model-detail__highlights">
                                 {highlights.map((item) => (
                                     <li key={item}>{item}</li>
                                 ))}
                             </ul>
-                        </section>
+                        </Section>
                     )}
 
                     {bestFor.length > 0 && (
-                        <section className="model-detail__section">
-                            <SectionTitle>Nejvhodnější pro</SectionTitle>
+                        <Section title="Nejvhodnější pro">
+                            <ChipList items={bestFor} />
 
-                            <ul className="model-detail__chips">
-                                {bestFor.map((item) => (
-                                    <li className="model-detail__chip" key={item}>{item}</li>
-                                ))}
-                            </ul>
-
-                            <p className="model-detail__note">
+                            <Note>
                                 {documentedAreas.length > 0
                                     ? "Vychází z dokumentace modelu na Hugging Face."
                                     : "Vychází z úlohy a štítků modelu na Hugging Face."}
-                            </p>
-                        </section>
+                            </Note>
+                        </Section>
                     )}
                 </div>
             )}
 
-            {technical.length > 0 && (
-                <section className="model-detail__section">
-                    <SectionTitle>Technické informace</SectionTitle>
+            {insights?.howItWorks && (
+                <Section title="Jak funguje">
+                    <p className="model-detail__text">{insights.howItWorks}</p>
+                </Section>
+            )}
 
+            {technical.length > 0 && (
+                <Section title="Technické informace">
                     <div className="model-detail__details">
                         {technical.map((item) => (
                             <DetailItem label={item.label} value={item.value} key={item.label} />
                         ))}
                     </div>
-                </section>
+                </Section>
             )}
 
             {(deployment.length > 0 || settings.length > 0) && (
-                <section className="model-detail__section">
-                    <SectionTitle>Nasazení a použití</SectionTitle>
-
-                    {deployment.length > 0 && (
-                        <ul className="model-detail__chips">
-                            {deployment.map((item) => (
-                                <li className="model-detail__chip" key={item}>{item}</li>
-                            ))}
-                        </ul>
-                    )}
+                <Section title="Nasazení a použití">
+                    {deployment.length > 0 && <ChipList items={deployment} />}
 
                     {settings.length > 0 && (
-                        <div className="model-detail__settings-block">
+                        <div className="model-detail__group">
                             <p className="model-detail__label">Doporučené nastavení</p>
 
-                            <ul className="model-detail__settings">
+                            <ul className="model-detail__list">
                                 {settings.map((item) => (
                                     <li key={item}>{item}</li>
                                 ))}
@@ -236,14 +216,24 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
                         </div>
                     )}
 
-                    <p className="model-detail__note">Uvedeno v dokumentaci modelu.</p>
-                </section>
+                    {hardware.length > 0 && (
+                        <div className="model-detail__group">
+                            <p className="model-detail__label">Nároky na hardware</p>
+
+                            <ul className="model-detail__list">
+                                {hardware.map((item) => (
+                                    <li key={item}>{item}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    <Note>Uvedeno v dokumentaci modelu.</Note>
+                </Section>
             )}
 
             {benchmarkGroups.length > 0 && (
-                <section className="model-detail__section">
-                    <SectionTitle>Výkon</SectionTitle>
-
+                <Section title="Výkon">
                     <div className="model-detail__benchmarks">
                         {benchmarkGroups.map((group) => (
                             <div className="model-detail__benchmark-group" key={group.category ?? "bez kategorie"}>
@@ -267,14 +257,12 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
                         ))}
                     </div>
 
-                    <p className="model-detail__note">Uvedeno autory modelu.</p>
-                </section>
+                    <Note>Uvedeno autory modelu.</Note>
+                </Section>
             )}
 
             {limitations.length > 0 && (
-                <section className="model-detail__section">
-                    <SectionTitle>Omezení</SectionTitle>
-
+                <Section title="Omezení">
                     <div className="model-detail__panel">
                         <ul className="model-detail__limitations">
                             {limitations.map((item) => (
@@ -282,12 +270,40 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
                             ))}
                         </ul>
                     </div>
-                </section>
+                </Section>
             )}
 
-            <section className="model-detail__section">
-                <SectionTitle>Dokumentace</SectionTitle>
+            {(variants.length > 0 || insights?.baseModel || notes.length > 0) && (
+                <Section title="Důležité informace">
+                    {insights?.baseModel && (
+                        <div className="model-detail__details">
+                            <DetailItem label="Vychází z modelu" value={insights.baseModel} />
+                        </div>
+                    )}
 
+                    {variants.length > 0 && (
+                        <div className="model-detail__group">
+                            <p className="model-detail__label">Varianty</p>
+
+                            <ChipList items={variants} />
+                        </div>
+                    )}
+
+                    {notes.length > 0 && (
+                        <div className="model-detail__group">
+                            <p className="model-detail__label">Poznámky</p>
+
+                            <ul className="model-detail__list">
+                                {notes.map((item) => (
+                                    <li key={item}>{item}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </Section>
+            )}
+
+            <Section title="Dokumentace">
                 <div className="model-detail__documentation">
                     <p>
                         Celý text model card najdeš na Hugging Face. Tahle stránka z něj přebírá
@@ -298,7 +314,7 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
                         Otevřít dokumentaci na Hugging Face
                     </LinkButton>
                 </div>
-            </section>
+            </Section>
         </article>
     );
 }

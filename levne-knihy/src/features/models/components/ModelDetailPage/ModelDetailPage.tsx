@@ -6,6 +6,17 @@ import useModelDetail from "../../hooks/useModelDetail";
 import ModelDetail from "../ModelDetail/ModelDetail";
 import { Button, PageContainer, PageMessage } from "@/ui";
 
+/** Horní lišta stránky detailu s návratem na seznam modelů. */
+function BackToolbar({ onBack }: { onBack: () => void }) {
+    return (
+        <div className="model-detail-page__toolbar">
+            <Button variant="outline" onClick={onBack}>
+                ← Zpět na seznam
+            </Button>
+        </div>
+    );
+}
+
 /** Stránka s detailem modelu. */
 function ModelDetailPage() {
 
@@ -38,11 +49,7 @@ function ModelDetailPage() {
         return (
             <PageContainer>
                 <div className="model-detail-page">
-                    <div className="model-detail-page__toolbar">
-                        <Button variant="outline" onClick={handleBack}>
-                            ← Zpět na seznam
-                        </Button>
-                    </div>
+                    <BackToolbar onBack={handleBack} />
 
                     <PageMessage>
                         {error ?? "Model nebyl nalezen."}
@@ -55,11 +62,7 @@ function ModelDetailPage() {
     return (
         <PageContainer>
             <div className="model-detail-page">
-                <div className="model-detail-page__toolbar">
-                    <Button variant="outline" onClick={handleBack}>
-                        ← Zpět na seznam
-                    </Button>
-                </div>
+                <BackToolbar onBack={handleBack} />
 
                 <ModelDetail
                     model={model}
@@ -72,3 +75,4 @@ function ModelDetailPage() {
 }
 
 export default ModelDetailPage;
+

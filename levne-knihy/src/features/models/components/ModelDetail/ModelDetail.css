@@ -49,33 +49,6 @@
     font-size: .95rem;
 }
 
-.model-detail__chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .35rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.model-detail__chip {
-    max-width: 100%;
-    padding: .18rem .6rem;
-    border-radius: var(--radius-pill);
-    background: var(--primary-light);
-    color: var(--primary);
-    font-size: .72rem;
-    font-weight: 600;
-    overflow-wrap: anywhere;
-}
-
-/* Vysvětlení, odkud seznam pochází */
-.model-detail__note {
-    margin: 0;
-    color: var(--text-faint);
-    font-size: .78rem;
-}
-
 .model-detail__stats {
     display: flex;
     flex-wrap: wrap;
@@ -83,26 +56,6 @@
     margin-top: .15rem;
     padding-top: .7rem;
     border-top: 1px solid var(--border);
-}
-
-.model-detail__stat {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
-    color: var(--text-subtle);
-    font-size: .85rem;
-}
-
-.model-detail__stat strong {
-    color: var(--text);
-    font-weight: 700;
-}
-
-.model-detail__icon {
-    width: 1rem;
-    height: 1rem;
-    flex-shrink: 0;
-    color: var(--primary);
 }
 
 /* Odkaz na Hugging Face patří k hlavičce, proto je drobný */
@@ -128,17 +81,6 @@
     color: var(--text);
     font-size: 1rem;
     line-height: 1.6;
-}
-
-.model-detail__section {
-    display: flex;
-    flex-direction: column;
-    gap: .8rem;
-}
-
-/* Nadpis sekce má uvnitř rozvržení detailu mezeru jen z rozestupu sekce */
-.model-detail__section .section-title {
-    margin: 0;
 }
 
 /* Dvojice sekcí vedle sebe (vlastnosti modelu a oblasti použití) */
@@ -333,7 +275,7 @@
         align-items: center;
     }
 
-    .model-detail__chips,
+    .model-detail__identity .chip-list,
     .model-detail__stats {
         justify-content: center;
     }

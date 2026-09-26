@@ -31,7 +31,8 @@
     color: var(--primary);
 }
 
-.checkbox-group__icon-svg {
+/* Velikost ikony má přednost před výchozí velikostí komponenty Icon */
+.checkbox-group__trigger .checkbox-group__icon-svg {
     width: 1.3rem;
     height: 1.3rem;
 }
@@ -109,7 +110,7 @@
     font-weight: 600;
 }
 
-.checkbox-group__group-icon {
+.checkbox-group__group-label .checkbox-group__group-icon {
     width: 0.95rem;
     height: 0.95rem;
     margin-right: 0.4rem;
