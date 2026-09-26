@@ -2,8 +2,8 @@ import "./ModelDetail.css";
 
 import { AIModel } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
-import { getModelLicense, getModelProvider, getModelSummary, getModelTagList } from "../../utils/modelCard";
-import { DetailItem, LinkButton, MISSING_VALUE, PageTitle, SectionTitle } from "@/ui";
+import { getModelLicense, getModelProvider, getModelTagList } from "../../utils/modelCard";
+import { DetailItem, LinkButton, PageTitle, SectionTitle } from "@/ui";
 
 import ModelImage from "../ModelList/ModelImage";
 import ModelReadme from "../ModelReadme/ModelReadme";
@@ -30,7 +30,7 @@ function DetailIcon({ path }: { path: string }) {
     );
 }
 
-/** Zobrazuje detail modelu - hlavička s logem, popisek, údaje, štítky a text z Hugging Face. */
+/** Zobrazuje detail modelu - přehled, oblasti použití, technické údaje a původní dokumentaci. */
 function ModelDetail({ model, cardContent, isCardLoading }: {
     model: AIModel;
     // Text model card dorazí až po modelu (načítá se zvlášť)
@@ -39,8 +39,22 @@ function ModelDetail({ model, cardContent, isCardLoading }: {
 }) {
     const tags = getModelTagList(model);
 
-    // Štítky z Hugging Face bez technických hodnot (např. "region:us")
-    const rawTags = [...new Set((model.tags ?? []).filter((tag) => !tag.includes(":")))];
+    // Popisek se zobrazí, jen když ho model opravdu má (nic se nedomýšlí)
+    const summary = model.description?.trim();
+
+    // Oblasti použití vycházejí z úlohy a štítků modelu; když konkrétnější štítek chybí, ukáže se úloha
+    const bestFor = tags.secondary.length > 0
+        ? tags.secondary
+        : (tags.primary ? [tags.primary] : []);
+
+    // Technické údaje se vypíšou jen tehdy, když je model skutečně má
+    const technical = [
+        { label: "Parametry", value: model.parameters === null ? null : formatParameters(model.parameters) },
+        { label: "Knihovna", value: model.library },
+        { label: "Licence", value: model.license ? getModelLicense(model.license) : null },
+        { label: "Jazyky", value: model.languages?.length ? formatLanguages(model.languages, 12) : null },
+        { label: "Aktualizace", value: model.lastModified ? formatDate(model.lastModified) : null },
+    ].filter((item): item is { label: string; value: string } => Boolean(item.value));
 
     return (
         <article className="model-detail">
@@ -56,20 +70,9 @@ function ModelDetail({ model, cardContent, isCardLoading }: {
                 <div className="model-detail__identity">
                     <PageTitle>{model.name}</PageTitle>
 
-                    <p className="model-detail__provider">
-                        {getModelProvider(model.author)}
-                        {tags.primary ? ` · ${tags.primary}` : ""}
-                    </p>
+                    <p className="model-detail__provider">{getModelProvider(model.author)}</p>
 
-                    {tags.secondary.length > 0 && (
-                        <ul className="model-detail__chips">
-                            {tags.secondary.map((tag) => (
-                                <li className="model-detail__chip" key={tag}>
-                                    {tag}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                    {summary && <p className="model-detail__summary">{summary}</p>}
 
                     <div className="model-detail__stats">
                         <span className="model-detail__stat">
@@ -85,30 +88,33 @@ function ModelDetail({ model, cardContent, isCardLoading }: {
                 </div>
             </header>
 
-            <p className="model-detail__summary">{getModelSummary(model)}</p>
-
-            <section className="model-detail__section">
-                <SectionTitle>Údaje o modelu</SectionTitle>
-
-                <div className="model-detail__details">
-                    <DetailItem label="Úloha" value={tags.primary ?? MISSING_VALUE} />
-                    <DetailItem label="Parametry" value={formatParameters(model.parameters)} />
-                    <DetailItem label="Knihovna" value={model.library ?? MISSING_VALUE} />
-                    <DetailItem label="Licence" value={getModelLicense(model.license)} />
-                    <DetailItem label="Jazyky" value={formatLanguages(model.languages, 12)} />
-                    <DetailItem label="Aktualizace" value={formatDate(model.lastModified)} />
-                </div>
-            </section>
-
-            {rawTags.length > 0 && (
+            {bestFor.length > 0 && (
                 <section className="model-detail__section">
-                    <SectionTitle>Štítky z Hugging Face</SectionTitle>
+                    <SectionTitle>Nejvhodnější pro</SectionTitle>
 
-                    <ul className="model-detail__tags">
-                        {rawTags.map((tag) => (
-                            <li key={tag}>{tag}</li>
+                    <ul className="model-detail__chips">
+                        {bestFor.map((item) => (
+                            <li className="model-detail__chip" key={item}>
+                                {item}
+                            </li>
                         ))}
                     </ul>
+
+                    <p className="model-detail__note">
+                        Vychází z úlohy a štítků modelu na Hugging Face.
+                    </p>
+                </section>
+            )}
+
+            {technical.length > 0 && (
+                <section className="model-detail__section">
+                    <SectionTitle>Technické informace</SectionTitle>
+
+                    <div className="model-detail__details">
+                        {technical.map((item) => (
+                            <DetailItem label={item.label} value={item.value} key={item.label} />
+                        ))}
+                    </div>
                 </section>
             )}
 
@@ -121,7 +127,7 @@ function ModelDetail({ model, cardContent, isCardLoading }: {
                 variant="outline"
                 className="model-detail__link"
             >
-                Zobrazit na Hugging Face
+                Zobrazit původní dokumentaci na Hugging Face
             </LinkButton>
         </article>
     );

@@ -16,7 +16,7 @@ const ENTITIES: Record<string, string> = {
     "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": "\"", "&#39;": "'", "&nbsp;": " ",
 };
 
-// Řádkové značky – silnější musí být před slabšími, jinak by je rozbily
+// Řádkové značky - silnější musí být před slabšími, jinak by je rozbily
 const INLINE = [
     "\\[\\s*!\\[([^\\[\\]]*)\\]\\(([^)]+)\\)\\s*\\]\\(([^)]+)\\)",   // obrázek v odkazu
     "!\\[([^\\[\\]]*)\\]\\(([^)]+)\\)",                              // obrázek
@@ -48,7 +48,7 @@ function safeUrl(url: string, base: string): string | null {
     }
 }
 
-/** Zpracuje řádkové značky (odkazy, obrázky, kód, zvýraznění) na React prvky. */
+/** Zpracuje řádkové značky (odkazy, obrázky, kód, zvýraznění) na reactí prvky. */
 function renderInline(text: string, base: string): ReactNode[] {
     const pattern = new RegExp(INLINE, "g");
     const nodes: ReactNode[] = [];
@@ -70,7 +70,7 @@ function renderInline(text: string, base: string): ReactNode[] {
         const target = linkHref ? safeUrl(linkHref, base) : null;
 
         if (linkedSrc) {
-            // Obrázek vložený do odkazu (typicky badge)
+            // Obrázek vložený do odkazu
             nodes.push(
                 <a className="model-readme__link" href={safeUrl(linkedHref, base) ?? undefined} key={key}>
                     <img className="model-readme__image" src={safeUrl(linkedSrc, base) ?? ""} alt={linkedAlt} loading="lazy" />
@@ -165,7 +165,7 @@ function toBlocks(markdown: string): string[][] {
     return blocks;
 }
 
-/** Vykreslí jeden blok textu – podle prvního řádku pozná, o jaký blok jde. */
+/** Vykreslí jeden blok textu - podle prvního řádku pozná, o jaký blok jde. */
 function renderBlock(lines: string[], key: number, base: string): ReactNode {
     const first = lines[0];
 

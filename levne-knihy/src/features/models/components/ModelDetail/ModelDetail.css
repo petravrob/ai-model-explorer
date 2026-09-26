@@ -67,6 +67,13 @@
     font-weight: 600;
 }
 
+/* Vysvětlení, odkud seznam oblastí použití pochází */
+.model-detail__note {
+    margin: 0;
+    color: var(--text-faint);
+    font-size: .78rem;
+}
+
 .model-detail__stats {
     display: flex;
     flex-wrap: wrap;
@@ -96,7 +103,7 @@
     color: var(--primary);
 }
 
-/* Popisek od AI je zvýrazněný jako úvodní odstavec */
+/* Popisek modelu je zvýrazněný jako úvodní odstavec */
 .model-detail__summary {
     margin: 0;
     padding: .9rem 1.1rem;
@@ -124,24 +131,6 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 1rem 1.5rem;
-}
-
-.model-detail__tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .4rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.model-detail__tags li {
-    padding: .25rem .65rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
-    background: var(--surface);
-    color: var(--text-muted);
-    font-size: .78rem;
 }
 
 .model-detail__link {
