@@ -64,7 +64,7 @@ function buildPrompt(excerpt) {
         "{",
         '  "overview": "2–5 vět: co model umí, jak se používá, čím je zajímavý a případně čím se liší od souvisejícího modelu",',
         '  "highlights": ["3–7 konkrétních vlastností, které model odlišují (schopnosti, architektura, délka kontextu, multimodalita, rychlost, podporovaná workflow, způsob tréninku, vlastnosti nasazení)"],',
-        '  "howItWorks": "1–3 odstavce běžným jazykem o tom, jak model funguje (architektura, zpracování vstupu, trénink, destilace, MoE, aktivní a celkové parametry, speciální mechanismy)",',
+        '  "howItWorks": "2–4 odstavce oddělené prázdným řádkem (v JSON jako \\n\\n): architektura a zpracování vstupu; trénink, fine-tuning nebo destilace; zvláštní mechanismy (MoE, aktivní a celkové parametry, pozornost); co z toho plyne pro použití modelu",',
         '  "bestFor": ["oblasti použití, které dokumentace výslovně zmiňuje"],',
         '  "useCases": ["4–8 konkrétních praktických scénářů odvozených z dokumentace (např. asistent pro psaní kódu, dávkový přepis porad, úprava fotografií)"],',
         '  "capabilities": ["konkrétní schopnosti, které dokumentace výslovně zmiňuje"],',
@@ -99,7 +99,8 @@ function buildPrompt(excerpt) {
         "- co v dokumentaci není, nech prázdné (null nebo prázdné pole), nic nedomýšlej",
         "- položky piš krátce (2–6 slov) a věcně, bez hodnocení a bez doporučování",
         "- frameworky, názvy modelů a délku kontextu zachovej přesně jako v dokumentaci",
-        "- dodrž délky: overview 2–5 vět, howItWorks 1–3 odstavce, highlights 3–7 bodů, useCases 4–8 bodů",
+        "- dodrž délky: overview 2–5 vět, highlights 3–7 bodů, useCases 4–8 bodů",
+        "- howItWorks piš jako 2–4 odstavce oddělené prázdným řádkem (v JSON jako \\n\\n); každý odstavec 2–4 věty, konkrétně k tomuto modelu a běžným jazykem",
         "- nejvýš 6 položek v ostatních seznamech (u omezení nejvýš 12, u benchmarků nejvýš 24)",
         "- vše piš konkrétně k tomuto modelu; obecné fráze typu „vhodný pro širokou škálu úloh“ nepatří nikam",
         "- nevypisuj obecně známé údaje (např. požadavky na Python nebo CUDA), pokud je dokumentace výslovně neuvádí",
@@ -216,7 +217,7 @@ function selectRelevantParts(documentation) {
     return [mainText, benchmarkText].filter(Boolean).join("\n\n");
 }
 
-const PROMPT_VERSION = "v13";
+const PROMPT_VERSION = "v14";
 
 /**
  * Vytvoří otisk vstupu, ze kterého přehledy vznikají (verze zadání + dokumentace).
