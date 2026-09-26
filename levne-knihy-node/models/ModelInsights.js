@@ -83,6 +83,11 @@ const modelInsightsSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        // Aktivní parametry u modelů typu MoE, pokud je dokumentace uvádí
+        activeParameters: {
+            type: String,
+            trim: true,
+        },
         // Způsob tréninku, pokud ho dokumentace výslovně uvádí (např. destilace, RL)
         trainingMethod: {
             type: String,

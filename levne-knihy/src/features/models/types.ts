@@ -50,6 +50,8 @@ export interface ModelInsights {
     contextLength?: string | null;
     // Stručně architektura a způsob tréninku, pokud je dokumentace uvádí
     architecture?: string | null;
+    // Aktivní parametry u modelů typu MoE, pokud je dokumentace uvádí
+    activeParameters?: string | null;
     trainingMethod?: string | null;
     variants?: string[];
     recommendedSettings?: string[];

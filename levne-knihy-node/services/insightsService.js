@@ -58,8 +58,9 @@ function buildPrompt(excerpt) {
         '  "useCases": ["konkrétní typy použití z dokumentace (např. přepis schůzek, shrnování dokumentů)"],',
         '  "capabilities": ["konkrétní schopnosti, které dokumentace výslovně zmiňuje"],',
         '  "modalities": ["druhy vstupů a výstupů, které dokumentace uvádí (text, obrázky, zvuk, video)"],',
-        '  "inferenceFrameworks": ["frameworky a nástroje pro nasazení zmíněné v dokumentaci"],',
+        '  "inferenceFrameworks": ["frameworky a nástroje pro nasazení a použití zmíněné v dokumentaci (např. Transformers, vLLM, SGLang, Docker, ComfyUI, Ollama)"],',
         '  "contextLength": "délka kontextu přesně tak, jak ji dokumentace uvádí",',
+        '  "activeParameters": "aktivní parametry u modelů typu MoE přesně podle dokumentace (např. 2,7 B), jinak null",',
         '  "architecture": "stručně architektura, pokud ji dokumentace uvádí (např. MoE, decoder-only)",',
         '  "trainingMethod": "způsob tréninku, pokud ho dokumentace výslovně uvádí (např. destilace, RL)",',
         '  "variants": ["varianty nebo velikosti modelu, které dokumentace uvádí (např. 7B / 13B)"],',
@@ -91,6 +92,7 @@ function buildPrompt(excerpt) {
         "- do modalities piš česky druhy vstupů a výstupů (text, obrázky, zvuk, video)",
         "- architecture a trainingMethod vyplň jen tehdy, když je dokumentace výslovně uvádí; jinak nech null",
         "- variants a recommendedSettings jen když dokumentace uvádí konkrétní varianty nebo doporučené hodnoty",
+        "- activeParameters vyplň jen u modelů typu MoE a jen tehdy, když dokumentace aktivní parametry uvádí; jinak nech null",
         "",
         "DOKUMENTACE MODELU:",
         "---",
@@ -139,7 +141,7 @@ function selectRelevantParts(documentation) {
     return parts.join("\n\n").slice(0, MAX_EXCERPT_LENGTH);
 }
 
-const PROMPT_VERSION = "v7";
+const PROMPT_VERSION = "v8";
 
 /**
  * Vytvoří otisk vstupu, ze kterého přehledy vznikají (verze zadání + dokumentace).
@@ -239,6 +241,7 @@ function parseInsights(raw) {
             inferenceFrameworks: toList(parsed.inferenceFrameworks),
             contextLength: toText(parsed.contextLength),
             architecture: toText(parsed.architecture),
+            activeParameters: toText(parsed.activeParameters),
             trainingMethod: toText(parsed.trainingMethod),
             variants: toList(parsed.variants),
             recommendedSettings: toList(parsed.recommendedSettings),
@@ -266,6 +269,7 @@ function toInsights(doc) {
         inferenceFrameworks: doc.inferenceFrameworks ?? [],
         contextLength: doc.contextLength ?? null,
         architecture: doc.architecture ?? null,
+        activeParameters: doc.activeParameters ?? null,
         trainingMethod: doc.trainingMethod ?? null,
         variants: doc.variants ?? [],
         recommendedSettings: doc.recommendedSettings ?? [],

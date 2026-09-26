@@ -1,22 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { AIModel, ModelCardContent, ModelInsights } from "../types";
+import { AIModel, ModelInsights } from "../types";
 import { ROUTE_PATHS } from "@/routes/paths";
-import { getModel, getModelCard, getModelInsights } from "../api/modelsApi";
+import { getModel, getModelInsights } from "../api/modelsApi";
 
 /** Obstarává logiku stránky detailu modelu */
 function useModelDetail(modelId: string | undefined) {
 
     const [model, setModel] =
         useState<AIModel | null>(null);
-
-    // Text model card (README) z Hugging Face – načítá se zvlášť, až pro otevřený detail
-    const [card, setCard] =
-        useState<ModelCardContent | null>(null);
-
-    const [isCardLoading, setCardLoading] =
-        useState<boolean>(false);
 
     // Přehledy z dokumentace modelu - připravují se na pozadí a stránka funguje i bez nich
     const [insights, setInsights] =
@@ -80,35 +73,6 @@ function useModelDetail(modelId: string | undefined) {
 
     }, [modelId]);
 
-    // Text model card se načítá zvlášť (je obsáhlý a do výpisu modelů nepatří)
-    useEffect(() => {
-        if (!modelId) {
-            return;
-        }
-
-        let cancelled = false;
-
-        setCard(null);
-        setCardLoading(true);
-
-        getModelCard(modelId)
-            .then((data) => {
-                if (!cancelled) {
-                    setCard(data);
-                }
-            })
-            .catch((error) => console.error("Text model card se nepodařilo načíst:", error))
-            .finally(() => {
-                if (!cancelled) {
-                    setCardLoading(false);
-                }
-            });
-
-        return () => {
-            cancelled = true;
-        };
-    }, [modelId]);
-
     // Přehledy z dokumentace se připravují zvlášť, až pro otevřený model
     useEffect(() => {
         if (!modelId) {
@@ -152,9 +116,6 @@ function useModelDetail(modelId: string | undefined) {
 
     return {
         model,
-
-        card,
-        isCardLoading,
 
         insights,
         isInsightsLoading,

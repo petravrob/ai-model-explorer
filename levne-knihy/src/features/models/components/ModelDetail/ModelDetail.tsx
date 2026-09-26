@@ -2,12 +2,11 @@ import "./ModelDetail.css";
 
 import { AIModel, ModelBenchmark, ModelInsights } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
-import { getModelLicense, getModelProvider, getModelTagList } from "../../utils/modelCard";
+import { getModelLicense, getModelProvider, getModelSummary, getModelTagList } from "../../utils/modelCard";
 import { getModelHighlights } from "../../utils/modelHighlights";
-import { DetailItem, LinkButton, PageTitle, SectionTitle } from "@/ui";
+import { DetailItem, LinkButton, MISSING_VALUE, PageTitle, SectionTitle } from "@/ui";
 
 import ModelImage from "../ModelList/ModelImage";
-import ModelReadme from "../ModelReadme/ModelReadme";
 
 // Ikony v hlavičce detailu (SVG cesty pro viewBox 24×24)
 const DOWNLOAD_ICON = "M12 3v12M7 10l5 5 5-5M5 21h14";
@@ -31,32 +30,65 @@ function DetailIcon({ path }: { path: string }) {
     );
 }
 
-/** Zobrazuje detail modelu – přehled, oblasti použití, technické údaje, omezení a původní dokumentaci. */
-function ModelDetail({ model, cardContent, isCardLoading, insights, isInsightsLoading }: {
+// Kolik oblastí použití se nejvýš vypíše (delší výčet už se nedá prohlédnout)
+const MAX_BEST_FOR = 8;
+
+// Kolik štítků se vejde do hlavičky
+const MAX_HEADER_TAGS = 5;
+
+/**
+ * Detail modelu - souhrn toho, co model umí, na co se hodí, jak se nasazuje
+ * a na co si dát pozor.
+ *
+ * Stránka je záměrně souhrn (není chtěné pouze vytvořit překlad README z Hugging Face).
+ */
+function ModelDetail({ model, insights, isInsightsLoading }: {
     model: AIModel;
-    // Text model card dorazí až po modelu (načítá se zvlášť)
-    cardContent: string | null;
-    isCardLoading: boolean;
     // Přehledy z dokumentace (mohou dorazit později, nebo vůbec)
     insights: ModelInsights | null;
     isInsightsLoading: boolean;
 }) {
     const tags = getModelTagList(model);
 
-    // Popisek: přednost má český přehled z dokumentace, jinak uložený popisek modelu
-    const summary = insights?.overview?.trim() || model.description?.trim();
+    // Přehled: přednost má český text z dokumentace, jinak popisek modelu
+    const overview = insights?.overview?.trim() || model.description?.trim() || getModelSummary(model);
 
-    // Oblasti použití z dokumentace, když v ní nic není, použije se úloha a štítky modelu
-    const fromDocs = [...new Set([...(insights?.bestFor ?? []), ...(insights?.capabilities ?? [])])];
+    // Oblasti použití: přednost má dokumentace, jinak se použijí štítky modelu
+    const documentedAreas = [...new Set([
+        ...(insights?.bestFor ?? []),
+        ...(insights?.useCases ?? []),
+        ...(insights?.capabilities ?? []),
+    ].map((item) => item.trim()).filter(Boolean))];
 
-    const bestFor = fromDocs.length > 0
-        ? fromDocs
-        : (tags.secondary.length > 0 ? tags.secondary : (tags.primary ? [tags.primary] : []));
+    const bestFor = (documentedAreas.length > 0
+        ? documentedAreas
+        : (tags.secondary.length > 0 ? tags.secondary : (tags.primary ? [tags.primary] : []))
+    ).slice(0, MAX_BEST_FOR);
+
+    // Vlastnosti, které model odlišují (nesmí se opakovat s ostatními sekcemi)
+    const highlights = getModelHighlights(model, insights);
 
     const limitations = insights?.limitations ?? [];
+    const deployment = insights?.inferenceFrameworks ?? [];
+    const settings = insights?.recommendedSettings ?? [];
 
-    // Faktické důvody, proč může být model zajímavý (jen z údajů, které máme)
-    const highlights = getModelHighlights(model, insights);
+    // U modelů typu MoE se rozlišují celkové a aktivní parametry
+    const parameters = insights?.activeParameters
+        ? (model.parameters === null
+            ? `${insights.activeParameters} aktivně`
+            : `${formatParameters(model.parameters)} celkem, ${insights.activeParameters} aktivně`)
+        : formatParameters(model.parameters);
+
+    // Technické údaje se vypíšou jen tehdy, když je model skutečně má
+    const technical = [
+        { label: "Parametry", value: parameters === MISSING_VALUE ? null : parameters },
+        { label: "Architektura", value: insights?.architecture ?? null },
+        { label: "Kontext", value: insights?.contextLength ?? null },
+        { label: "Knihovna", value: model.library },
+        { label: "Licence", value: model.license ? getModelLicense(model.license) : null },
+        { label: "Jazyky", value: model.languages?.length ? formatLanguages(model.languages, 12) : null },
+        { label: "Aktualizace", value: model.lastModified ? formatDate(model.lastModified) : null },
+    ].filter((item): item is { label: string; value: string } => Boolean(item.value));
 
     // Benchmarky se seskupí podle oblasti, pokud ji dokumentace uvádí
     const benchmarkGroups = (insights?.benchmarks ?? []).reduce<{ category: string | null; items: ModelBenchmark[] }[]>(
@@ -75,17 +107,10 @@ function ModelDetail({ model, cardContent, isCardLoading, insights, isInsightsLo
         []
     );
 
-    // Technické údaje se vypíšou jen tehdy, když je model skutečně má
-    const technical = [
-        { label: "Parametry", value: model.parameters === null ? null : formatParameters(model.parameters) },
-        { label: "Architektura", value: insights?.architecture ?? null },
-        { label: "Kontext", value: insights?.contextLength ?? null },
-        { label: "Nasazení", value: insights?.inferenceFrameworks?.length ? insights.inferenceFrameworks.join(", ") : null },
-        { label: "Knihovna", value: model.library },
-        { label: "Licence", value: model.license ? getModelLicense(model.license) : null },
-        { label: "Jazyky", value: model.languages?.length ? formatLanguages(model.languages, 12) : null },
-        { label: "Aktualizace", value: model.lastModified ? formatDate(model.lastModified) : null },
-    ].filter((item): item is { label: string; value: string } => Boolean(item.value));
+    // Štítky v hlavičce: hlavní úloha a doplňkové štítky modelu
+    const headerTags = [tags.primary, ...tags.secondary]
+        .filter(Boolean)
+        .slice(0, MAX_HEADER_TAGS) as string[];
 
     return (
         <article className="model-detail">
@@ -103,6 +128,14 @@ function ModelDetail({ model, cardContent, isCardLoading, insights, isInsightsLo
 
                     <p className="model-detail__provider">{getModelProvider(model.author)}</p>
 
+                    {headerTags.length > 0 && (
+                        <ul className="model-detail__chips">
+                            {headerTags.map((tag) => (
+                                <li className="model-detail__chip" key={tag}>{tag}</li>
+                            ))}
+                        </ul>
+                    )}
+
                     <div className="model-detail__stats">
                         <span className="model-detail__stat">
                             <DetailIcon path={DOWNLOAD_ICON} />
@@ -114,51 +147,57 @@ function ModelDetail({ model, cardContent, isCardLoading, insights, isInsightsLo
                             <strong>{formatCount(model.likes)}</strong> oblíbení
                         </span>
                     </div>
+
+                    <a className="model-detail__hero-link" href={model.url} target="_blank" rel="noreferrer">
+                        Hugging Face ↗
+                    </a>
                 </div>
             </header>
+
+            {overview && (
+                <section className="model-detail__section">
+                    <SectionTitle>Přehled</SectionTitle>
+
+                    <p className="model-detail__summary">{overview}</p>
+                </section>
+            )}
 
             {isInsightsLoading && !insights && (
                 <p className="model-detail__note">Zpracovávám dokumentaci modelu…</p>
             )}
 
-            {summary && (
-                <section className="model-detail__section">
-                    <SectionTitle>Přehled</SectionTitle>
+            {(highlights.length > 0 || bestFor.length > 0) && (
+                <div className="model-detail__split">
+                    {highlights.length > 0 && (
+                        <section className="model-detail__section">
+                            <SectionTitle>Proč tento model?</SectionTitle>
 
-                    <p className="model-detail__summary">{summary}</p>
-                </section>
-            )}
+                            <ul className="model-detail__highlights">
+                                {highlights.map((item) => (
+                                    <li key={item}>{item}</li>
+                                ))}
+                            </ul>
+                        </section>
+                    )}
 
-            {highlights.length > 0 && (
-                <section className="model-detail__section">
-                    <SectionTitle>Proč tento model?</SectionTitle>
+                    {bestFor.length > 0 && (
+                        <section className="model-detail__section">
+                            <SectionTitle>Nejvhodnější pro</SectionTitle>
 
-                    <ul className="model-detail__highlights">
-                        {highlights.map((item) => (
-                            <li key={item}>{item}</li>
-                        ))}
-                    </ul>
-                </section>
-            )}
+                            <ul className="model-detail__chips">
+                                {bestFor.map((item) => (
+                                    <li className="model-detail__chip" key={item}>{item}</li>
+                                ))}
+                            </ul>
 
-            {bestFor.length > 0 && (
-                <section className="model-detail__section">
-                    <SectionTitle>Nejvhodnější pro</SectionTitle>
-
-                    <ul className="model-detail__chips">
-                        {bestFor.map((item) => (
-                            <li className="model-detail__chip" key={item}>
-                                {item}
-                            </li>
-                        ))}
-                    </ul>
-
-                    <p className="model-detail__note">
-                        {fromDocs.length > 0
-                            ? "Vychází z dokumentace modelu na Hugging Face."
-                            : "Vychází z úlohy a štítků modelu na Hugging Face."}
-                    </p>
-                </section>
+                            <p className="model-detail__note">
+                                {documentedAreas.length > 0
+                                    ? "Vychází z dokumentace modelu na Hugging Face."
+                                    : "Vychází z úlohy a štítků modelu na Hugging Face."}
+                            </p>
+                        </section>
+                    )}
+                </div>
             )}
 
             {technical.length > 0 && (
@@ -170,6 +209,34 @@ function ModelDetail({ model, cardContent, isCardLoading, insights, isInsightsLo
                             <DetailItem label={item.label} value={item.value} key={item.label} />
                         ))}
                     </div>
+                </section>
+            )}
+
+            {(deployment.length > 0 || settings.length > 0) && (
+                <section className="model-detail__section">
+                    <SectionTitle>Nasazení a použití</SectionTitle>
+
+                    {deployment.length > 0 && (
+                        <ul className="model-detail__chips">
+                            {deployment.map((item) => (
+                                <li className="model-detail__chip" key={item}>{item}</li>
+                            ))}
+                        </ul>
+                    )}
+
+                    {settings.length > 0 && (
+                        <div className="model-detail__settings-block">
+                            <p className="model-detail__label">Doporučené nastavení</p>
+
+                            <ul className="model-detail__settings">
+                                {settings.map((item) => (
+                                    <li key={item}>{item}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    <p className="model-detail__note">Uvedeno v dokumentaci modelu.</p>
                 </section>
             )}
 
@@ -208,25 +275,30 @@ function ModelDetail({ model, cardContent, isCardLoading, insights, isInsightsLo
                 <section className="model-detail__section">
                     <SectionTitle>Omezení</SectionTitle>
 
-                    <ul className="model-detail__limitations">
-                        {limitations.map((item) => (
-                            <li key={item}>{item}</li>
-                        ))}
-                    </ul>
+                    <div className="model-detail__panel">
+                        <ul className="model-detail__limitations">
+                            {limitations.map((item) => (
+                                <li key={item}>{item}</li>
+                            ))}
+                        </ul>
+                    </div>
                 </section>
             )}
 
-            {cardContent
-                ? <ModelReadme modelId={model.modelId} content={cardContent} />
-                : isCardLoading && <p className="model-detail__card-note">Načítám text model card…</p>}
+            <section className="model-detail__section">
+                <SectionTitle>Dokumentace</SectionTitle>
 
-            <LinkButton
-                href={model.url}
-                variant="outline"
-                className="model-detail__link"
-            >
-                Zobrazit původní dokumentaci na Hugging Face
-            </LinkButton>
+                <div className="model-detail__documentation">
+                    <p>
+                        Celý text model card najdeš na Hugging Face. Tahle stránka z něj přebírá
+                        jen strukturované údaje výše.
+                    </p>
+
+                    <LinkButton href={model.url} variant="outline">
+                        Otevřít dokumentaci na Hugging Face
+                    </LinkButton>
+                </div>
+            </section>
         </article>
     );
 }

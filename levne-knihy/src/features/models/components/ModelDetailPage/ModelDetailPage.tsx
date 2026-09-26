@@ -16,9 +16,6 @@ function ModelDetailPage() {
     const {
         model,
 
-        card,
-        isCardLoading,
-
         insights,
         isInsightsLoading,
 
@@ -66,8 +63,6 @@ function ModelDetailPage() {
 
                 <ModelDetail
                     model={model}
-                    cardContent={card?.content ?? null}
-                    isCardLoading={isCardLoading}
                     insights={insights}
                     isInsightsLoading={isInsightsLoading}
                 />
