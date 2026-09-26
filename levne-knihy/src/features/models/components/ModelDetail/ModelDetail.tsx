@@ -8,13 +8,14 @@ import { getBenchmarkPercent } from "../../utils/benchmarkScores";
 import {
     BulletList,
     ChipList,
-    DetailGrid,
+    DocumentImage,
     DOWNLOAD_ICON,
     FieldGroup,
     FlowDiagram,
     LIKE_ICON,
     LinkButton,
     MetricGrid,
+    ModalityBadges,
     Note,
     PageTitle,
     ScoreBar,
@@ -90,13 +91,16 @@ function ModelDetail({ model, insights }: {
         ? `aktivně ${insights.activeParameters}`
         : undefined;
 
+    // Druhy vstupů a výstupů modelu jako odznaky s ikonou
+    const modalityBadges = insights?.modalities ?? [];
+
     // Stručný profil hned pod hlavičkou – jen údaje, které model skutečně má
     const capabilityItems = [
-        { label: "Modalita", value: insights?.modalities?.length ? insights.modalities.join(" + ") : null },
         { label: "Úloha", value: tags.primary ?? null },
         { label: "Parametry", value: totalParameters ?? (insights?.activeParameters ? `${insights.activeParameters} aktivně` : null) },
         { label: "Kontext", value: insights?.contextLength ?? null },
         { label: "Architektura", value: insights?.architecture ?? null },
+        { label: "Knihovna", value: model.library },
         { label: "Licence", value: model.license ? getModelLicense(model.license) : null },
     ].filter((item): item is MetricItem => Boolean(item.value));
 
@@ -127,6 +131,16 @@ function ModelDetail({ model, insights }: {
 
     // Skládanka nasazení: doložené nástroje a nároky na provoz
     const deploymentSteps = [...deployment.slice(0, 4), ...hardware.slice(0, 2)];
+
+    // Obrázky z dokumentace modelu (diagramy, ukázky výsledků)
+    const images = insights?.images ?? [];
+
+    // Rodina modelu: jen vztahy, které dokumentace nebo data skutečně uvádějí
+    const familySteps = [
+        insights?.baseModel ? `Vychází z: ${insights.baseModel}` : null,
+        model.name,
+        variants.length > 0 ? `Varianty (${variants.length})` : null,
+    ].filter((step): step is string => Boolean(step));
 
     // Pruhy u benchmarků mají smysl jen u výsledků vyjádřených v procentech
     const hasBenchmarkBars = (insights?.benchmarks ?? []).some((benchmark) => getBenchmarkPercent(benchmark) !== null);
@@ -191,7 +205,13 @@ function ModelDetail({ model, insights }: {
                 </div>
             </header>
 
-            {capabilityItems.length > 0 && <MetricGrid items={capabilityItems} />}
+            {(modalityBadges.length > 0 || capabilityItems.length > 0) && (
+                <div className="model-detail__profile">
+                    {modalityBadges.length > 0 && <ModalityBadges items={modalityBadges} />}
+
+                    {capabilityItems.length > 0 && <MetricGrid items={capabilityItems} />}
+                </div>
+            )}
 
             {overview && (
                 <Section title="Přehled">
@@ -324,9 +344,7 @@ function ModelDetail({ model, insights }: {
 
             {(variants.length > 0 || insights?.baseModel || notes.length > 0) && (
                 <Section title="Důležité informace">
-                    {insights?.baseModel && (
-                        <DetailGrid items={[{ label: "Vychází z modelu", value: insights.baseModel }]} />
-                    )}
+                    {familySteps.length > 1 && <FlowDiagram steps={familySteps} />}
 
                     {variants.length > 0 && (
                         <FieldGroup label="Varianty">
@@ -345,6 +363,18 @@ function ModelDetail({ model, insights }: {
                             <BulletList items={notes} />
                         </FieldGroup>
                     )}
+                </Section>
+            )}
+
+            {images.length > 0 && (
+                <Section title="Obrázky z dokumentace">
+                    <div className="model-detail__images">
+                        {images.map((image) => (
+                            <DocumentImage src={image.url} alt={image.alt} key={image.url} />
+                        ))}
+                    </div>
+
+                    <Note>Převzato z dokumentace modelu na Hugging Face.</Note>
                 </Section>
             )}
 

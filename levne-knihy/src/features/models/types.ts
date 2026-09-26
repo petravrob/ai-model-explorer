@@ -36,6 +36,12 @@ export interface ModelBenchmark {
     category?: string | null;
     context?: string | null;
 }
+/** Obrázek převzatý z dokumentace modelu (diagram, ukázka výsledků). */
+export interface ModelInsightImage {
+    url: string;
+    // Popisek obrázku z dokumentace (může být i prázdný)
+    alt: string;
+}
 /** České přehledy vytvořené z dokumentace modelu na Hugging Face. */
 export interface ModelInsights {
     // Co model dělá, k čemu se používá a čím je zajímavý (2–4 věty)
@@ -69,6 +75,8 @@ export interface ModelInsights {
     notes?: string[];
     limitations?: string[];
     benchmarks?: ModelBenchmark[];
+    // Obrázky z dokumentace modelu (diagramy, ukázky výsledků)
+    images?: ModelInsightImage[];
 }
 export interface ModelListProps {
     models: AIModel[];

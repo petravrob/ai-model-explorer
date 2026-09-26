@@ -71,6 +71,20 @@
     text-decoration: underline;
 }
 
+/* Profil modelu hned pod hlavičkou: odznaky modalit a mřížka klíčových údajů */
+.model-detail__profile {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+}
+
+/* Obrázky z dokumentace modelu vedle sebe */
+.model-detail__images {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
 /* Popisek modelu je zvýrazněný jako úvodní odstavec */
 .model-detail__summary {
     margin: 0;

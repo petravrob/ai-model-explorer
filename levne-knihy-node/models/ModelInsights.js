@@ -30,6 +30,50 @@ const benchmarkSchema = new mongoose.Schema(
     }
 );
 
+// Obrázek převzatý z dokumentace modelu (diagram, ukázka výsledků)
+const imageSchema = new mongoose.Schema(
+    {
+        url: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        alt: {
+            type: String,
+            trim: true,
+        },
+        // Nadpis, pod kterým obrázek v dokumentaci stojí
+        caption: {
+            type: String,
+            trim: true,
+        },
+    },
+    {
+        _id: false,
+    }
+);
+
+// Tabulka převzatá z dokumentace modelu
+const tableSchema = new mongoose.Schema(
+    {
+        title: {
+            type: String,
+            trim: true,
+        },
+        headers: {
+            type: [String],
+            default: [],
+        },
+        rows: {
+            type: [[String]],
+            default: [],
+        },
+    },
+    {
+        _id: false,
+    }
+);
+
 // České přehledy z dokumentace se ukládají zvlášť, aby se dokumentace nezpracovávala víckrát
 const modelInsightsSchema = new mongoose.Schema(
     {
@@ -146,6 +190,16 @@ const modelInsightsSchema = new mongoose.Schema(
         // Výsledky benchmarků, které dokumentace modelu uvádí
         benchmarks: {
             type: [benchmarkSchema],
+            default: [],
+        },
+        // Obrázky z dokumentace modelu (diagramy, ukázky výsledků)
+        images: {
+            type: [imageSchema],
+            default: [],
+        },
+        // Tabulky z dokumentace modelu (přehledy, parametry, varianty)
+        tables: {
+            type: [tableSchema],
             default: [],
         },
     },

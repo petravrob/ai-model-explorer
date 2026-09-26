@@ -34,6 +34,15 @@ const MAX_USE_CASES = 8;
 // Nejvýš tolik výsledků benchmarků (delší výčty už jsou jen na opis)
 const MAX_BENCHMARKS = 24;
 
+// Nejvýš tolik obrázků a tabulek se z dokumentace použije
+const MAX_IMAGES = 4;
+const MAX_TABLES = 2;
+const MAX_TABLE_ROWS = 12;
+const MAX_TABLE_COLUMNS = 8;
+
+// Obrázky, které patří k repozitáři, ne k modelu (štítky, loga, avatary, statistiky)
+const IGNORED_IMAGE = /(badge|shield|logo|icon|favicon|avatar|star|trend|visitor|counter|commit|pypi|npm|conda|colab|discord|twitter)/i;
+
 // Nadpisy, u kterých se dá čekat užitečná informace (včetně výsledků měření a praktických údajů)
 const RELEVANT_SECTION = /(overview|introduc|about|descript|highlight|capab|feature|use case|usage|quick ?start|inferenc|deploy|serv|framework|context|limitation|caveat|restriction|out of scope|known|issue|why|benchmark|evaluat|performance|result|score|metric|leaderboard|model|train|finetun|distill|architect|licen|requirement|hardware|vram|quantiz|compatib|format|api|releas|note)/i;
 
@@ -148,6 +157,141 @@ function cutAtLine(text, limit) {
     return lastBreak > 0 ? cut.slice(0, lastBreak) : cut;
 }
 
+/** Převede cestu k obrázku na úplnou adresu v repozitáři modelu. */
+function toAbsoluteImageUrl(url, modelId) {
+    if (/^https?:\/\//i.test(url)) {
+        return url;
+    }
+
+    return `https://huggingface.co/${modelId}/resolve/main/${url.replace(/^\.?\//, "")}`;
+}
+
+/**
+ * Vytáhne z dokumentace obrázky, které o modelu něco říkají.
+ * Bere se pořadí z dokumentace a jako popisek nadpis, pod kterým obrázek stojí.
+ * Nic se nedomýšlí – obrázky ani popisky nevymýšlí AI.
+ */
+function extractImages(documentation, modelId) {
+    const images = [];
+    let heading = "";
+
+    for (const line of documentation.split("\n")) {
+        const title = line.match(/^#{1,4}\s+(.*)$/);
+
+        if (title) {
+            heading = title[1].trim().replace(/\s+/g, " ").slice(0, 120);
+            continue;
+        }
+
+        const pattern = /!\[([^\]]*)\]\(([^)\s]+)[^)]*\)|<img[^>]*src=["']([^"']+)["'][^>]*>/gi;
+
+        for (const match of line.matchAll(pattern)) {
+            const alt = (match[1] ?? "").trim().replace(/\s+/g, " ").slice(0, 120);
+            const url = (match[2] || match[3] || "").trim();
+
+            // Štítky, loga a animace do detailu nepatří
+            if (!url || IGNORED_IMAGE.test(url) || /\.(gif|svg)($|\?)/i.test(url)) {
+                continue;
+            }
+
+            const absolute = toAbsoluteImageUrl(url, modelId);
+
+            if (images.some((image) => image.url === absolute)) {
+                continue;
+            }
+
+            images.push({ url: absolute, alt, caption: heading });
+
+            if (images.length >= MAX_IMAGES) {
+                return images;
+            }
+        }
+    }
+
+    return images;
+}
+
+/** Odstraní z buňky tabulky markdown, který se v tabulce nevykresluje. */
+function cleanCell(cell) {
+    return cell
+        .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+        .replace(/[*`_]/g, "")
+        .replace(/<[^>]+>/g, "")
+        .trim()
+        .slice(0, 80);
+}
+
+/** Rozdělí řádek tabulky na jednotlivé buňky. */
+function splitTableRow(line) {
+    return line
+        .replace(/^\s*\|/, "")
+        .replace(/\|\s*$/, "")
+        .split("|")
+        .map(cleanCell);
+}
+
+/** Pozná řádek, který v tabulce odděluje hlavičku (|---|---|). */
+function isTableDivider(line) {
+    return /^[\s:|-]+$/.test(line) && line.includes("-");
+}
+
+/**
+ * Vytáhne z dokumentace menší tabulky, které neřeší výsledky měření
+ * (ty zpracovává AI jako benchmarky zvlášť).
+ */
+function extractTables(documentation) {
+    const tables = [];
+    const lines = documentation.split("\n");
+
+    let heading = "";
+    let index = 0;
+
+    while (index < lines.length && tables.length < MAX_TABLES) {
+        const title = lines[index].match(/^#{1,4}\s+(.*)$/);
+
+        if (title) {
+            heading = title[1].trim().replace(/\s+/g, " ").slice(0, 120);
+            index++;
+            continue;
+        }
+
+        // Tabulka začíná řádkem s buňkami a za ním následuje oddělovač
+        if (!lines[index].includes("|") || !isTableDivider(lines[index + 1] ?? "")) {
+            index++;
+            continue;
+        }
+
+        const headers = splitTableRow(lines[index]);
+
+        if (BENCHMARK_SECTION.test(heading)) {
+            index += 2;
+            continue;
+        }
+
+        const rows = [];
+        let cursor = index + 2;
+
+        while (cursor < lines.length && lines[cursor].includes("|") && !isTableDivider(lines[cursor])) {
+            rows.push(splitTableRow(lines[cursor]));
+            cursor++;
+        }
+
+        const fits = headers.length >= 2
+            && headers.length <= MAX_TABLE_COLUMNS
+            && rows.length > 0
+            && rows.length <= MAX_TABLE_ROWS
+            && rows.every((row) => row.length === headers.length);
+
+        if (fits && !tables.some((table) => table.title === heading)) {
+            tables.push({ title: heading, headers, rows });
+        }
+
+        index = cursor;
+    }
+
+    return tables;
+}
+
 /**
  * Vybere z dokumentace jen části, které mají cenu zpracovávat.
  * Bere se úvod a oddíly o schopnostech, použití, kontextu a omezeních.
@@ -217,7 +361,7 @@ function selectRelevantParts(documentation) {
     return [mainText, benchmarkText].filter(Boolean).join("\n\n");
 }
 
-const PROMPT_VERSION = "v14";
+const PROMPT_VERSION = "v16";
 
 /**
  * Vytvoří otisk vstupu, ze kterého přehledy vznikají (verze zadání + dokumentace).
@@ -380,6 +524,16 @@ function toInsights(doc) {
             category: item.category ?? null,
             context: item.context ?? null,
         })),
+        images: (doc.images ?? []).map((item) => ({
+            url: item.url,
+            alt: item.alt ?? "",
+            caption: item.caption ?? "",
+        })),
+        tables: (doc.tables ?? []).map((table) => ({
+            title: table.title ?? "",
+            headers: table.headers ?? [],
+            rows: (table.rows ?? []).map((row) => row ?? []),
+        })),
     };
 }
 
@@ -434,12 +588,15 @@ async function generateInsights(modelId) {
             return stored ? toInsights(stored) : null;
         }
 
+        // Obrázky a tabulky se berou přímo z dokumentace, AI je nevymýšlí
+        insights.images = extractImages(documentation, modelId);
+        insights.tables = extractTables(documentation);
+
         await ModelInsights.updateOne(
             { modelId },
             { $set: { ...insights, sourceFingerprint } },
             { upsert: true }
         );
-
         return insights;
     } catch (error) {
         console.error(`Přehledy modelu „${modelId}“ se nepodařilo vytvořit: ${error.message}`);
