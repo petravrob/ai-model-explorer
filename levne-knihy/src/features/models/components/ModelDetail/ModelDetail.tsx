@@ -1,6 +1,6 @@
 import "./ModelDetail.css";
 
-import { AIModel } from "../../types";
+import { AIModel, ModelInsights } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
 import { getModelLicense, getModelProvider, getModelTagList } from "../../utils/modelCard";
 import { DetailItem, LinkButton, PageTitle, SectionTitle } from "@/ui";
@@ -30,26 +30,35 @@ function DetailIcon({ path }: { path: string }) {
     );
 }
 
-/** Zobrazuje detail modelu - přehled, oblasti použití, technické údaje a původní dokumentaci. */
-function ModelDetail({ model, cardContent, isCardLoading }: {
+/** Zobrazuje detail modelu – přehled, oblasti použití, technické údaje, omezení a původní dokumentaci. */
+function ModelDetail({ model, cardContent, isCardLoading, insights, isInsightsLoading }: {
     model: AIModel;
     // Text model card dorazí až po modelu (načítá se zvlášť)
     cardContent: string | null;
     isCardLoading: boolean;
+    // Přehledy z dokumentace (mohou dorazit později, nebo vůbec)
+    insights: ModelInsights | null;
+    isInsightsLoading: boolean;
 }) {
     const tags = getModelTagList(model);
 
-    // Popisek se zobrazí, jen když ho model opravdu má (nic se nedomýšlí)
-    const summary = model.description?.trim();
+    // Popisek: přednost má český přehled z dokumentace, jinak uložený popisek modelu
+    const summary = insights?.overview?.trim() || model.description?.trim();
 
-    // Oblasti použití vycházejí z úlohy a štítků modelu; když konkrétnější štítek chybí, ukáže se úloha
-    const bestFor = tags.secondary.length > 0
-        ? tags.secondary
-        : (tags.primary ? [tags.primary] : []);
+    // Oblasti použití z dokumentace, když v ní nic není, použije se úloha a štítky modelu
+    const fromDocs = [...new Set([...(insights?.bestFor ?? []), ...(insights?.capabilities ?? [])])];
+
+    const bestFor = fromDocs.length > 0
+        ? fromDocs
+        : (tags.secondary.length > 0 ? tags.secondary : (tags.primary ? [tags.primary] : []));
+
+    const limitations = insights?.limitations ?? [];
 
     // Technické údaje se vypíšou jen tehdy, když je model skutečně má
     const technical = [
         { label: "Parametry", value: model.parameters === null ? null : formatParameters(model.parameters) },
+        { label: "Kontext", value: insights?.contextLength ?? null },
+        { label: "Nasazení", value: insights?.inferenceFrameworks?.length ? insights.inferenceFrameworks.join(", ") : null },
         { label: "Knihovna", value: model.library },
         { label: "Licence", value: model.license ? getModelLicense(model.license) : null },
         { label: "Jazyky", value: model.languages?.length ? formatLanguages(model.languages, 12) : null },
@@ -72,8 +81,6 @@ function ModelDetail({ model, cardContent, isCardLoading }: {
 
                     <p className="model-detail__provider">{getModelProvider(model.author)}</p>
 
-                    {summary && <p className="model-detail__summary">{summary}</p>}
-
                     <div className="model-detail__stats">
                         <span className="model-detail__stat">
                             <DetailIcon path={DOWNLOAD_ICON} />
@@ -88,6 +95,18 @@ function ModelDetail({ model, cardContent, isCardLoading }: {
                 </div>
             </header>
 
+            {isInsightsLoading && !insights && (
+                <p className="model-detail__note">Zpracovávám dokumentaci modelu…</p>
+            )}
+
+            {summary && (
+                <section className="model-detail__section">
+                    <SectionTitle>Přehled</SectionTitle>
+
+                    <p className="model-detail__summary">{summary}</p>
+                </section>
+            )}
+
             {bestFor.length > 0 && (
                 <section className="model-detail__section">
                     <SectionTitle>Nejvhodnější pro</SectionTitle>
@@ -101,7 +120,9 @@ function ModelDetail({ model, cardContent, isCardLoading }: {
                     </ul>
 
                     <p className="model-detail__note">
-                        Vychází z úlohy a štítků modelu na Hugging Face.
+                        {fromDocs.length > 0
+                            ? "Vychází z dokumentace modelu na Hugging Face."
+                            : "Vychází z úlohy a štítků modelu na Hugging Face."}
                     </p>
                 </section>
             )}
@@ -115,6 +136,18 @@ function ModelDetail({ model, cardContent, isCardLoading }: {
                             <DetailItem label={item.label} value={item.value} key={item.label} />
                         ))}
                     </div>
+                </section>
+            )}
+
+            {limitations.length > 0 && (
+                <section className="model-detail__section">
+                    <SectionTitle>Omezení</SectionTitle>
+
+                    <ul className="model-detail__limitations">
+                        {limitations.map((item) => (
+                            <li key={item}>{item}</li>
+                        ))}
+                    </ul>
                 </section>
             )}
 

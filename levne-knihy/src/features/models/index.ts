@@ -9,6 +9,7 @@ export type {
     AIModel,
     ModelCardContent,
     ModelFilterPanelProps,
+    ModelInsights,
     ModelListProps,
 } from "./types";
 export type {

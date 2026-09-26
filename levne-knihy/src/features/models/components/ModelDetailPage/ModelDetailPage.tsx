@@ -19,6 +19,9 @@ function ModelDetailPage() {
         card,
         isCardLoading,
 
+        insights,
+        isInsightsLoading,
+
         handleBack,
 
         loading,
@@ -65,6 +68,8 @@ function ModelDetailPage() {
                     model={model}
                     cardContent={card?.content ?? null}
                     isCardLoading={isCardLoading}
+                    insights={insights}
+                    isInsightsLoading={isInsightsLoading}
                 />
             </div>
         </PageContainer>

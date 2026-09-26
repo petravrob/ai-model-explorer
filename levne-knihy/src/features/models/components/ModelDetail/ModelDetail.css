@@ -144,6 +144,18 @@
     font-size: .85rem;
 }
 
+/* Omezení vypsaná z dokumentace modelu */
+.model-detail__limitations {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    margin: 0;
+    padding-left: 1.2rem;
+    color: var(--text-muted);
+    font-size: .9rem;
+    line-height: 1.5;
+}
+
 @media (max-width: 700px) {
     .model-detail {
         max-width: 100%;

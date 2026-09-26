@@ -27,6 +27,16 @@ export interface ModelCardContent {
     // Text karty v Markdownu; null když model vlastní popis nemá
     content: string | null;
 }
+/** České přehledy vytvořené z dokumentace modelu na Hugging Face. */
+export interface ModelInsights {
+    // Co model je a k čemu slouží
+    overview?: string | null;
+    bestFor?: string[];
+    capabilities?: string[];
+    inferenceFrameworks?: string[];
+    contextLength?: string | null;
+    limitations?: string[];
+}
 export interface ModelListProps {
     models: AIModel[];
     onModelClick: (model: AIModel) => void;

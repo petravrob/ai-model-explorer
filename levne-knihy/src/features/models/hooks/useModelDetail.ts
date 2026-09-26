@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { AIModel, ModelCardContent } from "../types";
+import { AIModel, ModelCardContent, ModelInsights } from "../types";
 import { ROUTE_PATHS } from "@/routes/paths";
-import { getModel, getModelCard } from "../api/modelsApi";
+import { getModel, getModelCard, getModelInsights } from "../api/modelsApi";
 
 /** Obstarává logiku stránky detailu modelu */
 function useModelDetail(modelId: string | undefined) {
@@ -16,6 +16,13 @@ function useModelDetail(modelId: string | undefined) {
         useState<ModelCardContent | null>(null);
 
     const [isCardLoading, setCardLoading] =
+        useState<boolean>(false);
+
+    // Přehledy z dokumentace modelu - připravují se na pozadí a stránka funguje i bez nich
+    const [insights, setInsights] =
+        useState<ModelInsights | null>(null);
+
+    const [isInsightsLoading, setInsightsLoading] =
         useState<boolean>(false);
 
     const [loading, setLoading] =
@@ -102,6 +109,35 @@ function useModelDetail(modelId: string | undefined) {
         };
     }, [modelId]);
 
+    // Přehledy z dokumentace se připravují zvlášť, až pro otevřený model
+    useEffect(() => {
+        if (!modelId) {
+            return;
+        }
+
+        let cancelled = false;
+
+        setInsights(null);
+        setInsightsLoading(true);
+
+        getModelInsights(modelId)
+            .then((data) => {
+                if (!cancelled) {
+                    setInsights(data);
+                }
+            })
+            .catch((error) => console.error("Přehledy z dokumentace se nepodařilo připravit:", error))
+            .finally(() => {
+                if (!cancelled) {
+                    setInsightsLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [modelId]);
+
     // Návrat zpět na předchozí stránku (nebo na seznam modelů)
     const handleBack = (): void => {
 
@@ -119,6 +155,9 @@ function useModelDetail(modelId: string | undefined) {
 
         card,
         isCardLoading,
+
+        insights,
+        isInsightsLoading,
 
         handleBack,
 

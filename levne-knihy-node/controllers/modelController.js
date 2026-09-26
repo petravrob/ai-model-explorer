@@ -13,6 +13,7 @@ const {
 } = require("../services/huggingFaceService");
 const { isValidModel, mapModelData, mapRawModels } = require("../services/modelMapper");
 const { generateDescriptions } = require("../services/descriptionService");
+const { generateInsights } = require("../services/insightsService");
 const ModelDescription = require("../models/ModelDescription");
 
 // Kolik modelů se načte z Hugging Face pro filtrování na serveru (větší objem zbytečně prodlužoval načtení)
@@ -294,10 +295,39 @@ const getModelCard = async (req, res) => {
     }
 };
 
+/** Připraví české přehledy z dokumentace modelu na Hugging Face. */
+const createInsights = async (req, res) => {
+    try {
+        const { modelId } = req.params;
+
+        if (!modelId) {
+            return res.status(400).json({
+                status: "error",
+                error: "Chybí identifikátor modelu.",
+            });
+        }
+
+        const insights = await generateInsights(modelId);
+
+        return res.status(200).json({
+            status: "ok",
+            data: { modelId, insights },
+        });
+    } catch (error) {
+        console.error("Generating insights failed:", error);
+
+        return res.status(500).json({
+            status: "error",
+            error: "Generating insights failed.",
+        });
+    }
+};
+
 module.exports = {
     getModels,
     getModel,
     getModelCard,
     getAvatar,
     createDescriptions,
+    createInsights,
 };
