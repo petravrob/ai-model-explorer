@@ -242,8 +242,29 @@ const getAvatar = async (req, res) => {
     }
 };
 
+/** Vygeneruje popisky pro modely, které aplikace právě zobrazuje. */
+const createDescriptions = async (req, res) => {
+    try {
+        const models = Array.isArray(req.body?.models) ? req.body.models : [];
+        const descriptions = await generateDescriptions(models);
+
+        return res.status(200).json({
+            status: "ok",
+            data: descriptions,
+        });
+    } catch (error) {
+        console.error("Generating descriptions failed:", error);
+
+        return res.status(500).json({
+            status: "error",
+            error: "Generating descriptions failed.",
+        });
+    }
+};
+
 module.exports = {
     getModels,
     getModel,
     getAvatar,
+    createDescriptions,
 };

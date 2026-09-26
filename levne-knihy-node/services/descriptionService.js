@@ -1,11 +1,13 @@
 /**
  * Generování krátkých českých popisků AI modelů.
  *
- * AI generovaný popisek má uživateli rychle zdělit, co je na modelu zajímavé a k čemu se hodí.
- * Generuje se skriptem scripts/generateDescriptions.js a ukládá se do databáze.
+ * Popisek má uživateli rychle sdělit, co je na modelu zajímavé a k čemu se hodí.
+ * Generuje se podle potřeby pro modely, které jsou zrovna vidět, a hotové popisky
+ * se ukládají do databáze, takže se každý model generuje jen jednou.
  */
 
 const { SUMMARY_API_KEY, SUMMARY_API_URL, SUMMARY_MODEL, SUMMARY_REASONING_EFFORT } = require("../config/env");
+const ModelDescription = require("../models/ModelDescription");
 
 // Delší text se do karty nevejde, proto se ořezává
 const MAX_DESCRIPTION_LENGTH = 300;
@@ -202,6 +204,49 @@ async function generateDescription(model) {
     };
 }
 
+// Kolik popisků se vygeneruje na jedno vyžádání aplikace (zbytek se doplní postupně)
+const MAX_DESCRIPTIONS_PER_REQUEST = 3;
+
+// Modely, u kterých právě běží generování, aby se stejný popisek negeneroval víckrát
+const pendingGenerations = new Set();
+
+/**
+ * Vygeneruje popisky pro modely, které aplikace právě zobrazuje.
+ *
+ * Aplikace si o popisky říká postupně, takže se generují jen viditelné modely.
+ * Hotové popisky se ukládají do databáze. Bez nastaveného klíče se nic neposílá.
+ */
+async function generateDescriptions(models) {
+    if (!SUMMARY_API_KEY) {
+        return [];
+    }
+
+    const wanted = (models ?? [])
+        .filter((model) => model?.modelId && !model.description?.trim() && !pendingGenerations.has(model.modelId))
+        .slice(0, MAX_DESCRIPTIONS_PER_REQUEST);
+
+    const generated = await Promise.all(wanted.map(async (model) => {
+        pendingGenerations.add(model.modelId);
+
+        try {
+            const { description } = await generateDescription(model);
+
+            await ModelDescription.updateOne({ modelId: model.modelId }, { $set: { description } }, { upsert: true });
+
+            return { modelId: model.modelId, description };
+        } catch (error) {
+            console.error(`Popisek modelu „${model.modelId}“ se nepodařilo vygenerovat: ${error.message}`);
+
+            return null;
+        } finally {
+            pendingGenerations.delete(model.modelId);
+        }
+    }));
+
+    return generated.filter(Boolean);
+}
+
 module.exports = {
     generateDescription,
+    generateDescriptions,
 };

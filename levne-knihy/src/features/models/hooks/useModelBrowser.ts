@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AIModel } from "../types";
 import { SEARCH_QUERY_PARAM, modelDetailUrl } from "@/routes/paths";
-import { getModels } from "../api/modelsApi";
+import { createDescriptions, getModels } from "../api/modelsApi";
 import useModelFilters from "./useModelFilters";
 import { DEFAULT_SORT, type ModelSortKey } from "../modelSortsConfig";
 
@@ -33,6 +33,9 @@ const FUSE_OPTIONS: IFuseOptions<AIModel> = {
 // Zpoždění načtení po změně filtrů, aby se rychlé po sobě jdoucí změny sloučily do jednoho požadavku
 const FILTERS_FETCH_DELAY_MS = 400;
 
+// Kolik modelů se zobrazí na jedno načtení (menší množství znamená méně generovaných popisků)
+const MODELS_PER_LOADING = 24;
+
 /** Obstarává logiku zobrazení seznamu modelů a přechodu na jejich detail */
 function useModelBrowser() {
 
@@ -55,7 +58,7 @@ function useModelBrowser() {
     const [searchParams] = useSearchParams();
     const latestRequestIdRef = useRef(0);
 
-    // Hledaný výraz z URL (např. „/?q=gpt“), oříznutý o okrajové mezery
+    // Hledaný výraz z URL (např. /?q=gpt), oříznutý o okrajové mezery
     const searchQuery = (searchParams.get(SEARCH_QUERY_PARAM) ?? "").trim();
 
     // Filtry z levého panelu, které zúží výpis před samotným hledáním
@@ -69,6 +72,9 @@ function useModelBrowser() {
 
     // Zvolený způsob řazení výpisu modelů
     const [sort, setSort] = useState<ModelSortKey>(DEFAULT_SORT);
+
+    // Kolik modelů je z výpisu zobrazených (další se přidají tlačítkem)
+    const [visibleCount, setVisibleCount] = useState<number>(MODELS_PER_LOADING);
 
     // Načtení modelů podle zvolených filtrů (s filtry se filtruje přímo na serveru z Hugging Face)
     // TODO: prověřit aktuální práci s databází, možná to upravit
@@ -94,6 +100,9 @@ function useModelBrowser() {
 
                 setAllModels(data);
                 setHasLoaded(true);
+
+                // Nový výpis začíná prvními načtenými modely
+                setVisibleCount(MODELS_PER_LOADING);
 
             } catch (error) {
 
@@ -173,6 +182,45 @@ function useModelBrowser() {
         ? fuzzySearch.search(searchQuery).map(({ item }) => item)
         : exactModels;
 
+    // Zobrazuje se jen první načtené modely (24), další se přidají tlačítkem "Načíst další"
+    const visibleModels = searchedModels.slice(0, visibleCount);
+
+    // Popisky se doplňují postupně po třech, aby se negenerovalo všechno najednou.
+    // Hotové se uloží a příště se jen zobrazí, takže se každý model generuje jen jednou.
+    useEffect(() => {
+        const missing = visibleModels.filter((model) => !model.description).slice(0, 3);
+
+        if (missing.length === 0) {
+            return;
+        }
+
+        let isCancelled = false;
+
+        void (async () => {
+            try {
+                const generated = await createDescriptions(missing);
+
+                if (isCancelled || generated.length === 0) {
+                    return;
+                }
+
+                setAllModels((current) =>
+                    current.map((model) => {
+                        const filled = generated.find((item) => item.modelId === model.modelId);
+
+                        return filled ? { ...model, description: filled.description } : model;
+                    })
+                );
+            } catch (error) {
+                console.error("Nepodařilo se doplnit popisky:", error);
+            }
+        })();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [visibleModels]);
+
     // Změní řazení výpisu modelů (výpis se načte znovu z Hugging Face)
     const handleSortChange = (newSort: ModelSortKey): void => {
 
@@ -191,8 +239,20 @@ function useModelBrowser() {
     };
 
 
+    // Načte do výpisu další množství modelů
+    const loadMore = (): void => {
+        setVisibleCount((current) => current + MODELS_PER_LOADING);
+    };
+
+
     return {
-        models: searchedModels,
+        models: visibleModels,
+
+        totalCount: searchedModels.length,
+
+        hasMore: searchedModels.length > visibleModels.length,
+
+        loadMore,
 
         searchQuery,
 

@@ -5,13 +5,16 @@ import useModelBrowser from "../../hooks/useModelBrowser";
 import ModelFilterPanel from "../ModelFilterPanel/ModelFilterPanel";
 import ModelList from "../ModelList/ModelList";
 import ModelSort from "../ModelSort/ModelSort";
-import { PageContainer, PageMessage } from "@/ui";
+import { PageContainer, PageMessage, Button } from "@/ui";
 
 /** Rozhraní pro zobrazení seznamu modelů. */
 function ModelBrowser() {
 
     const {
         models,
+        totalCount,
+        hasMore,
+        loadMore,
         searchQuery,
         isFuzzySearch,
         filters,
@@ -80,6 +83,18 @@ function ModelBrowser() {
                                 models={models}
                                 onModelClick={handleModelClick}
                             />
+
+                            {hasMore && (
+                                <div className="model-browser__more">
+                                    <Button variant="outline" onClick={loadMore}>
+                                        Načíst další modely
+                                    </Button>
+
+                                    <p className="model-browser__more-note">
+                                        Zobrazeno {models.length} z {totalCount} modelů
+                                    </p>
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
