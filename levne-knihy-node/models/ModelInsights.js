@@ -68,6 +68,36 @@ const modelInsightsSchema = new mongoose.Schema(
             type: [String],
             default: [],
         },
+        // Konkrétní typy použití, které dokumentace uvádí
+        useCases: {
+            type: [String],
+            default: [],
+        },
+        // Druhy vstupů a výstupů podle dokumentace (text, obrázky, zvuk, video…)
+        modalities: {
+            type: [String],
+            default: [],
+        },
+        // Stručná informace o architektuře, pokud ji dokumentace uvádí
+        architecture: {
+            type: String,
+            trim: true,
+        },
+        // Způsob tréninku, pokud ho dokumentace výslovně uvádí (např. destilace, RL)
+        trainingMethod: {
+            type: String,
+            trim: true,
+        },
+        // Varianty nebo velikosti modelu, které dokumentace uvádí
+        variants: {
+            type: [String],
+            default: [],
+        },
+        // Konkrétní doporučené hodnoty, pokud je dokumentace uvádí
+        recommendedSettings: {
+            type: [String],
+            default: [],
+        },
         // Výsledky benchmarků, které dokumentace modelu uvádí
         benchmarks: {
             type: [benchmarkSchema],

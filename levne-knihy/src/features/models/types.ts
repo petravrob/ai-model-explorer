@@ -41,9 +41,18 @@ export interface ModelInsights {
     // Co model je a k čemu slouží
     overview?: string | null;
     bestFor?: string[];
+    // Konkrétní typy použití z dokumentace
+    useCases?: string[];
     capabilities?: string[];
+    // Druhy vstupů a výstupů (text, obrázky, zvuk, video)
+    modalities?: string[];
     inferenceFrameworks?: string[];
     contextLength?: string | null;
+    // Stručně architektura a způsob tréninku, pokud je dokumentace uvádí
+    architecture?: string | null;
+    trainingMethod?: string | null;
+    variants?: string[];
+    recommendedSettings?: string[];
     limitations?: string[];
     benchmarks?: ModelBenchmark[];
 }

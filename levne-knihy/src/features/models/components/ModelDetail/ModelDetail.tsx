@@ -78,6 +78,7 @@ function ModelDetail({ model, cardContent, isCardLoading, insights, isInsightsLo
     // Technické údaje se vypíšou jen tehdy, když je model skutečně má
     const technical = [
         { label: "Parametry", value: model.parameters === null ? null : formatParameters(model.parameters) },
+        { label: "Architektura", value: insights?.architecture ?? null },
         { label: "Kontext", value: insights?.contextLength ?? null },
         { label: "Nasazení", value: insights?.inferenceFrameworks?.length ? insights.inferenceFrameworks.join(", ") : null },
         { label: "Knihovna", value: model.library },

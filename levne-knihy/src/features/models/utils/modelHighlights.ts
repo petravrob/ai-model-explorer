@@ -38,7 +38,7 @@ export const getModelHighlights = (model: AIModel, insights: ModelInsights | nul
         highlights.push(`Zaměření: ${joinCzech(areas.map(toSentenceCase))}.`);
     }
 
-    // Druhy vstupů se hledají ve štítcích i v popiscích z dokumentace
+    // Druhy vstupů: přednost má výčet z dokumentace, jinak se poznají ze štítků a úlohy
     const description = [
         model.task,
         ...(model.tags ?? []),
@@ -46,9 +46,15 @@ export const getModelHighlights = (model: AIModel, insights: ModelInsights | nul
         ...(insights?.capabilities ?? []),
     ].join(" ");
 
-    const modalities = MODALITY_GROUPS
+    const fromTags = MODALITY_GROUPS
         .filter((group) => group.pattern.test(description))
         .map((group) => group.label);
+
+    const fromDocs = (insights?.modalities ?? [])
+        .map((item) => item.toLowerCase().trim())
+        .filter((item) => item.length > 0 && item !== "text");
+
+    const modalities = [...new Set([...fromDocs, ...fromTags])].slice(0, 3);
 
     if (modalities.length > 0) {
         highlights.push(`Zvládá kromě textu i ${joinCzech(modalities)}.`);

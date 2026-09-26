@@ -29,7 +29,7 @@ const MAX_ITEMS = 6;
 const MAX_BENCHMARKS = 12;
 
 // Nadpisy, u kterých se dá čekat užitečná informace (včetně oddílů s výsledky měření)
-const RELEVANT_SECTION = /(overview|introduc|about|descript|capab|feature|use case|usage|quick ?start|inferenc|deploy|serv|framework|context|limitation|caveat|restriction|out of scope|known|why|benchmark|evaluat|performance|result|score|metric|leaderboard)/i;
+const RELEVANT_SECTION = /(overview|introduc|about|descript|highlight|capab|feature|use case|usage|quick ?start|inferenc|deploy|serv|framework|context|limitation|caveat|restriction|out of scope|known|why|benchmark|evaluat|performance|result|score|metric|leaderboard|model|train|architect)/i;
 
 // Nadpisy, které naopak jen zabírají místo
 const SKIP_SECTION = /(citation|bibtex|acknowledg|changelog|version histor|references|star history)/i;
@@ -55,9 +55,15 @@ function buildPrompt(excerpt) {
         "{",
         '  "overview": "1–2 věty o tom, co model je a k čemu slouží",',
         '  "bestFor": ["oblasti použití, které dokumentace výslovně zmiňuje"],',
+        '  "useCases": ["konkrétní typy použití z dokumentace (např. přepis schůzek, shrnování dokumentů)"],',
         '  "capabilities": ["konkrétní schopnosti, které dokumentace výslovně zmiňuje"],',
+        '  "modalities": ["druhy vstupů a výstupů, které dokumentace uvádí (text, obrázky, zvuk, video)"],',
         '  "inferenceFrameworks": ["frameworky a nástroje pro nasazení zmíněné v dokumentaci"],',
         '  "contextLength": "délka kontextu přesně tak, jak ji dokumentace uvádí",',
+        '  "architecture": "stručně architektura, pokud ji dokumentace uvádí (např. MoE, decoder-only)",',
+        '  "trainingMethod": "způsob tréninku, pokud ho dokumentace výslovně uvádí (např. destilace, RL)",',
+        '  "variants": ["varianty nebo velikosti modelu, které dokumentace uvádí (např. 7B / 13B)"],',
+        '  "recommendedSettings": ["konkrétní doporučené hodnoty z dokumentace (např. temperature 0.7, top_p 0.8)"],',
         '  "limitations": ["omezení, výhrady nebo důležitá upozornění z dokumentace"],',
         '  "benchmarks": [',
         "    {",
@@ -81,6 +87,10 @@ function buildPrompt(excerpt) {
         "- pokud dokumentace označuje měření za vlastní, interní nebo jinak vymezené, napiš to do pole context",
         "- nejvýš 12 benchmarků",
         "- u benchmarků překládej jen oblast (např. kódování, matematika, obecné znalosti); názvy benchmarků, metriky a způsob měření nech v původní podobě",
+        "- do useCases patří konkrétní použití (např. přepis schůzek), do capabilities obecné schopnosti (např. práce s kódem)",
+        "- do modalities piš česky druhy vstupů a výstupů (text, obrázky, zvuk, video)",
+        "- architecture a trainingMethod vyplň jen tehdy, když je dokumentace výslovně uvádí; jinak nech null",
+        "- variants a recommendedSettings jen když dokumentace uvádí konkrétní varianty nebo doporučené hodnoty",
         "",
         "DOKUMENTACE MODELU:",
         "---",
@@ -98,6 +108,7 @@ function selectRelevantParts(documentation) {
 
     let current = [];
     let isRelevant = true;
+    let isFirstHeading = true;
 
     const flush = () => {
         if (isRelevant && current.length > 0) {
@@ -113,7 +124,11 @@ function selectRelevantParts(documentation) {
         if (heading) {
             flush();
 
-            isRelevant = RELEVANT_SECTION.test(heading[1]) && !SKIP_SECTION.test(heading[1]);
+            // První nadpis je název modelu – text pod ním patří k úvodu, proto se bere vždy
+            isRelevant = isFirstHeading
+                || (RELEVANT_SECTION.test(heading[1]) && !SKIP_SECTION.test(heading[1]));
+
+            isFirstHeading = false;
         }
 
         current.push(line);
@@ -124,7 +139,7 @@ function selectRelevantParts(documentation) {
     return parts.join("\n\n").slice(0, MAX_EXCERPT_LENGTH);
 }
 
-const PROMPT_VERSION = "v5";
+const PROMPT_VERSION = "v7";
 
 /**
  * Vytvoří otisk vstupu, ze kterého přehledy vznikají (verze zadání + dokumentace).
@@ -218,22 +233,23 @@ function parseInsights(raw) {
         const insights = {
             overview: toText(parsed.overview),
             bestFor: toList(parsed.bestFor),
+            useCases: toList(parsed.useCases),
             capabilities: toList(parsed.capabilities),
+            modalities: toList(parsed.modalities),
             inferenceFrameworks: toList(parsed.inferenceFrameworks),
             contextLength: toText(parsed.contextLength),
+            architecture: toText(parsed.architecture),
+            trainingMethod: toText(parsed.trainingMethod),
+            variants: toList(parsed.variants),
+            recommendedSettings: toList(parsed.recommendedSettings),
             limitations: toList(parsed.limitations),
             benchmarks: toBenchmarks(parsed.benchmarks),
         };
 
         // Když se z dokumentace nic nepřečetlo, nemá smysl výsledek ukládat
-        const hasSomething = Boolean(insights.overview || insights.contextLength)
-            || insights.bestFor.length > 0
-            || insights.capabilities.length > 0
-            || insights.inferenceFrameworks.length > 0
-            || insights.limitations.length > 0
-            || insights.benchmarks.length > 0;
+        const filled = Object.values(insights);
 
-        return hasSomething ? insights : null;
+        return filled.some((value) => (Array.isArray(value) ? value.length > 0 : Boolean(value))) ? insights : null;
     } catch {
         return null;
     }
@@ -244,9 +260,15 @@ function toInsights(doc) {
     return {
         overview: doc.overview ?? null,
         bestFor: doc.bestFor ?? [],
+        useCases: doc.useCases ?? [],
         capabilities: doc.capabilities ?? [],
+        modalities: doc.modalities ?? [],
         inferenceFrameworks: doc.inferenceFrameworks ?? [],
         contextLength: doc.contextLength ?? null,
+        architecture: doc.architecture ?? null,
+        trainingMethod: doc.trainingMethod ?? null,
+        variants: doc.variants ?? [],
+        recommendedSettings: doc.recommendedSettings ?? [],
         limitations: doc.limitations ?? [],
         benchmarks: (doc.benchmarks ?? []).map((item) => ({
             name: item.name,
@@ -298,7 +320,7 @@ async function generateInsights(modelId) {
             system: SYSTEM_PROMPT,
             prompt: buildPrompt(excerpt),
             temperature: 0.3,
-            maxTokens: 1500,
+            maxTokens: 2000,
         });
 
         const insights = parseInsights(data?.choices?.[0]?.message?.content);

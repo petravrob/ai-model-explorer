@@ -38,11 +38,22 @@ async function requestCompletion({ system, prompt, temperature = 0.8, maxTokens 
             signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         });
 
-        // Služba omezuje počet požadavků, proto se to po chvíli zkusí znovu
-        if (response.status === 429 && attempt < MAX_ATTEMPTS) {
-            await new Promise((resolve) => setTimeout(resolve, attempt * RETRY_DELAY_MS));
+        // Služba omezuje počet požadavků, proto se to po chvíli zkusí znovu.
+        // Vyčerpaný denní limit ale opakovat nemá smysl – obnoví se až další den.
+        if (response.status === 429) {
+            const detail = await response.text();
 
-            continue;
+            if (/per day|daily/i.test(detail)) {
+                throw new Error(`Poskytovatel textů má vyčerpaný denní limit: ${detail.slice(0, 200)}`);
+            }
+
+            if (attempt < MAX_ATTEMPTS) {
+                await new Promise((resolve) => setTimeout(resolve, attempt * RETRY_DELAY_MS));
+
+                continue;
+            }
+
+            throw new Error(`Poskytovatel textů vrátil chybu 429: ${detail.slice(0, 200)}`);
         }
 
         if (!response.ok) {
