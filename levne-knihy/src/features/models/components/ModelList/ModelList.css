@@ -1,6 +1,6 @@
 .model-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1rem;
     margin: 0;
     padding: 0;
@@ -12,89 +12,189 @@
     flex-direction: column;
     overflow: hidden;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--radius-lg);
     background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, .04),
+        0 6px 16px rgba(15, 23, 42, .05);
     cursor: pointer;
     transition: transform .2s ease, box-shadow .2s ease;
 }
 
 .model-list__item:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, .1);
+    border-color: #d3ddec;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .12);
 }
 
+/* Hlavička karty s logem modelu, jeho názvem a poskytovatelem */
+.model-list__media {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    min-height: 92px;
+    padding: 1.1rem 1.15rem .8rem;
+}
+
+/* Logo autora, případně zástupný obrázek s počátečním písmenem */
 .model-list__image {
     display: block;
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-bottom: 1px solid var(--border);
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    object-fit: contain;
+    border-radius: var(--radius-md);
 }
 
-.model-list__item > div {
+/* Název modelu a poskytovatel vedle loga */
+.model-list__identity {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: .15rem;
+}
+
+.model-list__body {
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: .2rem;
-    padding: .9rem 1rem 1rem;
+    gap: .7rem;
+    padding: 0 1.15rem 1.15rem;
 }
 
 .model-list__name {
     display: -webkit-box;
+    min-width: 0;
     margin: 0;
     overflow: hidden;
     color: var(--text);
-    font-size: .925rem;
-    font-weight: 600;
+    font-size: 1.05rem;
+    font-weight: 700;
     line-height: 1.3;
+    letter-spacing: -.01em;
+    overflow-wrap: anywhere;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
 }
 
-.model-list__author {
+.model-list__provider {
     margin: 0;
+    overflow: hidden;
     color: var(--text-subtle);
-    font-size: .8rem;
+    font-size: .78rem;
     line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.model-list__task {
+/* Popis modelu má dvě věty, do karty se vejde na pět řádků */
+.model-list__summary {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: .84rem;
+    line-height: 1.45;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+}
+
+.model-list__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* Štítek je jen popisek, na kterém se nic nekliká */
+.model-list__tag {
     align-self: flex-start;
-    margin: .35rem 0 0;
-    padding: .15rem .55rem;
-    border-radius: 999px;
-    background: var(--primary-light);
-    color: var(--primary);
+    padding: .15rem .5rem;
+    border-radius: var(--radius-sm);
+    background: #f1f5f9;
+    color: var(--text-muted);
     font-size: .7rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .02em;
+    line-height: 1.35;
+}
+
+.model-list__meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .5rem;
+    margin-top: .3rem;
+}
+
+/* Údaje v kartě jsou kompaktnější než v detailu modelu */
+.model-list__meta .detail-item__label {
+    font-size: .62rem;
+}
+
+.model-list__meta .detail-item__value {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: .82rem;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
 .model-list__stats {
-    margin: .45rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    margin-top: auto;
+    padding-top: .7rem;
+}
+
+.model-list__stat {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    color: var(--text-subtle);
+    font-size: .78rem;
+}
+
+.model-list__stat strong {
+    color: var(--text);
+    font-size: .85rem;
+    font-weight: 700;
+}
+
+.model-list__icon {
+    width: .9rem;
+    height: .9rem;
+    flex-shrink: 0;
     color: var(--primary);
-    font-size: .875rem;
-    font-weight: 600;
 }
 
 @media (max-width: 600px) {
     .model-list {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
+        grid-template-columns: 1fr;
+        gap: .9rem;
     }
 
-    .model-list__item > div {
-        padding: .75rem .8rem .9rem;
+    .model-list__media {
+        min-height: 84px;
+        padding: .9rem 1rem .7rem;
+    }
+
+    .model-list__image {
+        width: 64px;
+        height: 64px;
+    }
+
+    .model-list__body {
+        padding: 0 1rem 1.05rem;
     }
 
     .model-list__name {
-        font-size: .875rem;
-    }
-
-    .model-list__author,
-    .model-list__stats {
-        font-size: .8rem;
+        font-size: 1rem;
     }
 }

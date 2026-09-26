@@ -11,6 +11,8 @@ const {
     getAuthorAvatarUrl,
 } = require("../services/huggingFaceService");
 const { isValidModel, mapModelData, mapRawModels } = require("../services/modelMapper");
+const { generateDescriptions } = require("../services/descriptionService");
+const ModelDescription = require("../models/ModelDescription");
 
 // Kolik modelů se načte z Hugging Face pro filtrování na serveru (větší objem zbytečně prodlužoval načtení)
 const FILTERED_MODELS_LIMIT = 100;
@@ -88,6 +90,20 @@ const getHuggingFaceModel = async (modelId) => {
     }
 };
 
+/** Doplní k modelům popisky uložené v databázi (výpisy z Hugging Face je nemají). */
+const attachStoredDescriptions = async (models) => {
+    const modelIds = models.map((model) => model.modelId).filter(Boolean);
+
+    if (modelIds.length === 0) {
+        return models;
+    }
+
+    const stored = await ModelDescription.find({ modelId: { $in: modelIds } }, { modelId: 1, description: 1 });
+    const descriptions = new Map(stored.map((item) => [item.modelId, item.description]));
+
+    return models.map((model) => ({ ...model, description: descriptions.get(model.modelId) ?? null }));
+};
+
 const getModels = async (req, res) => {
     try {
         const { sort } = req.query;
@@ -129,20 +145,24 @@ const getModels = async (req, res) => {
 
             // Avatary se k výpisu nedotahují – klient si je načte zvlášť na pozadí,
             // aby stahování stránek autorů nezdržovalo zobrazení modelů
+            const modelsWithDescriptions = await attachStoredDescriptions(models);
+
             return res.status(200).json({
                 status: "ok",
-                data: models.map((model) => ({ ...model, _id: model.modelId, avatarUrl: null })),
+                data: modelsWithDescriptions.map((model) => ({ ...model, _id: model.modelId, avatarUrl: null })),
             });
         }
 
         // Bez filtrů se vrací importované modely z databáze, s filtry se načtou živě z Hugging Face.
-        const models = tasks.length === 0 && languages.length === 0
-            ? await AIModel.find().sort({ downloads: -1 })
+        const fromDatabase = tasks.length === 0 && languages.length === 0;
+
+        const models = fromDatabase
+            ? await AIModel.find().sort({ downloads: -1 }).lean()
             : await getFilteredModelsFromHuggingFace(tasks, languages);
 
-        const responseModels = tasks.length === 0 && languages.length === 0
-            ? models
-            : models.map((model) => ({ ...model, avatarUrl: null }));
+        // Popisky se k modelům doplňují z vlastní kolekce
+        const responseModels = (await attachStoredDescriptions(models))
+            .map((model) => (fromDatabase ? model : { ...model, avatarUrl: null }));
 
         return res.status(200).json({
             status: "ok",
@@ -222,8 +242,29 @@ const getAvatar = async (req, res) => {
     }
 };
 
+/** Vygeneruje popisky pro modely, které aplikace právě zobrazuje. */
+const createDescriptions = async (req, res) => {
+    try {
+        const models = Array.isArray(req.body?.models) ? req.body.models : [];
+        const descriptions = await generateDescriptions(models);
+
+        return res.status(200).json({
+            status: "ok",
+            data: descriptions,
+        });
+    } catch (error) {
+        console.error("Generating descriptions failed:", error);
+
+        return res.status(500).json({
+            status: "error",
+            error: "Generating descriptions failed.",
+        });
+    }
+};
+
 module.exports = {
     getModels,
     getModel,
     getAvatar,
+    createDescriptions,
 };

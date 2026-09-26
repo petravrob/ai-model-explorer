@@ -13,6 +13,8 @@ export interface AIModel {
     downloads: number;
     likes: number;
     tags: string[];
+    // Krátký český popis modelu pro kartu (doplňuje ho skript generateDescriptions na serveru)
+    description?: string | null;
     license: string | null;
     library: string | null;
     lastModified: string | null;

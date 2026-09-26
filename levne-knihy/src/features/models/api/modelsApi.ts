@@ -110,3 +110,22 @@ export const getModel = async (
 
     return data.data as AIModel;
 };
+
+/** Nechá vygenerovat popisky pro modely, které jsou na stránce vidět. */
+export const createDescriptions = async (
+    models: AIModel[]
+): Promise<{ modelId: string; description: string }[]> => {
+
+    const response = await fetch(`${API_URL}/api/models/descriptions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ models }),
+    });
+
+    const data = await handleApiResponse<{ modelId: string; description: string }[]>(
+        response,
+        "Nepodařilo se vygenerovat popisky."
+    );
+
+    return data.data as { modelId: string; description: string }[];
+};

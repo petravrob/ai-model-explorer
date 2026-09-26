@@ -2,6 +2,9 @@ import "./DetailItem.css";
 
 import type { ReactNode } from "react";
 
+/** Hodnota, která se zobrazí místo chybějícího údaje. */
+export const MISSING_VALUE = "——";
+
 interface DetailItemProps {
     label: string;
     value: ReactNode;
@@ -12,7 +15,9 @@ function DetailItem({ label, value }: DetailItemProps) {
     return (
         <div className="detail-item">
             <span className="detail-item__label">{label}</span>
-            <strong className="detail-item__value">{value}</strong>
+            <strong className={`detail-item__value${value === MISSING_VALUE ? " detail-item__value--missing" : ""}`}>
+                {value}
+            </strong>
         </div>
     );
 }
