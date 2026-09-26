@@ -21,6 +21,41 @@ export interface AIModel {
     url: string;
     avatarUrl: string | null;
 }
+/** Text model card (README) modelu tak, jak je na Hugging Face. */
+export interface ModelCardContent {
+    modelId: string;
+    // Text karty v Markdownu; null když model vlastní popis nemá
+    content: string | null;
+}
+/** Výsledek benchmarku uvedený přímo v dokumentaci modelu. */
+export interface ModelBenchmark {
+    name: string;
+    // Výsledek přesně tak, jak ho dokumentace uvádí (např. „78,5“ nebo „62,3 %“)
+    score: string | number;
+    metric?: string | null;
+    category?: string | null;
+    context?: string | null;
+}
+/** České přehledy vytvořené z dokumentace modelu na Hugging Face. */
+export interface ModelInsights {
+    // Co model je a k čemu slouží
+    overview?: string | null;
+    bestFor?: string[];
+    // Konkrétní typy použití z dokumentace
+    useCases?: string[];
+    capabilities?: string[];
+    // Druhy vstupů a výstupů (text, obrázky, zvuk, video)
+    modalities?: string[];
+    inferenceFrameworks?: string[];
+    contextLength?: string | null;
+    // Stručně architektura a způsob tréninku, pokud je dokumentace uvádí
+    architecture?: string | null;
+    trainingMethod?: string | null;
+    variants?: string[];
+    recommendedSettings?: string[];
+    limitations?: string[];
+    benchmarks?: ModelBenchmark[];
+}
 export interface ModelListProps {
     models: AIModel[];
     onModelClick: (model: AIModel) => void;

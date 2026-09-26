@@ -1,6 +1,6 @@
 import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
-import { AIModel, ModelFilters } from "@/features/models";
+import { AIModel, ModelCardContent, ModelFilters, ModelInsights } from "@/features/models";
 import type { ModelSortKey } from "../modelSortsConfig";
 
 /** Sestaví dotazovací řetězec ze zvolených filtrů (žádný filtr = bez parametrů). */
@@ -109,6 +109,46 @@ export const getModel = async (
     );
 
     return data.data as AIModel;
+};
+
+/** Načte text model card (README) modelu z Hugging Face (načítá se až pro otevřený detail). */
+export const getModelCard = async (
+    modelId: string
+): Promise<ModelCardContent> => {
+
+    const response = await fetch(
+        `${API_URL}/api/models/${encodeURIComponent(modelId)}/card`,
+        {
+            method: "GET",
+        }
+    );
+
+    const data = await handleApiResponse<ModelCardContent>(
+        response,
+        "Nepodařilo se načíst text model card."
+    );
+
+    return data.data as ModelCardContent;
+};
+
+/** Připraví české přehledy z dokumentace modelu (jednou na verzi dokumentace). */
+export const getModelInsights = async (
+    modelId: string
+): Promise<ModelInsights | null> => {
+
+    const response = await fetch(
+        `${API_URL}/api/models/${encodeURIComponent(modelId)}/insights`,
+        {
+            method: "POST",
+        }
+    );
+
+    const data = await handleApiResponse<{ modelId: string; insights: ModelInsights | null }>(
+        response,
+        "Nepodařilo se připravit přehledy z dokumentace."
+    );
+
+    return (data.data as { insights: ModelInsights | null }).insights;
 };
 
 /** Nechá vygenerovat popisky pro modely, které jsou na stránce vidět. */

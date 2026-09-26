@@ -7,11 +7,13 @@ const {
     getModels: fetchHuggingFaceModels,
     getAllModels,
     getModel: fetchHuggingFaceModel,
+    getModelCard: fetchHuggingFaceCard,
     getSortedModels,
     getAuthorAvatarUrl,
 } = require("../services/huggingFaceService");
 const { isValidModel, mapModelData, mapRawModels } = require("../services/modelMapper");
 const { generateDescriptions } = require("../services/descriptionService");
+const { generateInsights } = require("../services/insightsService");
 const ModelDescription = require("../models/ModelDescription");
 
 // Kolik modelů se načte z Hugging Face pro filtrování na serveru (větší objem zbytečně prodlužoval načtení)
@@ -143,7 +145,7 @@ const getModels = async (req, res) => {
                 );
             }
 
-            // Avatary se k výpisu nedotahují – klient si je načte zvlášť na pozadí,
+            // Avatary se k výpisu nedotahují - klient si je načte zvlášť na pozadí,
             // aby stahování stránek autorů nezdržovalo zobrazení modelů
             const modelsWithDescriptions = await attachStoredDescriptions(models);
 
@@ -187,7 +189,7 @@ const getModel = async (req, res) => {
             ? { _id: modelId }
             : { modelId };
 
-        let model = await AIModel.findOne(query);
+        let model = await AIModel.findOne(query).lean();
 
         // Model, který dosud není v databázi, se zkusí načíst živě z Hugging Face
         if (!model && !mongoose.Types.ObjectId.isValid(modelId)) {
@@ -201,9 +203,12 @@ const getModel = async (req, res) => {
             });
         }
 
+        // Popisek se doplní z vlastní kolekce (u živých modelů a u novějších popisků)
+        const [modelWithDescription] = await attachStoredDescriptions([model]);
+
         return res.status(200).json({
             status: "ok",
-            data: model,
+            data: modelWithDescription,
         });
     } catch (error) {
         console.error("Fetching model failed:", error);
@@ -262,9 +267,67 @@ const createDescriptions = async (req, res) => {
     }
 };
 
+/** Načte text model card (README) modelu z Hugging Face. */
+const getModelCard = async (req, res) => {
+    try {
+        const { modelId } = req.params;
+
+        if (!modelId) {
+            return res.status(400).json({
+                status: "error",
+                error: "Chybí identifikátor modelu.",
+            });
+        }
+
+        const content = await fetchHuggingFaceCard(modelId);
+
+        return res.status(200).json({
+            status: "ok",
+            data: { modelId, content },
+        });
+    } catch (error) {
+        console.error("Fetching model card failed:", error);
+
+        return res.status(500).json({
+            status: "error",
+            error: "Fetching model card failed.",
+        });
+    }
+};
+
+/** Připraví české přehledy z dokumentace modelu na Hugging Face. */
+const createInsights = async (req, res) => {
+    try {
+        const { modelId } = req.params;
+
+        if (!modelId) {
+            return res.status(400).json({
+                status: "error",
+                error: "Chybí identifikátor modelu.",
+            });
+        }
+
+        const insights = await generateInsights(modelId);
+
+        return res.status(200).json({
+            status: "ok",
+            data: { modelId, insights },
+        });
+    } catch (error) {
+        console.error("Generating insights failed:", error);
+
+        return res.status(500).json({
+            status: "error",
+            error: "Generating insights failed.",
+        });
+    }
+};
+
 module.exports = {
     getModels,
     getModel,
+    getModelCard,
     getAvatar,
     createDescriptions,
+    createInsights,
 };

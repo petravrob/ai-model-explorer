@@ -1,5 +1,7 @@
 import { useParams } from "react-router-dom";
 
+import "./ModelDetailPage.css";
+
 import useModelDetail from "../../hooks/useModelDetail";
 import ModelDetail from "../ModelDetail/ModelDetail";
 import { Button, PageContainer, PageMessage } from "@/ui";
@@ -13,6 +15,12 @@ function ModelDetailPage() {
 
     const {
         model,
+
+        card,
+        isCardLoading,
+
+        insights,
+        isInsightsLoading,
 
         handleBack,
 
@@ -32,24 +40,38 @@ function ModelDetailPage() {
     if (error || !model) {
         return (
             <PageContainer>
-                <Button variant="outline" onClick={handleBack}>
-                    Zpět na seznam
-                </Button>
+                <div className="model-detail-page">
+                    <div className="model-detail-page__toolbar">
+                        <Button variant="outline" onClick={handleBack}>
+                            ← Zpět na seznam
+                        </Button>
+                    </div>
 
-                <PageMessage>
-                    {error ?? "Model nebyl nalezen."}
-                </PageMessage>
+                    <PageMessage>
+                        {error ?? "Model nebyl nalezen."}
+                    </PageMessage>
+                </div>
             </PageContainer>
         );
     }
 
     return (
         <PageContainer>
-            <Button variant="outline" onClick={handleBack}>
-                Zpět na seznam
-            </Button>
+            <div className="model-detail-page">
+                <div className="model-detail-page__toolbar">
+                    <Button variant="outline" onClick={handleBack}>
+                        ← Zpět na seznam
+                    </Button>
+                </div>
 
-            <ModelDetail model={model} />
+                <ModelDetail
+                    model={model}
+                    cardContent={card?.content ?? null}
+                    isCardLoading={isCardLoading}
+                    insights={insights}
+                    isInsightsLoading={isInsightsLoading}
+                />
+            </div>
         </PageContainer>
     );
 }

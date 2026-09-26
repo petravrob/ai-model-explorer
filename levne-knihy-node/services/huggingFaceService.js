@@ -199,10 +199,52 @@ async function getModel(modelId) {
     return fetchJson(`${HF_MODELS_API_URL}/${modelId}`);
 }
 
+// Text model card (README) se mění jen zřídka, proto se hotové texty drží v paměti
+const CARD_CACHE_LIMIT = 200;
+
+// Delší karta se zkracuje, aby se na stránku neposílaly zbytečně velké texty
+const MAX_CARD_LENGTH = 50000;
+
+const cardCache = new Map();
+
+/** Načte text model card (README) modelu z Hugging Face (nebo null, když ji model nemá). */
+async function getModelCard(modelId) {
+    if (cardCache.has(modelId)) {
+        return cardCache.get(modelId);
+    }
+
+    let content = null;
+
+    try {
+        const markdown = await fetchText(`${HF_BASE_URL}/${modelId}/raw/main/README.md`);
+
+        // YAML hlavička se na Hugging Face nezobrazuje, proto se odstraní
+        content = markdown
+            .replace(/^\s*---\r?\n[\s\S]*?\r?\n---\r?\n?/, "")
+            .slice(0, MAX_CARD_LENGTH)
+            .trim();
+    } catch {
+        // Model card nemá nebo se ji nepodařilo načíst
+    }
+
+    // Aby paměť nerostla, při přeplnění se cache vyprázdní
+    if (cardCache.size >= CARD_CACHE_LIMIT) {
+        cardCache.clear();
+    }
+
+    // Neúspěch se neukládá, aby se karta zkusila i při příští návštěvě
+    if (content) {
+        cardCache.set(modelId, content);
+    }
+
+    return content;
+}
+
 module.exports = {
     DEFAULT_TASKS,
     SORT_PARAMS,
     getModel,
+    getModelCard,
     getModels,
     getAllModels,
     getSortedModels,

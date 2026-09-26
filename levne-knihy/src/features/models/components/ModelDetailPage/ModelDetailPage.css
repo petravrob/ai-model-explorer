@@ -1,0 +1,28 @@
+.model-detail-page {
+    padding-top: 1.75rem;
+}
+
+/* Řádek s odkazem zpět nad detailem modelu */
+.model-detail-page__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.model-detail-page .model-detail {
+    margin-top: 1.25rem;
+}
+
+@media (max-width: 700px) {
+    .model-detail-page {
+        padding-top: 1.25rem;
+    }
+
+    .model-detail-page__toolbar {
+        justify-content: center;
+    }
+
+    .model-detail-page .model-detail {
+        margin-top: 1rem;
+    }
+}

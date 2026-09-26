@@ -1,0 +1,159 @@
+.model-readme {
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+}
+
+/* Poznámka o původu textu */
+.model-readme__source {
+    margin: 0;
+    color: var(--text-faint);
+    font-size: .78rem;
+}
+
+/* Text karty se skládá z bloků pod sebou */
+.model-readme__content {
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    font-size: .95rem;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.model-readme__paragraph {
+    margin: 0;
+}
+
+/* Nadpisy z textu karty – úrovně zůstávají stejné jako na Hugging Face */
+.model-readme__heading {
+    margin: .6rem 0 0;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.model-readme__content h1 {
+    font-size: 1.25rem;
+}
+
+.model-readme__content h2 {
+    font-size: 1.15rem;
+}
+
+.model-readme__content h3 {
+    font-size: 1.05rem;
+}
+
+.model-readme__content h4 {
+    font-size: .98rem;
+}
+
+.model-readme__content h5 {
+    font-size: .92rem;
+}
+
+.model-readme__content h6 {
+    color: var(--text-muted);
+    font-size: .88rem;
+}
+
+.model-readme__list {
+    margin: 0;
+    padding-left: 1.35rem;
+}
+
+.model-readme__item + .model-readme__item {
+    margin-top: .3rem;
+}
+
+.model-readme__item--nested {
+    margin-left: 1rem;
+    color: var(--text-muted);
+}
+
+.model-readme__code-block {
+    margin: 0;
+    padding: .9rem 1rem;
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    background: var(--surface-warm);
+    font-size: .85rem;
+    line-height: 1.6;
+}
+
+.model-readme__code-block code,
+.model-readme__code-inline {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.model-readme__code-block code {
+    white-space: pre;
+}
+
+.model-readme__code-inline {
+    padding: .1rem .4rem;
+    border-radius: var(--radius-sm);
+    background: var(--primary-light);
+    font-size: .85em;
+}
+
+.model-readme__quote {
+    margin: 0;
+    padding: .6rem 1rem;
+    border-left: 3px solid var(--border-muted);
+    background: var(--surface-soft);
+    color: var(--text-muted);
+}
+
+.model-readme__table-wrapper {
+    overflow-x: auto;
+}
+
+.model-readme__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+    text-align: left;
+}
+
+.model-readme__table th,
+.model-readme__table td {
+    padding: .45rem .7rem;
+    border: 1px solid var(--border);
+}
+
+.model-readme__table th {
+    background: var(--surface-soft);
+    font-weight: 600;
+}
+
+.model-readme__image {
+    max-width: 100%;
+    height: auto;
+    vertical-align: middle;
+}
+
+.model-readme__link {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.model-readme__link:hover {
+    text-decoration: underline;
+}
+
+.model-readme__rule {
+    margin: .4rem 0;
+    border: 0;
+    border-top: 1px solid var(--border);
+}
+
+@media (max-width: 700px) {
+    .model-readme__content {
+        padding: 1rem;
+    }
+}
