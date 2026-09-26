@@ -39,10 +39,8 @@ function ModelList({ models, onModelClick }: ModelListProps) {
                 const summary = getModelSummary(model);
                 const provider = getModelProvider(model.author);
 
-                // Když model nemá štítek, ukáže se alespoň název
-                const chipTags = tags.secondary.length > 0
-                    ? tags.secondary
-                    : (tags.primary ? [tags.primary] : []);
+                // Když model nemá vlastní štítek, ukáže se aspoň jeho úloha
+                const chipTags = tags.secondary.length > 0 ? tags.secondary : (tags.primary ? [tags.primary] : []);
 
                 return (
                     <li
@@ -70,13 +68,11 @@ function ModelList({ models, onModelClick }: ModelListProps) {
                         </div>
 
                         <div className="model-list__body">
-                            {summary && (
-                                <p className="model-list__summary" title={summary}>
-                                    {summary}
-                                </p>
-                            )}
+                            <p className="model-list__summary" title={summary}>
+                                {summary}
+                            </p>
 
-                            {(chipTags.length > 0 || tags.remaining > 0) && (
+                            {chipTags.length > 0 && (
                                 <ul className="model-list__tags">
                                     {chipTags.map((tag) => (
                                         <li className="model-list__tag" key={tag}>

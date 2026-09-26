@@ -11,6 +11,7 @@ const {
     getAuthorAvatarUrl,
 } = require("../services/huggingFaceService");
 const { isValidModel, mapModelData, mapRawModels } = require("../services/modelMapper");
+const { fillMissingDescriptions } = require("../services/descriptionService");
 
 // Kolik modelů se načte z Hugging Face pro filtrování na serveru (větší objem zbytečně prodlužoval načtení)
 const FILTERED_MODELS_LIMIT = 100;
@@ -88,6 +89,24 @@ const getHuggingFaceModel = async (modelId) => {
     }
 };
 
+/** Doplní k modelům popisky uložené v databázi (výpisy z Hugging Face je nemají). */
+const attachStoredDescriptions = async (models) => {
+    const modelIds = models.map((model) => model.modelId).filter(Boolean);
+
+    if (modelIds.length === 0) {
+        return models;
+    }
+
+    const storedModels = await AIModel.find(
+        { modelId: { $in: modelIds }, description: { $ne: null } },
+        { modelId: 1, description: 1 }
+    );
+
+    const descriptions = new Map(storedModels.map((model) => [model.modelId, model.description]));
+
+    return models.map((model) => ({ ...model, description: descriptions.get(model.modelId) ?? null }));
+};
+
 const getModels = async (req, res) => {
     try {
         const { sort } = req.query;
@@ -129,9 +148,14 @@ const getModels = async (req, res) => {
 
             // Avatary se k výpisu nedotahují – klient si je načte zvlášť na pozadí,
             // aby stahování stránek autorů nezdržovalo zobrazení modelů
+            const modelsWithDescriptions = await attachStoredDescriptions(models);
+
+            // Chybějící popisy se doplňují na pozadí, odpověď se kvůli nim nezdržuje
+            void fillMissingDescriptions(modelsWithDescriptions);
+
             return res.status(200).json({
                 status: "ok",
-                data: models.map((model) => ({ ...model, _id: model.modelId, avatarUrl: null })),
+                data: modelsWithDescriptions.map((model) => ({ ...model, _id: model.modelId, avatarUrl: null })),
             });
         }
 
@@ -142,7 +166,9 @@ const getModels = async (req, res) => {
 
         const responseModels = tasks.length === 0 && languages.length === 0
             ? models
-            : models.map((model) => ({ ...model, avatarUrl: null }));
+            : (await attachStoredDescriptions(models)).map((model) => ({ ...model, avatarUrl: null }));
+
+        void fillMissingDescriptions(responseModels);
 
         return res.status(200).json({
             status: "ok",

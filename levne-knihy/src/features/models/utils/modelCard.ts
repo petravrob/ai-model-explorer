@@ -1,15 +1,15 @@
+import { MISSING_VALUE } from "@/ui";
 import type { AIModel } from "../types";
 import { AUTHOR_FILTER_OPTIONS, TASK_FILTER_OPTIONS } from "../filters/filterOptions";
-import { formatDate, formatParameters } from "./formatters";
 
-/** Odvozené údaje pro kartu modelu, složené z dat, která o sobě model poskytuje. */
+/** Odvozené údaje pro kartu modelu. */
 
-// Autoři z nabídky filtrů mají v kartě čitelný název poskytovatele (Meta, OpenAI…)
+// Čitelné názvy poskytovatelů
 const PROVIDER_LABELS = new Map(
     AUTHOR_FILTER_OPTIONS.map((option) => [option.value.toLowerCase(), option.label] as const)
 );
 
-// Názvy úloh se berou z nabídky filtrů
+// Čitelné názvy úloh
 const TASK_LABELS = new Map<string, string>();
 const TASK_GROUPS = new Map<string, string>();
 const taskLabelGroups = new Map<string, Set<string>>();
@@ -26,7 +26,7 @@ TASK_FILTER_OPTIONS.forEach((group) => {
     });
 });
 
-// Názvy skupin v druhém pádě, aby se daly spojit s popiskem úlohy
+// Názvy skupin v druhém pádu
 const GROUP_GENITIVES = new Map<string, string>([
     ["text", "textu"],
     ["obrázky", "obrázků"],
@@ -39,13 +39,11 @@ const GROUP_GENITIVES = new Map<string, string>([
     ["ostatní", "ostatních"],
 ]);
 
-// Kolik doplňkových štítků se vejde do karty vedle úlohy
-const MAX_SECONDARY_TAGS = 4;
+const MAX_SECONDARY_TAGS = 6;
 
-/*
+/**
  * České názvy štítků, které nabídka filtrů nezná.
- * Ostatní štítky bez českého názvu se do karty neposílají,
- * aby v ní nezůstávala nesrozumitelná anglická slova.
+ * Neznámé štítky se do karty nepřidávají.
  */
 const TAG_LABELS = new Map<string, string>([
     // Úlohy
@@ -171,7 +169,7 @@ const TAG_LABELS = new Map<string, string>([
     ["stable-diffusion-diffusers", "Stable Diffusion"],
     ["causal-lm", "Jazykový model"],
 
-    // Známé rodiny a architektury modelů
+    // Známé rodiny a architektury
     ["bert", "BERT"],
     ["distilbert", "DistilBERT"],
     ["roberta", "RoBERTa"],
@@ -208,7 +206,7 @@ const TAG_LABELS = new Map<string, string>([
     ["gemma4", "Gemma"],
 ]);
 
-// Běžné licence se v kartě zobrazují v obvyklé podobě
+// Běžné licence
 const LICENSE_LABELS = new Map<string, string>([
     ["mit", "MIT"],
     ["apache-2.0", "Apache 2.0"],
@@ -235,14 +233,14 @@ const LICENSE_LABELS = new Map<string, string>([
     ["other", "jiná"],
 ]);
 
-/** Převede technickou hodnotu ze zdroje na čitelný popisek. */
+/** Převede technickou hodnotu na čitelný popisek. */
 const toLabel = (value: string): string => {
     const label = value.replace(/[-_]/g, " ").trim();
 
     return label.charAt(0).toUpperCase() + label.slice(1);
 };
 
-/** Najde český název štítku. Neznámý štítek vrátí null. */
+/** Najde český název štítku. */
 const toTagLabel = (tag: string): string | null => {
     const value = tag.toLowerCase();
     const taskLabel = TASK_LABELS.get(value);
@@ -262,7 +260,6 @@ const toTagLabel = (tag: string): string | null => {
     return toLabel(`${taskLabel} ${GROUP_GENITIVES.get(group) ?? group}`);
 };
 
-/** Údaje pro řadu štítků v kartě. */
 export interface ModelTagList {
     primary: string | null;
     secondary: string[];
@@ -275,9 +272,9 @@ export const getModelProvider = (author: string): string =>
 
 /** Čitelný název licence. */
 export const getModelLicense = (license: string | null): string =>
-    license ? (LICENSE_LABELS.get(license.toLowerCase()) ?? license) : "—";
+    license ? (LICENSE_LABELS.get(license.toLowerCase()) ?? license) : MISSING_VALUE;
 
-/** Poskládá štítky karty z úlohy modelu a několika doplňkových štítků. */
+/** Poskládá štítky karty z hlavní úlohy a doplňkových štítků. */
 export const getModelTagList = (model: AIModel): ModelTagList => {
     const primary = model.task
         ? (toTagLabel(model.task) ?? toLabel(model.task))
@@ -289,12 +286,11 @@ export const getModelTagList = (model: AIModel): ModelTagList => {
     model.tags?.forEach((tag) => {
         const label = typeof tag === "string" ? toTagLabel(tag) : null;
 
-        if (label === null || label.toLowerCase() === primary?.toLowerCase()) {
+        if (!label || label.toLowerCase() === primary?.toLowerCase()) {
             return;
         }
 
-        // Pokud už máme obecnější štítek a nový je konkrétnější,
-        // nahradíme obecný konkrétnějším.
+        // Pokud existuje konkrétnější štítek, obecnější nahradíme.
         const generalIndex = secondary.findIndex(
             (existing) => label.includes(existing)
         );
@@ -304,7 +300,6 @@ export const getModelTagList = (model: AIModel): ModelTagList => {
             return;
         }
 
-        // Pokud už máme konkrétnější variantu, obecnější nepřidáváme.
         if (secondary.some((existing) => existing.includes(label))) {
             return;
         }
@@ -319,102 +314,7 @@ export const getModelTagList = (model: AIModel): ModelTagList => {
     return { primary, secondary, remaining };
 };
 
-// Licence, které obecně umožňují komerční použití.
-const PERMISSIVE_LICENCES = new Set([
-    "mit",
-    "apache-2.0",
-    "cc0-1.0",
-    "unlicense",
-    "bsd-2-clause",
-    "bsd-3-clause",
-    "mpl-2.0",
-    "gpl-2.0",
-    "gpl-3.0",
-    "lgpl-3.0",
-    "agpl-3.0",
-]);
-
-const NON_COMMERCIAL_LICENCES = new Set([
-    "cc-by-nc-4.0",
-    "cc-by-nc-sa-4.0",
-    "cc-by-nc-3.0",
-    "cc-by-nc-sa-3.0",
-]);
-
-/**
- * Popis modelu do karty.
- *
- * Pokud má model uložený AI-generovaný popis, použije se přímo.
- * Fallback se používá pouze u modelů bez popisu, stručně popíše model
- */
-export const getModelSummary = (model: AIModel): string => {
-    const description = model.description?.trim();
-
-    if (description) {
-        return description;
-    }
-
-    const sentences: string[] = [];
-    const tags = getModelTagList(model);
-
-    const license = model.license?.toLowerCase() ?? "";
-
-    // Hlavní účel modelu
-    if (tags.primary) {
-        sentences.push(`Určený pro ${toSentenceCase(tags.primary)}.`);
-    }
-
-    // Doplňkové schopnosti pouze pokud dávají smysluplnou informaci.
-    const capabilities = tags.secondary
-        .filter((tag) => !isProperName(tag))
-        .slice(0, 2)
-        .map(toSentenceCase);
-
-    if (capabilities.length > 0 && sentences.length < 2) {
-        sentences.push(`Podporuje ${joinCzech(capabilities)}.`);
-    }
-
-    // Pokud nemáme žádné použitelné štítky, použijeme technické údaje.
-    if (sentences.length === 0 && model.parameters) {
-        sentences.push(`Model má ${formatParameters(model.parameters)} parametrů.`);
-    }
-
-    if (sentences.length < 2 && model.languages?.length) {
-        const count = model.languages.length;
-
-        sentences.push(
-            count === 1
-                ? "Je určen pro jeden jazyk."
-                : `Pracuje s ${count} jazyky.`
-        );
-    }
-
-    if (sentences.length < 2 && model.library) {
-        sentences.push(`Je postavený na knihovně ${model.library}.`);
-    }
-
-    if (sentences.length < 2 && NON_COMMERCIAL_LICENCES.has(license)) {
-        sentences.push("Licence umožňuje pouze nekomerční použití.");
-    }
-
-    if (sentences.length < 2 && PERMISSIVE_LICENCES.has(license)) {
-        sentences.push("Používá otevřenou licenci.");
-    }
-
-    // Poslední záchrana – karta musí vždy obsahovat nějaký popis.
-    if (sentences.length === 0) {
-        sentences.push("AI model dostupný prostřednictvím Hugging Face.");
-    }
-
-    // Datum používáme až jako poslední doplňkovou informaci.
-    if (sentences.length < 2 && model.lastModified) {
-        sentences.push(`Naposledy aktualizován ${formatDate(model.lastModified)}.`);
-    }
-
-    return sentences.slice(0, 2).join(" ");
-};
-
-// Názvy rodin modelů a nástrojů, které v popisu zůstávají s velkým písmenem.
+// Názvy modelů a nástrojů, které mají zůstat s velkým písmenem.
 const KEEP_CAPITALIZED = new Set([
     "qwen",
     "llama",
@@ -451,7 +351,7 @@ const KEEP_CAPITALIZED = new Set([
     "wav2vec",
 ]);
 
-/** Je popisek název rodiny modelu nebo nástroje? */
+/** Určí, zda jde o vlastní název modelu nebo nástroje. */
 const isProperName = (label: string): boolean => {
     const [firstWord] = label.split(" ");
 
@@ -461,14 +361,46 @@ const isProperName = (label: string): boolean => {
     );
 };
 
-/** Zmenší popisek, aby se dal vložit doprostřed věty. */
+/** Převede běžný popisek na malé písmeno pro použití uprostřed věty. */
 const toSentenceCase = (label: string): string =>
     isProperName(label)
         ? label
         : label.charAt(0).toLowerCase() + label.slice(1);
 
-/** Spojí popisky čárkami a předposlední spojkou „a“. */
+/** Spojí několik popisků českou spojkou. */
 const joinCzech = (items: string[]): string =>
     items.length < 2
         ? (items[0] ?? "")
         : `${items.slice(0, -1).join(", ")} a ${items[items.length - 1]}`;
+
+/**
+ * Vrátí popis modelu.
+ *
+ * Pokud existuje AI generovanýpopis, použije se přímo.
+ * Fallback pouze stručně shrne dostupnou úlohu a štítky.
+ */
+export const getModelSummary = (model: AIModel): string => {
+    const description = model.description?.trim();
+
+    if (description) {
+        return description;
+    }
+
+    const tags = getModelTagList(model);
+    const capabilities = tags.secondary
+        .filter((tag) => !isProperName(tag))
+        .slice(0, 3)
+        .map(toSentenceCase);
+
+    const parts = [tags.primary, ...capabilities].filter(Boolean) as string[];
+
+    if (parts.length === 0) {
+        return "AI model dostupný prostřednictvím Hugging Face.";
+    }
+
+    // Úloha a schopnosti se vypíšou (Generování textu a konverzace).
+    // Když úloha obsahuje "a" (např. Obrázek a text), oddělí se zbytek čárkou.
+    const joined = parts[0].includes(" a ") ? parts.join(", ") : joinCzech(parts);
+
+    return `${joined}.`;
+};
