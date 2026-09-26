@@ -38,10 +38,14 @@ export interface ModelBenchmark {
 }
 /** České přehledy vytvořené z dokumentace modelu na Hugging Face. */
 export interface ModelInsights {
-    // Co model je a k čemu slouží
+    // Co model dělá, k čemu se používá a čím je zajímavý (2–4 věty)
     overview?: string | null;
+    // Konkrétní vlastnosti, kterými se model odlišuje
+    highlights?: string[];
+    // Jak model funguje, vysvětlené běžným jazykem
+    howItWorks?: string | null;
     bestFor?: string[];
-    // Konkrétní typy použití z dokumentace
+    // Konkrétní scénáře použití z dokumentace
     useCases?: string[];
     capabilities?: string[];
     // Druhy vstupů a výstupů (text, obrázky, zvuk, video)
@@ -53,8 +57,14 @@ export interface ModelInsights {
     // Aktivní parametry u modelů typu MoE, pokud je dokumentace uvádí
     activeParameters?: string | null;
     trainingMethod?: string | null;
+    // Verze modelu a model, ze kterého tento vychází
+    version?: string | null;
+    baseModel?: string | null;
     variants?: string[];
     recommendedSettings?: string[];
+    // Nároky na hardware a další praktické poznámky z dokumentace
+    hardwareRequirements?: string[];
+    notes?: string[];
     limitations?: string[];
     benchmarks?: ModelBenchmark[];
 }

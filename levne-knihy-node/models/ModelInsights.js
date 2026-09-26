@@ -48,6 +48,16 @@ const modelInsightsSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        // Konkrétní vlastnosti, kterými se model odlišuje
+        highlights: {
+            type: [String],
+            default: [],
+        },
+        // Vysvětlení, jak model funguje, běžným jazykem
+        howItWorks: {
+            type: String,
+            trim: true,
+        },
         bestFor: {
             type: [String],
             default: [],
@@ -93,6 +103,16 @@ const modelInsightsSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        // Verze nebo označení vydání modelu, pokud ji dokumentace uvádí
+        version: {
+            type: String,
+            trim: true,
+        },
+        // Model, ze kterého tento vychází (u odvozených modelů)
+        baseModel: {
+            type: String,
+            trim: true,
+        },
         // Varianty nebo velikosti modelu, které dokumentace uvádí
         variants: {
             type: [String],
@@ -100,6 +120,16 @@ const modelInsightsSchema = new mongoose.Schema(
         },
         // Konkrétní doporučené hodnoty, pokud je dokumentace uvádí
         recommendedSettings: {
+            type: [String],
+            default: [],
+        },
+        // Nároky na hardware nebo prostředí, které dokumentace uvádí
+        hardwareRequirements: {
+            type: [String],
+            default: [],
+        },
+        // Další praktické poznámky, které se nevejdou do ostatních polí
+        notes: {
             type: [String],
             default: [],
         },

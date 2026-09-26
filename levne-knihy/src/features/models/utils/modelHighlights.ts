@@ -20,19 +20,6 @@ const MODALITY_GROUPS = [
     { pattern: /video/i, label: "video" },
 ];
 
-/** Stejný název, jako má model sám, není varianta. */
-const isSameModel = (variant: string, model: AIModel): boolean => {
-    const normalize = (value: string): string => value.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-    const names = [
-        model.modelId,
-        model.modelId.split("/").pop() ?? "",
-        model.name,
-    ].map(normalize);
-
-    return names.includes(normalize(variant));
-};
-
 /** Odvodí z doložených údajů vlastnosti, které model odlišují. */
 export const getModelHighlights = (model: AIModel, insights: ModelInsights | null): string[] => {
     const highlights: string[] = [];
@@ -58,12 +45,6 @@ export const getModelHighlights = (model: AIModel, insights: ModelInsights | nul
         highlights.push(onlyThese
             ? `Zvládá ${joinCzech(beyondText)}.`
             : `Kromě textu zvládá i ${joinCzech(beyondText)}.`);
-    }
-
-    const variants = (insights?.variants ?? []).filter((variant) => !isSameModel(variant, model));
-
-    if (variants.length > 0) {
-        highlights.push(`Dokumentace uvádí varianty ${joinCzech(variants)}.`);
     }
 
     if (insights?.trainingMethod) {
