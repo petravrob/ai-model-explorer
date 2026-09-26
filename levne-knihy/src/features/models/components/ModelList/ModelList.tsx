@@ -3,7 +3,7 @@ import "./ModelList.css";
 import { ModelListProps } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
 import { getModelLicense, getModelProvider, getModelSummary, getModelTagList } from "../../utils/modelCard";
-import { DetailItem } from "@/ui";
+import { DetailItem, MISSING_VALUE } from "@/ui";
 
 import ModelImage from "./ModelImage";
 
@@ -93,9 +93,9 @@ function ModelList({ models, onModelClick }: ModelListProps) {
                             )}
 
                             <div className="model-list__meta">
-                                <DetailItem label="Úloha" value={tags.primary ?? "—"} />
+                                <DetailItem label="Úloha" value={tags.primary ?? MISSING_VALUE} />
                                 <DetailItem label="Parametry" value={formatParameters(model.parameters)} />
-                                <DetailItem label="Knihovna" value={model.library ?? "—"} />
+                                <DetailItem label="Knihovna" value={model.library ?? MISSING_VALUE} />
                                 <DetailItem label="Licence" value={getModelLicense(model.license)} />
                                 <DetailItem label="Jazyky" value={formatLanguages(model.languages)} />
                                 <DetailItem label="Aktualizace" value={formatDate(model.lastModified)} />

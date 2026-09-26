@@ -2,7 +2,7 @@ import "./ModelDetail.css";
 
 import { AIModel } from "../../types";
 import { formatCount, formatDate, formatParameters } from "../../utils/formatters";
-import { DetailItem, LinkButton, PageTitle, SectionTitle } from "@/ui";
+import { DetailItem, LinkButton, MISSING_VALUE, PageTitle, SectionTitle } from "@/ui";
 
 /** Zobrazuje detailní informace o modelu. */
 function ModelDetail({ model }: { model: AIModel }) {
@@ -18,8 +18,8 @@ function ModelDetail({ model }: { model: AIModel }) {
                 <DetailItem label="Parametrů" value={formatParameters(model.parameters)} />
                 <DetailItem label="Stažení" value={formatCount(model.downloads)} />
                 <DetailItem label="Oblíbení" value={formatCount(model.likes)} />
-                <DetailItem label="Licence" value={model.license ?? "—"} />
-                <DetailItem label="Knihovna" value={model.library ?? "—"} />
+                <DetailItem label="Licence" value={model.license ?? MISSING_VALUE} />
+                <DetailItem label="Knihovna" value={model.library ?? MISSING_VALUE} />
                 <DetailItem label="Naposledy aktualizováno" value={formatDate(model.lastModified)} />
             </div>
 
