@@ -90,85 +90,12 @@
     gap: 1.5rem 2rem;
 }
 
-/* Údaje o modelu se rozloží do tolika sloupců, kolik se jich vejde */
-.model-detail__details {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem 1.5rem;
-}
-
-/* Dlouhé hodnoty (např. název architektury) nesmí rozbít rozvržení */
-.model-detail__details .detail-item__value {
-    overflow-wrap: anywhere;
-}
-
-/* Faktické důvody, proč může být model zajímavý */
-.model-detail__highlights {
-    display: flex;
-    flex-direction: column;
-    gap: .35rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font-size: .92rem;
-}
-
-.model-detail__highlights li {
-    display: flex;
-    gap: .5rem;
-    color: var(--text-muted);
-}
-
-.model-detail__highlights li::before {
-    content: "✓";
-    color: var(--primary);
-    font-weight: 700;
-}
-
-/* Nadpis menšího celku uvnitř sekce (např. doporučené nastavení) */
-.model-detail__label {
-    margin: 0 0 .35rem;
-    color: var(--text-faint);
-    font-size: .7rem;
-    font-weight: 600;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-}
-
-/* Skupina údajů uvnitř sekce (např. doporučené nastavení) */
-.model-detail__group {
-    display: flex;
-    flex-direction: column;
-}
-
-/* Odrážkový seznam hodnot uvedených v dokumentaci */
-.model-detail__list {
-    display: flex;
-    flex-direction: column;
-    gap: .3rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    color: var(--text-muted);
-    font-size: .88rem;
-}
-
-.model-detail__list li {
-    display: flex;
-    gap: .5rem;
-    overflow-wrap: anywhere;
-}
-
-.model-detail__list li::before {
-    content: "•";
-    color: var(--primary);
-}
-
-/* Odstavec sekce "Jak funguje" */
+/* Odstavec sekce "Jak funguje" - může obsahovat víc odstavců */
 .model-detail__text {
     margin: 0;
     color: var(--text-muted);
     line-height: 1.6;
+    white-space: pre-line;
 }
 
 /* Výsledky benchmarků z dokumentace modelu */
@@ -182,16 +109,6 @@
     display: flex;
     flex-direction: column;
     gap: .35rem;
-}
-
-/* Oblast benchmarku (např. kódování), pokud ji dokumentace uvádí */
-.model-detail__benchmark-category {
-    margin: 0;
-    color: var(--text-faint);
-    font-size: .7rem;
-    font-weight: 600;
-    letter-spacing: .04em;
-    text-transform: uppercase;
 }
 
 /* Jeden řádek: název benchmarku a jeho výsledek */

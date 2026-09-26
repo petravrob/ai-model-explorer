@@ -5,15 +5,18 @@ import { formatCount, formatDate, formatLanguages, formatParameters } from "../.
 import { getModelLicense, getModelProvider, getModelSummary, getModelTagList, isModelItself } from "../../utils/modelCard";
 import { getModelHighlights } from "../../utils/modelHighlights";
 import {
+    BulletList,
     ChipList,
-    DetailItem,
+    DetailGrid,
     DOWNLOAD_ICON,
+    FieldGroup,
     LIKE_ICON,
     LinkButton,
     MISSING_VALUE,
     Note,
     PageTitle,
     Section,
+    SectionTitle,
     Stat,
 } from "@/ui";
 
@@ -31,11 +34,10 @@ const MAX_HEADER_TAGS = 5;
  *
  * Stránka je záměrně souhrn (není chtěné pouze vytvořit překlad README z Hugging Face).
  */
-function ModelDetail({ model, insights, isInsightsLoading }: {
+function ModelDetail({ model, insights }: {
     model: AIModel;
     // Přehledy z dokumentace (mohou dorazit později, nebo vůbec)
     insights: ModelInsights | null;
-    isInsightsLoading: boolean;
 }) {
     const tags = getModelTagList(model);
 
@@ -64,7 +66,15 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
     const deployment = insights?.inferenceFrameworks ?? [];
     const settings = insights?.recommendedSettings ?? [];
     const hardware = insights?.hardwareRequirements ?? [];
+    const quantization = insights?.quantization ?? [];
+    const compatibility = insights?.compatibility ?? [];
     const notes = insights?.notes ?? [];
+
+    // "Jak funguje" se skládá z odstavců, aby se text dal dobře číst
+    const howItWorks = (insights?.howItWorks ?? "")
+        .split(/\n{2,}/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean);
 
     // Varianta se stejným názvem, jako má model sám, se neuvádí
     const variants = (insights?.variants ?? []).filter((variant) => !isModelItself(model, variant));
@@ -154,19 +164,11 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
                 </Section>
             )}
 
-            {isInsightsLoading && !insights && (
-                <Note>Zpracovávám dokumentaci modelu…</Note>
-            )}
-
             {(highlights.length > 0 || bestFor.length > 0) && (
                 <div className="model-detail__split">
                     {highlights.length > 0 && (
                         <Section title="Proč tento model?">
-                            <ul className="model-detail__highlights">
-                                {highlights.map((item) => (
-                                    <li key={item}>{item}</li>
-                                ))}
-                            </ul>
+                            <BulletList variant="check" items={highlights} />
                         </Section>
                     )}
 
@@ -184,19 +186,17 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
                 </div>
             )}
 
-            {insights?.howItWorks && (
+            {howItWorks.length > 0 && (
                 <Section title="Jak funguje">
-                    <p className="model-detail__text">{insights.howItWorks}</p>
+                    {howItWorks.map((paragraph) => (
+                        <p className="model-detail__text" key={paragraph}>{paragraph}</p>
+                    ))}
                 </Section>
             )}
 
             {technical.length > 0 && (
                 <Section title="Technické informace">
-                    <div className="model-detail__details">
-                        {technical.map((item) => (
-                            <DetailItem label={item.label} value={item.value} key={item.label} />
-                        ))}
-                    </div>
+                    <DetailGrid items={technical} />
                 </Section>
             )}
 
@@ -205,27 +205,21 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
                     {deployment.length > 0 && <ChipList items={deployment} />}
 
                     {settings.length > 0 && (
-                        <div className="model-detail__group">
-                            <p className="model-detail__label">Doporučené nastavení</p>
-
-                            <ul className="model-detail__list">
-                                {settings.map((item) => (
-                                    <li key={item}>{item}</li>
-                                ))}
-                            </ul>
-                        </div>
+                        <FieldGroup label="Doporučené nastavení">
+                            <BulletList items={settings} />
+                        </FieldGroup>
                     )}
 
                     {hardware.length > 0 && (
-                        <div className="model-detail__group">
-                            <p className="model-detail__label">Nároky na hardware</p>
+                        <FieldGroup label="Nároky na hardware">
+                            <BulletList items={hardware} />
+                        </FieldGroup>
+                    )}
 
-                            <ul className="model-detail__list">
-                                {hardware.map((item) => (
-                                    <li key={item}>{item}</li>
-                                ))}
-                            </ul>
-                        </div>
+                    {quantization.length > 0 && (
+                        <FieldGroup label="Kvantizace a formáty">
+                            <BulletList items={quantization} />
+                        </FieldGroup>
                     )}
 
                     <Note>Uvedeno v dokumentaci modelu.</Note>
@@ -237,9 +231,7 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
                     <div className="model-detail__benchmarks">
                         {benchmarkGroups.map((group) => (
                             <div className="model-detail__benchmark-group" key={group.category ?? "bez kategorie"}>
-                                {group.category && (
-                                    <p className="model-detail__benchmark-category">{group.category}</p>
-                                )}
+                                {group.category && <SectionTitle>{group.category}</SectionTitle>}
 
                                 {group.items.map((benchmark) => (
                                     <p className="model-detail__benchmark" key={`${benchmark.name}-${benchmark.score}`}>
@@ -276,29 +268,25 @@ function ModelDetail({ model, insights, isInsightsLoading }: {
             {(variants.length > 0 || insights?.baseModel || notes.length > 0) && (
                 <Section title="Důležité informace">
                     {insights?.baseModel && (
-                        <div className="model-detail__details">
-                            <DetailItem label="Vychází z modelu" value={insights.baseModel} />
-                        </div>
+                        <DetailGrid items={[{ label: "Vychází z modelu", value: insights.baseModel }]} />
                     )}
 
                     {variants.length > 0 && (
-                        <div className="model-detail__group">
-                            <p className="model-detail__label">Varianty</p>
-
+                        <FieldGroup label="Varianty">
                             <ChipList items={variants} />
-                        </div>
+                        </FieldGroup>
+                    )}
+
+                    {compatibility.length > 0 && (
+                        <FieldGroup label="Kompatibilita">
+                            <BulletList items={compatibility} />
+                        </FieldGroup>
                     )}
 
                     {notes.length > 0 && (
-                        <div className="model-detail__group">
-                            <p className="model-detail__label">Poznámky</p>
-
-                            <ul className="model-detail__list">
-                                {notes.map((item) => (
-                                    <li key={item}>{item}</li>
-                                ))}
-                            </ul>
-                        </div>
+                        <FieldGroup label="Poznámky">
+                            <BulletList items={notes} />
+                        </FieldGroup>
                     )}
                 </Section>
             )}

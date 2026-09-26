@@ -1,10 +1,14 @@
 export { default as Avatar } from "./Avatar/Avatar";
 export { default as Button } from "./Button/Button";
+export { default as BulletList } from "./BulletList/BulletList";
 export { default as Checkbox } from "./Checkbox/Checkbox";
 export { default as CheckboxGroup } from "./CheckboxGroup/CheckboxGroup";
 export type { CheckboxGroupOption } from "./CheckboxGroup/CheckboxGroup";
 export { default as ChipList } from "./ChipList/ChipList";
+export { default as DetailGrid } from "./DetailGrid/DetailGrid";
+export type { DetailGridItem } from "./DetailGrid/DetailGrid";
 export { default as DetailItem, MISSING_VALUE } from "./DetailItem/DetailItem";
+export { default as FieldGroup } from "./FieldGroup/FieldGroup";
 export { default as Form } from "./Form/Form";
 export { default as FormActions } from "./FormActions/FormActions";
 export { default as FormField } from "./FormField/FormField";
