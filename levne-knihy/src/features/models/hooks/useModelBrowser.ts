@@ -157,7 +157,7 @@ function useModelBrowser() {
                 model.author,
                 model.task,
                 model.modelId,
-                model.tags.join(" "),
+                (model.tags ?? []).join(" "),
             ];
 
             return searchableFields.some(

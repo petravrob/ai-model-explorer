@@ -14,7 +14,7 @@ export const formatDate = (value: string | null): string =>
     value === null ? "—" : new Date(value).toLocaleDateString("cs-CZ");
 
 /** Zkrátí seznam jazyků na několik kódů a zbytek shrne počtem (např. „EN, ZH, +8“). */
-export const formatLanguages = (languages: string[], maxVisible = 2): string => {
+export const formatLanguages = (languages: string[] = [], maxVisible = 2): string => {
 
     if (languages.length === 0) {
         return "—";

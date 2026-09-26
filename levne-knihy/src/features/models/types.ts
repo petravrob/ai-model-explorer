@@ -13,7 +13,7 @@ export interface AIModel {
     downloads: number;
     likes: number;
     tags: string[];
-    // Krátký popis modelu, pokud ho zdroj dat poskytuje (výpis z Hugging Face ho zatím nevrací)
+    // Lidský český popis modelu pro kartu (doplňuje ho skript generate:descriptions na serveru)
     description?: string | null;
     license: string | null;
     library: string | null;

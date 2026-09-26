@@ -1,8 +1,8 @@
 import "./ModelList.css";
 
 import { ModelListProps } from "../../types";
-import { formatCount, formatLanguages, formatParameters } from "../../utils/formatters";
-import { getModelProvider, getModelSummary, getModelTagList } from "../../utils/modelCard";
+import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
+import { getModelLicense, getModelProvider, getModelSummary, getModelTagList } from "../../utils/modelCard";
 import { DetailItem } from "@/ui";
 
 import ModelImage from "./ModelImage";
@@ -39,6 +39,11 @@ function ModelList({ models, onModelClick }: ModelListProps) {
                 const summary = getModelSummary(model);
                 const provider = getModelProvider(model.author);
 
+                // Když model nemá štítek, ukáže se alespoň název
+                const chipTags = tags.secondary.length > 0
+                    ? tags.secondary
+                    : (tags.primary ? [tags.primary] : []);
+
                 return (
                     <li
                         className="model-list__item"
@@ -65,40 +70,35 @@ function ModelList({ models, onModelClick }: ModelListProps) {
                         </div>
 
                         <div className="model-list__body">
-                            <p className="model-list__summary" title={summary}>
-                                {summary}
-                            </p>
+                            {summary && (
+                                <p className="model-list__summary" title={summary}>
+                                    {summary}
+                                </p>
+                            )}
 
-                            <ul className="model-list__tags">
-                                {tags.primary && (
-                                    <li className="model-list__tag model-list__tag--primary">
-                                        {tags.primary}
-                                    </li>
-                                )}
+                            {(chipTags.length > 0 || tags.remaining > 0) && (
+                                <ul className="model-list__tags">
+                                    {chipTags.map((tag) => (
+                                        <li className="model-list__tag" key={tag}>
+                                            {tag}
+                                        </li>
+                                    ))}
 
-                                {tags.secondary.map((tag) => (
-                                    <li className="model-list__tag" key={tag}>
-                                        {tag}
-                                    </li>
-                                ))}
-
-                                {tags.language && (
-                                    <li className="model-list__tag">
-                                        {tags.language}
-                                    </li>
-                                )}
-
-                                {tags.remaining > 0 && (
-                                    <li className="model-list__tag" title="Další štítky modelu">
-                                        +{tags.remaining}
-                                    </li>
-                                )}
-                            </ul>
+                                    {tags.remaining > 0 && (
+                                        <li className="model-list__tag" title="Další štítky modelu">
+                                            +{tags.remaining}
+                                        </li>
+                                    )}
+                                </ul>
+                            )}
 
                             <div className="model-list__meta">
-                                <DetailItem label="Licence" value={model.license ?? "—"} />
+                                <DetailItem label="Úloha" value={tags.primary ?? "—"} />
                                 <DetailItem label="Parametry" value={formatParameters(model.parameters)} />
+                                <DetailItem label="Knihovna" value={model.library ?? "—"} />
+                                <DetailItem label="Licence" value={getModelLicense(model.license)} />
                                 <DetailItem label="Jazyky" value={formatLanguages(model.languages)} />
+                                <DetailItem label="Aktualizace" value={formatDate(model.lastModified)} />
                             </div>
 
                             <div className="model-list__stats">

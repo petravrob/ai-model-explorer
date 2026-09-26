@@ -88,23 +88,22 @@
     white-space: nowrap;
 }
 
+/* Popis modelu má dvě věty, do karty se vejde na pět řádků */
 .model-list__summary {
     display: -webkit-box;
-    min-height: 4.35em;
     margin: 0;
     overflow: hidden;
     color: var(--text-muted);
     font-size: .84rem;
     line-height: 1.45;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 5;
 }
 
 .model-list__tags {
     display: flex;
     flex-wrap: wrap;
     gap: .35rem;
-    min-height: 3rem;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -120,12 +119,6 @@
     font-size: .7rem;
     font-weight: 600;
     line-height: 1.35;
-}
-
-/* Hlavní úloha modelu je v řadě štítků zvýrazněná */
-.model-list__tag--primary {
-    color: var(--primary);
-    background: var(--primary-light);
 }
 
 .model-list__meta {

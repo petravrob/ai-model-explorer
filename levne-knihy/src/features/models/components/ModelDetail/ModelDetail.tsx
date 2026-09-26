@@ -26,7 +26,7 @@ function ModelDetail({ model }: { model: AIModel }) {
             <section>
                 <SectionTitle>Štítky</SectionTitle>
                 <ul className="model-detail__tags">
-                    {model.tags.map((tag) => (
+                    {(model.tags ?? []).map((tag) => (
                         <li key={tag}>{tag}</li>
                     ))}
                 </ul>
