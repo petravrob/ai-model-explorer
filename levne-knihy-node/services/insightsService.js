@@ -26,16 +26,22 @@ const MIN_DOCUMENTATION_LENGTH = 300;
 const MAX_ITEMS = 6;
 
 // Omezení se nevypisují na kartu, proto se jich vejde víc
-const MAX_LIMITATIONS = 10;
+const MAX_LIMITATIONS = 12;
+
+// Konkrétních scénářů použití se vejde do sekce víc než běžných položek
+const MAX_USE_CASES = 8;
 
 // Nejvýš tolik výsledků benchmarků (delší výčty už jsou jen na opis)
-const MAX_BENCHMARKS = 16;
+const MAX_BENCHMARKS = 24;
 
-// Nadpisy, u kterých se dá čekat užitečná informace (včetně oddílů s výsledky měření)
-const RELEVANT_SECTION = /(overview|introduc|about|descript|highlight|capab|feature|use case|usage|quick ?start|inferenc|deploy|serv|framework|context|limitation|caveat|restriction|out of scope|known|why|benchmark|evaluat|performance|result|score|metric|leaderboard|model|train|architect)/i;
+// Nadpisy, u kterých se dá čekat užitečná informace (včetně výsledků měření a praktických údajů)
+const RELEVANT_SECTION = /(overview|introduc|about|descript|highlight|capab|feature|use case|usage|quick ?start|inferenc|deploy|serv|framework|context|limitation|caveat|restriction|out of scope|known|issue|why|benchmark|evaluat|performance|result|score|metric|leaderboard|model|train|finetun|distill|architect|licen|requirement|hardware|vram|quantiz|compatib|format|api|releas|note)/i;
 
 // Nadpisy, které naopak jen zabírají místo
-const SKIP_SECTION = /(citation|bibtex|acknowledg|changelog|version histor|references|star history)/i;
+const SKIP_SECTION = /(citation|bibtex|acknowledg|changelog|version histor|references|star history|install|setup|discord|community|social|contents)/i;
+
+// Oddíly s výsledky měření - u dlouhých dokumentací se nesmí ztratit
+const BENCHMARK_SECTION = /(benchmark|evaluat|performance|result|score|metric|leaderboard)/i;
 
 const SYSTEM_PROMPT = [
     "Jsi editor českého katalogu AI modelů.",
@@ -56,14 +62,14 @@ function buildPrompt(excerpt) {
         "",
         "Vrať pouze JSON v tomto tvaru (bez dalšího vysvětlování):",
         "{",
-        '  "overview": "2–4 věty: co model dělá, k čemu se používá a čím je zajímavý",',
-        '  "highlights": ["3–6 konkrétních vlastností, kterými se model odlišuje (podporované modality, dlouhý kontext, počet kroků generování, architektura, podporovaná workflow)"],',
-        '  "howItWorks": "2–4 věty běžným jazykem o tom, jak model funguje (architektura, způsob tréninku, zpracování vstupu, MoE)",',
+        '  "overview": "2–5 vět: co model umí, jak se používá, čím je zajímavý a případně čím se liší od souvisejícího modelu",',
+        '  "highlights": ["3–7 konkrétních vlastností, které model odlišují (schopnosti, architektura, délka kontextu, multimodalita, rychlost, podporovaná workflow, způsob tréninku, vlastnosti nasazení)"],',
+        '  "howItWorks": "1–3 odstavce běžným jazykem o tom, jak model funguje (architektura, zpracování vstupu, trénink, destilace, MoE, aktivní a celkové parametry, speciální mechanismy)",',
         '  "bestFor": ["oblasti použití, které dokumentace výslovně zmiňuje"],',
-        '  "useCases": ["konkrétní scénáře použití převedené z dokumentace (např. generování obrázků z textových promptů, přepis schůzek)"],',
+        '  "useCases": ["4–8 konkrétních praktických scénářů odvozených z dokumentace (např. asistent pro psaní kódu, dávkový přepis porad, úprava fotografií)"],',
         '  "capabilities": ["konkrétní schopnosti, které dokumentace výslovně zmiňuje"],',
         '  "modalities": ["druhy vstupů a výstupů, které dokumentace uvádí (text, obrázky, zvuk, video)"],',
-        '  "inferenceFrameworks": ["frameworky a nástroje pro nasazení a použití zmíněné v dokumentaci (např. Transformers, vLLM, SGLang, Docker, ComfyUI, Ollama)"],',
+        '  "inferenceFrameworks": ["frameworky, nástroje a služby pro nasazení a použití, které dokumentace výslovně zmiňuje"],',
         '  "contextLength": "délka kontextu přesně tak, jak ji dokumentace uvádí",',
         '  "activeParameters": "aktivní parametry u modelů typu MoE přesně podle dokumentace (např. 2,7 B), jinak null",',
         '  "architecture": "stručně architektura, pokud ji dokumentace uvádí (např. MoE, decoder-only)",',
@@ -71,9 +77,11 @@ function buildPrompt(excerpt) {
         '  "version": "verze nebo označení vydání, pokud je dokumentace uvádí",',
         '  "baseModel": "model, ze kterého tento vychází, pokud to dokumentace uvádí",',
         '  "variants": ["varianty nebo velikosti modelu, které dokumentace uvádí (např. 7B / 13B)"],',
-        '  "recommendedSettings": ["doporučené hodnoty z dokumentace, včetně počtu kroků, CFG, quantization a sampleru, pokud je uvádí"],',
+        '  "recommendedSettings": ["doporučené hodnoty z dokumentace (počet kroků, CFG, sampler, temperature a podobně)"],',
         '  "hardwareRequirements": ["nároky na provoz modelu, které dokumentace uvádí (např. 24 GB VRAM, CUDA) – ne hardware použitý při tréninku"],',
-        '  "notes": ["další praktické poznámky z dokumentace (kompatibilita, licence v praxi, zvláštnosti)"],',
+        '  "quantization": ["kvantizace nebo formáty, které dokumentace uvádí (např. fp16, int8, GGUF, safetensors)"],',
+        '  "compatibility": ["s čím je model kompatibilní nebo co vyžaduje (verze knihoven, operační systémy, související modely)"],',
+        '  "notes": ["důležité poznámky autorů a praktické informace, které se nevejdou do ostatních polí"],',
         '  "limitations": ["všechna významná omezení, výhrady a upozornění z dokumentace"],',
         '  "benchmarks": [',
         "    {",
@@ -91,12 +99,22 @@ function buildPrompt(excerpt) {
         "- co v dokumentaci není, nech prázdné (null nebo prázdné pole), nic nedomýšlej",
         "- položky piš krátce (2–6 slov) a věcně, bez hodnocení a bez doporučování",
         "- frameworky, názvy modelů a délku kontextu zachovej přesně jako v dokumentaci",
-        "- nejvýš 6 položek v každém seznamu (u omezení nejvýš 10)",
-        "- overview piš 2–4 větami a howItWorks 2–4 větami běžným jazykem, bez odborného balastu",
-        "- highlights ať popisují konkrétní vlastnosti modelu, ne obecné marketingové fráze",
-        "- useCases převáděj na scénáře použití (např. „generování obrázků z textových promptů“, „úprava existujících obrázků“), ne na štítky úloh z Hugging Face",
-        "- version, baseModel a notes vyplň jen tehdy, když dokumentace uvádí konkrétní informaci",
+        "- dodrž délky: overview 2–5 vět, howItWorks 1–3 odstavce, highlights 3–7 bodů, useCases 4–8 bodů",
+        "- nejvýš 6 položek v ostatních seznamech (u omezení nejvýš 12, u benchmarků nejvýš 24)",
+        "- vše piš konkrétně k tomuto modelu; obecné fráze typu „vhodný pro širokou škálu úloh“ nepatří nikam",
+        "- nevypisuj obecně známé údaje (např. požadavky na Python nebo CUDA), pokud je dokumentace výslovně neuvádí",
+        "- highlights ať vystihují to, čím se model liší od ostatních, ne co umí každý podobný model",
+        "- useCases odvozuj z dokumentace (např. „asistent pro psaní kódu“, „dávkový přepis porad“); co v dokumentaci není, nedopisuj",
+        "- z příkladů použití vytáhni jen podstatnou informaci (např. doporučené hodnoty), kód nikdy nekopíruj",
+        "- neuváděj citace, odkazy na komunitu, instalační návody ani marketingové slogany",
+        "- pokud dokumentace uvádí zajímavou vlastnost, která se nehodí do žádného pole, dej ji do notes",
+        "- projdi oddíly Limitations, Caveats, Known issues, Out of scope a licenční podmínky a vezmi z nich všechna významná omezení",
+        "- neuváděj jako omezení to, že něco v dokumentaci chybí (např. chybějící licence nebo testy)",
+        "- licence a její praktická omezení patří do limitations, ne do notes",
+        "- version, baseModel, quantization a compatibility vyplň jen tehdy, když dokumentace uvádí konkrétní informaci",
         "- u benchmarků uváděj jen výsledky, které dokumentace výslovně zmiňuje; jinak nech seznam prázdný",
+        "- výsledky ber i z tabulek: pokud má tabulka víc modelů, použij sloupec tohoto modelu",
+        "- oblast (category) ber z nadpisu tabulky nebo skupiny řádků (např. „Standard Benchmarks“ → standardní benchmarky)",
         "- výsledky jednotlivých benchmarků nikdy neslučuj a nepočítej z nich žádné celkové skóre ani pořadí",
         "- pokud dokumentace označuje měření za vlastní, interní nebo jinak vymezené, napiš to do pole context",
         "- nejvýš 12 benchmarků",
@@ -117,6 +135,18 @@ function buildPrompt(excerpt) {
     ].join("\n");
 }
 
+/** Ořeže text na rozpočet, ale nikdy neprostřed řádku (rozbité řádky tabulek se nedají přečíst). */
+function cutAtLine(text, limit) {
+    if (text.length <= limit) {
+        return text;
+    }
+
+    const cut = text.slice(0, limit);
+    const lastBreak = cut.lastIndexOf("\n");
+
+    return lastBreak > 0 ? cut.slice(0, lastBreak) : cut;
+}
+
 /**
  * Vybere z dokumentace jen části, které mají cenu zpracovávat.
  * Bere se úvod a oddíly o schopnostech, použití, kontextu a omezeních.
@@ -128,23 +158,39 @@ function selectRelevantParts(documentation) {
     let isRelevant = true;
     let isFirstHeading = true;
 
+    // Úroveň nadpisu, pod kterou jde o výsledky měření (i v pododdílech)
+    let benchmarkLevel = null;
+    let partBenchmark = false;
+
     const flush = () => {
         if (isRelevant && current.length > 0) {
-            parts.push(current.join("\n"));
+            parts.push({ text: current.join("\n"), isBenchmark: partBenchmark });
         }
 
         current = [];
     };
 
     for (const line of documentation.split("\n")) {
-        const heading = line.match(/^#{1,3}\s+(.*)$/);
+        const heading = line.match(/^(#{1,3})\s+(.*)$/);
 
         if (heading) {
             flush();
 
+            const level = heading[1].length;
+            const title = heading[2];
+
+            // Tabulky mívají pododdíly (např. podle velikosti modelu), které se dědí
+            if (BENCHMARK_SECTION.test(title)) {
+                benchmarkLevel = level;
+            } else if (benchmarkLevel !== null && level <= benchmarkLevel) {
+                benchmarkLevel = null;
+            }
+
+            partBenchmark = benchmarkLevel !== null;
+
             // První nadpis je název modelu – text pod ním patří k úvodu, proto se bere vždy
             isRelevant = isFirstHeading
-                || (RELEVANT_SECTION.test(heading[1]) && !SKIP_SECTION.test(heading[1]));
+                || (RELEVANT_SECTION.test(title) && !SKIP_SECTION.test(title));
 
             isFirstHeading = false;
         }
@@ -154,10 +200,23 @@ function selectRelevantParts(documentation) {
 
     flush();
 
-    return parts.join("\n\n").slice(0, MAX_EXCERPT_LENGTH);
+    const textOf = (items) => items.map((part) => part.text).join("\n\n");
+
+    // Na výsledky měření zůstává vyhrazená část rozpočtu, aby se neořezaly se zbytkem
+    const benchmarkText = cutAtLine(
+        textOf(parts.filter((part) => part.isBenchmark)),
+        Math.floor(MAX_EXCERPT_LENGTH / 2)
+    );
+
+    const mainText = cutAtLine(
+        textOf(parts.filter((part) => !part.isBenchmark)),
+        MAX_EXCERPT_LENGTH - benchmarkText.length
+    );
+
+    return [mainText, benchmarkText].filter(Boolean).join("\n\n");
 }
 
-const PROMPT_VERSION = "v9";
+const PROMPT_VERSION = "v13";
 
 /**
  * Vytvoří otisk vstupu, ze kterého přehledy vznikají (verze zadání + dokumentace).
@@ -260,7 +319,7 @@ function parseInsights(raw) {
             highlights: toList(parsed.highlights),
             howItWorks: toText(parsed.howItWorks),
             bestFor: toList(parsed.bestFor),
-            useCases: toList(parsed.useCases),
+            useCases: toList(parsed.useCases, MAX_USE_CASES),
             capabilities: toList(parsed.capabilities),
             modalities: toList(parsed.modalities),
             inferenceFrameworks: toList(parsed.inferenceFrameworks),
@@ -273,6 +332,8 @@ function parseInsights(raw) {
             variants: toList(parsed.variants),
             recommendedSettings: toList(parsed.recommendedSettings),
             hardwareRequirements: toList(parsed.hardwareRequirements),
+            quantization: toList(parsed.quantization),
+            compatibility: toList(parsed.compatibility),
             notes: toList(parsed.notes),
             limitations: toList(parsed.limitations, MAX_LIMITATIONS),
             benchmarks: toBenchmarks(parsed.benchmarks),
@@ -307,6 +368,8 @@ function toInsights(doc) {
         variants: doc.variants ?? [],
         recommendedSettings: doc.recommendedSettings ?? [],
         hardwareRequirements: doc.hardwareRequirements ?? [],
+        quantization: doc.quantization ?? [],
+        compatibility: doc.compatibility ?? [],
         notes: doc.notes ?? [],
         limitations: doc.limitations ?? [],
         benchmarks: (doc.benchmarks ?? []).map((item) => ({
@@ -359,7 +422,7 @@ async function generateInsights(modelId) {
             system: SYSTEM_PROMPT,
             prompt: buildPrompt(excerpt),
             temperature: 0.3,
-            maxTokens: 2000,
+            maxTokens: 3500,
         });
 
         const insights = parseInsights(data?.choices?.[0]?.message?.content);

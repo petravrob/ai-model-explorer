@@ -28,7 +28,6 @@ function ModelDetailPage() {
         model,
 
         insights,
-        isInsightsLoading,
 
         handleBack,
 
@@ -67,7 +66,6 @@ function ModelDetailPage() {
                 <ModelDetail
                     model={model}
                     insights={insights}
-                    isInsightsLoading={isInsightsLoading}
                 />
             </div>
         </PageContainer>

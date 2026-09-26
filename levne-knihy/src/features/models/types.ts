@@ -64,6 +64,8 @@ export interface ModelInsights {
     recommendedSettings?: string[];
     // Nároky na hardware a další praktické poznámky z dokumentace
     hardwareRequirements?: string[];
+    quantization?: string[];
+    compatibility?: string[];
     notes?: string[];
     limitations?: string[];
     benchmarks?: ModelBenchmark[];

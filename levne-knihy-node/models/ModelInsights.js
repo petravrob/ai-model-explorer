@@ -128,6 +128,16 @@ const modelInsightsSchema = new mongoose.Schema(
             type: [String],
             default: [],
         },
+        // Kvantizace nebo formáty, které dokumentace uvádí (fp16, int8, GGUF…)
+        quantization: {
+            type: [String],
+            default: [],
+        },
+        // S čím je model kompatibilní nebo co vyžaduje
+        compatibility: {
+            type: [String],
+            default: [],
+        },
         // Další praktické poznámky, které se nevejdou do ostatních polí
         notes: {
             type: [String],
