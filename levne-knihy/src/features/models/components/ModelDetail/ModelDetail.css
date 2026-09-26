@@ -144,6 +144,63 @@
     font-size: .85rem;
 }
 
+/* Výsledky benchmarků z dokumentace modelu */
+.model-detail__benchmarks {
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+}
+
+.model-detail__benchmark-group {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+}
+
+/* Oblast benchmarku (např. kódování), pokud ji dokumentace uvádí */
+.model-detail__benchmark-category {
+    margin: 0;
+    color: var(--text-faint);
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+/* Jeden řádek: název benchmarku a jeho výsledek */
+.model-detail__benchmark {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: .15rem .8rem;
+    margin: 0;
+    padding-bottom: .35rem;
+    border-bottom: 1px solid var(--border);
+    font-size: .9rem;
+}
+
+.model-detail__benchmark:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.model-detail__benchmark-name {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.model-detail__benchmark-score {
+    color: var(--primary);
+    white-space: nowrap;
+}
+
+/* Metrika a způsob měření patří pod název benchmarku */
+.model-detail__benchmark-meta {
+    grid-column: 1 / -1;
+    color: var(--text-subtle);
+    font-size: .78rem;
+}
+
 /* Omezení vypsaná z dokumentace modelu */
 .model-detail__limitations {
     display: flex;

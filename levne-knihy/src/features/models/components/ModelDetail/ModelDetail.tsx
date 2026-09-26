@@ -1,6 +1,6 @@
 import "./ModelDetail.css";
 
-import { AIModel, ModelInsights } from "../../types";
+import { AIModel, ModelBenchmark, ModelInsights } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
 import { getModelLicense, getModelProvider, getModelTagList } from "../../utils/modelCard";
 import { DetailItem, LinkButton, PageTitle, SectionTitle } from "@/ui";
@@ -53,6 +53,23 @@ function ModelDetail({ model, cardContent, isCardLoading, insights, isInsightsLo
         : (tags.secondary.length > 0 ? tags.secondary : (tags.primary ? [tags.primary] : []));
 
     const limitations = insights?.limitations ?? [];
+
+    // Benchmarky se seskupí podle oblasti, pokud ji dokumentace uvádí
+    const benchmarkGroups = (insights?.benchmarks ?? []).reduce<{ category: string | null; items: ModelBenchmark[] }[]>(
+        (groups, benchmark) => {
+            const category = benchmark.category ?? null;
+            const group = groups.find((item) => item.category === category);
+
+            if (group) {
+                group.items.push(benchmark);
+            } else {
+                groups.push({ category, items: [benchmark] });
+            }
+
+            return groups;
+        },
+        []
+    );
 
     // Technické údaje se vypíšou jen tehdy, když je model skutečně má
     const technical = [
@@ -136,6 +153,37 @@ function ModelDetail({ model, cardContent, isCardLoading, insights, isInsightsLo
                             <DetailItem label={item.label} value={item.value} key={item.label} />
                         ))}
                     </div>
+                </section>
+            )}
+
+            {benchmarkGroups.length > 0 && (
+                <section className="model-detail__section">
+                    <SectionTitle>Výkon</SectionTitle>
+
+                    <div className="model-detail__benchmarks">
+                        {benchmarkGroups.map((group) => (
+                            <div className="model-detail__benchmark-group" key={group.category ?? "bez kategorie"}>
+                                {group.category && (
+                                    <p className="model-detail__benchmark-category">{group.category}</p>
+                                )}
+
+                                {group.items.map((benchmark) => (
+                                    <p className="model-detail__benchmark" key={`${benchmark.name}-${benchmark.score}`}>
+                                        <span className="model-detail__benchmark-name">{benchmark.name}</span>
+                                        <strong className="model-detail__benchmark-score">{benchmark.score}</strong>
+
+                                        {(benchmark.metric || benchmark.context) && (
+                                            <span className="model-detail__benchmark-meta">
+                                                {[benchmark.metric, benchmark.context].filter(Boolean).join(" · ")}
+                                            </span>
+                                        )}
+                                    </p>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+
+                    <p className="model-detail__note">Uvedeno autory modelu.</p>
                 </section>
             )}
 

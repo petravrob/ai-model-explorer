@@ -27,6 +27,15 @@ export interface ModelCardContent {
     // Text karty v Markdownu; null když model vlastní popis nemá
     content: string | null;
 }
+/** Výsledek benchmarku uvedený přímo v dokumentaci modelu. */
+export interface ModelBenchmark {
+    name: string;
+    // Výsledek přesně tak, jak ho dokumentace uvádí (např. „78,5“ nebo „62,3 %“)
+    score: string | number;
+    metric?: string | null;
+    category?: string | null;
+    context?: string | null;
+}
 /** České přehledy vytvořené z dokumentace modelu na Hugging Face. */
 export interface ModelInsights {
     // Co model je a k čemu slouží
@@ -36,6 +45,7 @@ export interface ModelInsights {
     inferenceFrameworks?: string[];
     contextLength?: string | null;
     limitations?: string[];
+    benchmarks?: ModelBenchmark[];
 }
 export interface ModelListProps {
     models: AIModel[];

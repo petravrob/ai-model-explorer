@@ -15,8 +15,9 @@ const ModelInsights = require("../models/ModelInsights");
 const { getModelCard } = require("./huggingFaceService");
 const { requestCompletion } = require("./aiCompletion");
 
-// Kolik znaků dokumentace se nejvýš posílá ke zpracování (delší text by jen zdržoval)
-const MAX_EXCERPT_LENGTH = 4000;
+// Kolik znaků dokumentace se nejvýš posílá ke zpracování (delší text by jen zdržoval).
+// Tabulky s benchmarky bývají až v druhé půlce karty, proto je rozpočet štědřejší.
+const MAX_EXCERPT_LENGTH = 6000;
 
 // Příliš krátká dokumentace nemívá co nabídnout
 const MIN_DOCUMENTATION_LENGTH = 300;
@@ -24,8 +25,11 @@ const MIN_DOCUMENTATION_LENGTH = 300;
 // Nejvýš tolik položek v jednotlivých seznamech
 const MAX_ITEMS = 6;
 
-// Nadpisy, u kterých se dá čekat užitečná informace
-const RELEVANT_SECTION = /(overview|introduc|about|descript|capab|feature|use case|usage|quick ?start|inferenc|deploy|serv|framework|context|limitation|caveat|restriction|out of scope|known|why)/i;
+// Nejvýš tolik výsledků benchmarků (delší výčty už jsou jen na opis)
+const MAX_BENCHMARKS = 12;
+
+// Nadpisy, u kterých se dá čekat užitečná informace (včetně oddílů s výsledky měření)
+const RELEVANT_SECTION = /(overview|introduc|about|descript|capab|feature|use case|usage|quick ?start|inferenc|deploy|serv|framework|context|limitation|caveat|restriction|out of scope|known|why|benchmark|evaluat|performance|result|score|metric|leaderboard)/i;
 
 // Nadpisy, které naopak jen zabírají místo
 const SKIP_SECTION = /(citation|bibtex|acknowledg|changelog|version histor|references|star history)/i;
@@ -38,6 +42,7 @@ const SYSTEM_PROMPT = [
     "Anglicky zůstávají jen vlastní názvy: modely a repozitáře, knihovny a frameworky (Transformers, vLLM,",
     "SGLang, PyTorch, Docker), benchmarky (MMLU, SWE-bench), příkazy, kód, adresy a identifikátory.",
     "Nic si nevymýšlíš, nic nedohaduješ a nic nepřikrášluješ.",
+    "Výsledky benchmarků přebíráš přesně a nikdy je neslučuješ ani z nich nepočítáš pořadí, průměr nebo celkové skóre.",
     "Piš přirozenou spisovnou češtinou, stručně a věcně.",
 ].join(" ");
 
@@ -53,7 +58,16 @@ function buildPrompt(excerpt) {
         '  "capabilities": ["konkrétní schopnosti, které dokumentace výslovně zmiňuje"],',
         '  "inferenceFrameworks": ["frameworky a nástroje pro nasazení zmíněné v dokumentaci"],',
         '  "contextLength": "délka kontextu přesně tak, jak ji dokumentace uvádí",',
-        '  "limitations": ["omezení, výhrady nebo důležitá upozornění z dokumentace"]',
+        '  "limitations": ["omezení, výhrady nebo důležitá upozornění z dokumentace"],',
+        '  "benchmarks": [',
+        "    {",
+        '      "name": "název benchmarku (např. MMLU, GSM8K, SWE-bench)",',
+        '      "score": "výsledek přesně tak, jak ho dokumentace uvádí (např. 78,5 nebo 62,3 %)",',
+        '      "metric": "metrika, pokud ji dokumentace uvádí (např. accuracy, pass@1)",',
+        '      "category": "oblast, pokud ji dokumentace uvádí (např. kódování, matematika, obecné znalosti)",',
+        '      "context": "jen pokud dokumentace uvádí, jak se měřilo (např. vlastní hodnocení autorů, 5-shot, s nástroji)"',
+        "    }",
+        "  ]",
         "}",
         "",
         "PRAVIDLA:",
@@ -62,6 +76,11 @@ function buildPrompt(excerpt) {
         "- položky piš krátce (2–6 slov) a věcně, bez hodnocení a bez doporučování",
         "- frameworky, názvy modelů a délku kontextu zachovej přesně jako v dokumentaci",
         "- nejvýš 6 položek v každém seznamu",
+        "- u benchmarků uváděj jen výsledky, které dokumentace výslovně zmiňuje; jinak nech seznam prázdný",
+        "- výsledky jednotlivých benchmarků nikdy neslučuj a nepočítej z nich žádné celkové skóre ani pořadí",
+        "- pokud dokumentace označuje měření za vlastní, interní nebo jinak vymezené, napiš to do pole context",
+        "- nejvýš 12 benchmarků",
+        "- u benchmarků překládej jen oblast (např. kódování, matematika, obecné znalosti); názvy benchmarků, metriky a způsob měření nech v původní podobě",
         "",
         "DOKUMENTACE MODELU:",
         "---",
@@ -105,14 +124,13 @@ function selectRelevantParts(documentation) {
     return parts.join("\n\n").slice(0, MAX_EXCERPT_LENGTH);
 }
 
-// Verze zadání - po každé úpravě promptu se přehledy vytvoří znovu
-const PROMPT_VERSION = "v2";
+const PROMPT_VERSION = "v5";
 
 /**
- * Vytvoří zadání vstupu, ze kterého přehledy vznikají.
- * Když zadání nesedí s uloženým, dokumentace se zpracuje znovu.
+ * Vytvoří otisk vstupu, ze kterého přehledy vznikají (verze zadání + dokumentace).
+ * Když otisk nesedí s uloženým, dokumentace se zpracuje znovu.
  */
-function createTaskPrint(documentation) {
+function createFingerprint(documentation) {
     return crypto.createHash("sha1").update(`${PROMPT_VERSION}\n${SYSTEM_PROMPT}\n${documentation}`).digest("hex").slice(0, 16);
 }
 
@@ -132,6 +150,56 @@ function toList(value) {
         .filter(Boolean);
 
     return [...new Set(cleaned)].slice(0, MAX_ITEMS);
+}
+
+/** Převede výsledek benchmarku na krátký text (může dorazit i jako číslo). */
+function toScore(value) {
+    const text = toText(typeof value === "object" ? (value?.value ?? "") : String(value ?? ""));
+
+    return text?.slice(0, 40) ?? null;
+}
+
+// Oblasti benchmarků, které dokumentace uvádějí anglicky
+const CATEGORY_LABELS = new Map([
+    ["reasoning", "uvažování"],
+    ["math", "matematika"],
+    ["mathematics", "matematika"],
+    ["code", "kódování"],
+    ["coding", "kódování"],
+    ["code generation", "generování kódu"],
+    ["factual knowledge", "faktické znalosti"],
+    ["general knowledge", "obecné znalosti"],
+    ["reading comprehension", "porozumění textu"],
+    ["common sense", "zdravý rozum"],
+    ["multilingual", "vícejazyčné úlohy"],
+    ["tool use", "práce s nástroji"],
+    ["safety", "bezpečnost"],
+]);
+
+/** Převede oblast benchmarku na český název, když je v dokumentaci anglicky. */
+function toCategory(value) {
+    const text = toText(value);
+
+    return text ? (CATEGORY_LABELS.get(text.toLowerCase()) ?? text.slice(0, 60)) : null;
+}
+
+/** Převede benchmarky z odpovědi AI na krátké položky s názvem a výsledkem. */
+function toBenchmarks(value) {
+    const items = Array.isArray(value) ? value : [];
+
+    const cleaned = items.map((item) => ({
+        name: toText(item?.name)?.slice(0, 80) ?? null,
+        score: toScore(item?.score),
+        metric: toText(item?.metric)?.slice(0, 60) ?? null,
+        category: toCategory(item?.category),
+        context: toText(item?.context)?.slice(0, 120) ?? null,
+    }));
+
+    // Záznam bez názvu a výsledku nemá cenu a stejné dvojice se neopakují
+    return cleaned
+        .filter((item) => item.name && item.score)
+        .filter((item, index) => cleaned.findIndex((other) => other.name === item.name && other.score === item.score) === index)
+        .slice(0, MAX_BENCHMARKS);
 }
 
 /** Převede odpověď AI na přehledy, nebo vrátí null, když se odpověď nedá použít. */
@@ -154,6 +222,7 @@ function parseInsights(raw) {
             inferenceFrameworks: toList(parsed.inferenceFrameworks),
             contextLength: toText(parsed.contextLength),
             limitations: toList(parsed.limitations),
+            benchmarks: toBenchmarks(parsed.benchmarks),
         };
 
         // Když se z dokumentace nic nepřečetlo, nemá smysl výsledek ukládat
@@ -161,7 +230,8 @@ function parseInsights(raw) {
             || insights.bestFor.length > 0
             || insights.capabilities.length > 0
             || insights.inferenceFrameworks.length > 0
-            || insights.limitations.length > 0;
+            || insights.limitations.length > 0
+            || insights.benchmarks.length > 0;
 
         return hasSomething ? insights : null;
     } catch {
@@ -178,6 +248,13 @@ function toInsights(doc) {
         inferenceFrameworks: doc.inferenceFrameworks ?? [],
         contextLength: doc.contextLength ?? null,
         limitations: doc.limitations ?? [],
+        benchmarks: (doc.benchmarks ?? []).map((item) => ({
+            name: item.name,
+            score: item.score ?? null,
+            metric: item.metric ?? null,
+            category: item.category ?? null,
+            context: item.context ?? null,
+        })),
     };
 }
 
@@ -195,11 +272,11 @@ async function generateInsights(modelId) {
         return null;
     }
 
-    const sourceTaskPrint = createTaskPrint(documentation);
+    const sourceFingerprint = createFingerprint(documentation);
     const stored = await ModelInsights.findOne({ modelId });
 
     // Přehledy z tohoto vstupu už máme
-    if (stored && stored.sourceTaskPrint === sourceTaskPrint) {
+    if (stored && stored.sourceFingerprint === sourceFingerprint) {
         return toInsights(stored);
     }
 
@@ -234,7 +311,7 @@ async function generateInsights(modelId) {
 
         await ModelInsights.updateOne(
             { modelId },
-            { $set: { ...insights, sourceTaskPrint } },
+            { $set: { ...insights, sourceFingerprint } },
             { upsert: true }
         );
 

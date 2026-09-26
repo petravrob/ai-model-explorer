@@ -7,6 +7,7 @@ export { default as ModelSort } from "./components/ModelSort/ModelSort";
 
 export type {
     AIModel,
+    ModelBenchmark,
     ModelCardContent,
     ModelFilterPanelProps,
     ModelInsights,
