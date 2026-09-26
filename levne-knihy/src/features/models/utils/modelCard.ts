@@ -362,13 +362,13 @@ const isProperName = (label: string): boolean => {
 };
 
 /** Převede běžný popisek na malé písmeno pro použití uprostřed věty. */
-const toSentenceCase = (label: string): string =>
+export const toSentenceCase = (label: string): string =>
     isProperName(label)
         ? label
         : label.charAt(0).toLowerCase() + label.slice(1);
 
 /** Spojí několik popisků českou spojkou. */
-const joinCzech = (items: string[]): string =>
+export const joinCzech = (items: string[]): string =>
     items.length < 2
         ? (items[0] ?? "")
         : `${items.slice(0, -1).join(", ")} a ${items[items.length - 1]}`;

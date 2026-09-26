@@ -3,6 +3,7 @@ import "./ModelDetail.css";
 import { AIModel, ModelBenchmark, ModelInsights } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
 import { getModelLicense, getModelProvider, getModelTagList } from "../../utils/modelCard";
+import { getModelHighlights } from "../../utils/modelHighlights";
 import { DetailItem, LinkButton, PageTitle, SectionTitle } from "@/ui";
 
 import ModelImage from "../ModelList/ModelImage";
@@ -53,6 +54,9 @@ function ModelDetail({ model, cardContent, isCardLoading, insights, isInsightsLo
         : (tags.secondary.length > 0 ? tags.secondary : (tags.primary ? [tags.primary] : []));
 
     const limitations = insights?.limitations ?? [];
+
+    // Faktické důvody, proč může být model zajímavý (jen z údajů, které máme)
+    const highlights = getModelHighlights(model, insights);
 
     // Benchmarky se seskupí podle oblasti, pokud ji dokumentace uvádí
     const benchmarkGroups = (insights?.benchmarks ?? []).reduce<{ category: string | null; items: ModelBenchmark[] }[]>(
@@ -121,6 +125,18 @@ function ModelDetail({ model, cardContent, isCardLoading, insights, isInsightsLo
                     <SectionTitle>Přehled</SectionTitle>
 
                     <p className="model-detail__summary">{summary}</p>
+                </section>
+            )}
+
+            {highlights.length > 0 && (
+                <section className="model-detail__section">
+                    <SectionTitle>Proč tento model?</SectionTitle>
+
+                    <ul className="model-detail__highlights">
+                        {highlights.map((item) => (
+                            <li key={item}>{item}</li>
+                        ))}
+                    </ul>
                 </section>
             )}
 

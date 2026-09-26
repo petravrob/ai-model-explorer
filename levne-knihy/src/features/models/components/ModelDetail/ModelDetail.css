@@ -144,6 +144,29 @@
     font-size: .85rem;
 }
 
+/* Faktické důvody, proč může být model zajímavý */
+.model-detail__highlights {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: .92rem;
+}
+
+.model-detail__highlights li {
+    display: flex;
+    gap: .5rem;
+    color: var(--text-muted);
+}
+
+.model-detail__highlights li::before {
+    content: "✓";
+    color: var(--primary);
+    font-weight: 700;
+}
+
 /* Výsledky benchmarků z dokumentace modelu */
 .model-detail__benchmarks {
     display: flex;
