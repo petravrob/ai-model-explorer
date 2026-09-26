@@ -225,7 +225,25 @@ async function generateDescriptions(models) {
         .filter((model) => model?.modelId && !model.description?.trim() && !pendingGenerations.has(model.modelId))
         .slice(0, MAX_DESCRIPTIONS_PER_REQUEST);
 
+    if (wanted.length === 0) {
+        return [];
+    }
+
+    // Uložený popisek se do AI neposílá znovu - klient o něm ještě nemusí vědět
+    const storedDescriptions = new Map(
+        (await ModelDescription.find(
+            { modelId: { $in: wanted.map((model) => model.modelId) } },
+            { modelId: 1, description: 1 }
+        )).map((item) => [item.modelId, item.description])
+    );
+
     const generated = await Promise.all(wanted.map(async (model) => {
+        const storedDescription = storedDescriptions.get(model.modelId);
+
+        if (storedDescription) {
+            return { modelId: model.modelId, description: storedDescription };
+        }
+
         pendingGenerations.add(model.modelId);
 
         try {

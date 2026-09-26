@@ -7,6 +7,7 @@ interface ModelImageProps {
     task: string;
     author: string;
     avatarUrl?: string | null;
+    className?: string;
 }
 
 /** Vytvoří jednoduchý placeholder obrázek modelu – barevný blok s počátečním písmenem. */
@@ -33,7 +34,7 @@ function createModelImage(name: string, task: string): string {
  * Obrázek modelu. Použije avatar, který už máme v datech modelu, chybějící adresu
  * si dotáhne na pozadí, takže načtení seznamu modelů nikdy neblokuje.
  */
-function ModelImage({ name, task, author, avatarUrl = null }: ModelImageProps) {
+function ModelImage({ name, task, author, avatarUrl = null, className = "model-list__image" }: ModelImageProps) {
 
     // Adresa avataru, nebo null = zástupný obrázek (dokud se avatar nenačte)
     const [loadedAvatarUrl, setLoadedAvatarUrl] = useState<string | null>(avatarUrl);
@@ -52,7 +53,7 @@ function ModelImage({ name, task, author, avatarUrl = null }: ModelImageProps) {
 
     return (
         <img
-            className="model-list__image"
+            className={className}
             src={loadedAvatarUrl ?? createModelImage(name, task)}
             alt={name}
             loading="lazy"
