@@ -146,6 +146,12 @@
     font-size: .78rem;
 }
 
+/* Pruh výsledku je pod názvem a zabírá celou šířku řádku */
+.model-detail__benchmark-bar {
+    grid-column: 1 / -1;
+    margin-top: .1rem;
+}
+
 /* Omezení jsou záměrně odlišená, ale zůstávají v barvách aplikace */
 .model-detail__panel {
     padding: .9rem 1.1rem;

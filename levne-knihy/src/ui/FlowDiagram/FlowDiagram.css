@@ -1,0 +1,59 @@
+.flow {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.flow__step {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: .35rem;
+}
+
+.flow__label {
+    max-width: 100%;
+    padding: .4rem .8rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--text);
+    font-size: .85rem;
+    font-weight: 600;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+/* Šipka mezi kroky – směr se mění podle šířky obrazovky */
+.flow__arrow {
+    color: var(--text-faint);
+    font-size: .9rem;
+}
+
+.flow__arrow::before {
+    content: "↓";
+}
+
+/* Na širší obrazovce jde schéma vodorovně */
+@media (min-width: 700px) {
+    .flow {
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
+
+    .flow__step {
+        flex-direction: row;
+        gap: .5rem;
+    }
+
+    .flow__arrow::before {
+        content: "→";
+    }
+}

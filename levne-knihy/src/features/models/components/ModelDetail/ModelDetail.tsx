@@ -4,21 +4,26 @@ import { AIModel, ModelBenchmark, ModelInsights } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
 import { getModelLicense, getModelProvider, getModelSummary, getModelTagList, isModelItself } from "../../utils/modelCard";
 import { getModelHighlights } from "../../utils/modelHighlights";
+import { getBenchmarkPercent } from "../../utils/benchmarkScores";
 import {
     BulletList,
     ChipList,
     DetailGrid,
     DOWNLOAD_ICON,
     FieldGroup,
+    FlowDiagram,
     LIKE_ICON,
     LinkButton,
-    MISSING_VALUE,
+    MetricGrid,
     Note,
     PageTitle,
+    ScoreBar,
     Section,
     SectionTitle,
     Stat,
+    TileGrid,
 } from "@/ui";
+import type { MetricItem } from "@/ui";
 
 import ModelImage from "../ModelList/ModelImage";
 
@@ -80,15 +85,28 @@ function ModelDetail({ model, insights }: {
     const variants = (insights?.variants ?? []).filter((variant) => !isModelItself(model, variant));
 
     // U modelů typu MoE se rozlišují celkové a aktivní parametry
-    const parameters = insights?.activeParameters
-        ? (model.parameters === null
-            ? `${insights.activeParameters} aktivně`
-            : `${formatParameters(model.parameters)} celkem, ${insights.activeParameters} aktivně`)
-        : formatParameters(model.parameters);
+    const totalParameters = model.parameters === null ? null : formatParameters(model.parameters);
+    const parameterNote = totalParameters && insights?.activeParameters
+        ? `aktivně ${insights.activeParameters}`
+        : undefined;
+
+    // Stručný profil hned pod hlavičkou – jen údaje, které model skutečně má
+    const capabilityItems = [
+        { label: "Modalita", value: insights?.modalities?.length ? insights.modalities.join(" + ") : null },
+        { label: "Úloha", value: tags.primary ?? null },
+        { label: "Parametry", value: totalParameters ?? (insights?.activeParameters ? `${insights.activeParameters} aktivně` : null) },
+        { label: "Kontext", value: insights?.contextLength ?? null },
+        { label: "Architektura", value: insights?.architecture ?? null },
+        { label: "Licence", value: model.license ? getModelLicense(model.license) : null },
+    ].filter((item): item is MetricItem => Boolean(item.value));
 
     // Technické údaje se vypíšou jen tehdy, když je model skutečně má
     const technical = [
-        { label: "Parametry", value: parameters === MISSING_VALUE ? null : parameters },
+        {
+            label: "Parametry",
+            value: totalParameters ?? (insights?.activeParameters ? `${insights.activeParameters} aktivně` : null),
+            note: parameterNote,
+        },
         { label: "Architektura", value: insights?.architecture ?? null },
         { label: "Kontext", value: insights?.contextLength ?? null },
         { label: "Verze", value: insights?.version ?? null },
@@ -96,7 +114,22 @@ function ModelDetail({ model, insights }: {
         { label: "Licence", value: model.license ? getModelLicense(model.license) : null },
         { label: "Jazyky", value: model.languages?.length ? formatLanguages(model.languages, 12) : null },
         { label: "Aktualizace", value: model.lastModified ? formatDate(model.lastModified) : null },
-    ].filter((item): item is { label: string; value: string } => Boolean(item.value));
+    ].filter((item): item is MetricItem => Boolean(item.value));
+
+    // Schéma zapojení se kreslí jen tehdy, když dokumentace architekturu uvádí
+    const flowSteps = insights?.architecture
+        ? [
+            insights.modalities?.length ? `Vstup: ${insights.modalities.join(", ")}` : null,
+            insights.architecture,
+            tags.primary ? `Výstup: ${tags.primary}` : null,
+        ].filter((step): step is string => Boolean(step))
+        : [];
+
+    // Skládanka nasazení: doložené nástroje a nároky na provoz
+    const deploymentSteps = [...deployment.slice(0, 4), ...hardware.slice(0, 2)];
+
+    // Pruhy u benchmarků mají smysl jen u výsledků vyjádřených v procentech
+    const hasBenchmarkBars = (insights?.benchmarks ?? []).some((benchmark) => getBenchmarkPercent(benchmark) !== null);
 
     // Benchmarky se seskupí podle oblasti, pokud ji dokumentace uvádí
     const benchmarkGroups = (insights?.benchmarks ?? []).reduce<{ category: string | null; items: ModelBenchmark[] }[]>(
@@ -158,6 +191,8 @@ function ModelDetail({ model, insights }: {
                 </div>
             </header>
 
+            {capabilityItems.length > 0 && <MetricGrid items={capabilityItems} />}
+
             {overview && (
                 <Section title="Přehled">
                     <p className="model-detail__summary">{overview}</p>
@@ -174,7 +209,7 @@ function ModelDetail({ model, insights }: {
 
                     {bestFor.length > 0 && (
                         <Section title="Nejvhodnější pro">
-                            <ChipList items={bestFor} />
+                            <TileGrid items={bestFor} />
 
                             <Note>
                                 {documentedAreas.length > 0
@@ -191,18 +226,28 @@ function ModelDetail({ model, insights }: {
                     {howItWorks.map((paragraph) => (
                         <p className="model-detail__text" key={paragraph}>{paragraph}</p>
                     ))}
+
+                    {flowSteps.length > 1 && (
+                        <>
+                            <FlowDiagram steps={flowSteps} />
+
+                            <Note>Schéma vychází z dokumentace modelu.</Note>
+                        </>
+                    )}
                 </Section>
             )}
 
             {technical.length > 0 && (
                 <Section title="Technické informace">
-                    <DetailGrid items={technical} />
+                    <MetricGrid items={technical} />
                 </Section>
             )}
 
             {(deployment.length > 0 || settings.length > 0) && (
                 <Section title="Nasazení a použití">
-                    {deployment.length > 0 && <ChipList items={deployment} />}
+                    {deploymentSteps.length > 1
+                        ? <FlowDiagram steps={deploymentSteps} />
+                        : deployment.length > 0 && <ChipList items={deployment} />}
 
                     {settings.length > 0 && (
                         <FieldGroup label="Doporučené nastavení">
@@ -233,23 +278,35 @@ function ModelDetail({ model, insights }: {
                             <div className="model-detail__benchmark-group" key={group.category ?? "bez kategorie"}>
                                 {group.category && <SectionTitle>{group.category}</SectionTitle>}
 
-                                {group.items.map((benchmark) => (
-                                    <p className="model-detail__benchmark" key={`${benchmark.name}-${benchmark.score}`}>
-                                        <span className="model-detail__benchmark-name">{benchmark.name}</span>
-                                        <strong className="model-detail__benchmark-score">{benchmark.score}</strong>
+                                {group.items.map((benchmark) => {
+                                    const percent = getBenchmarkPercent(benchmark);
 
-                                        {(benchmark.metric || benchmark.context) && (
-                                            <span className="model-detail__benchmark-meta">
-                                                {[benchmark.metric, benchmark.context].filter(Boolean).join(" · ")}
-                                            </span>
-                                        )}
-                                    </p>
-                                ))}
+                                    return (
+                                        <p className="model-detail__benchmark" key={`${benchmark.name}-${benchmark.score}`}>
+                                            <span className="model-detail__benchmark-name">{benchmark.name}</span>
+                                            <strong className="model-detail__benchmark-score">{benchmark.score}</strong>
+
+                                            {percent !== null && (
+                                                <ScoreBar percent={percent} className="model-detail__benchmark-bar" />
+                                            )}
+
+                                            {(benchmark.metric || benchmark.context) && (
+                                                <span className="model-detail__benchmark-meta">
+                                                    {[benchmark.metric, benchmark.context].filter(Boolean).join(" · ")}
+                                                </span>
+                                            )}
+                                        </p>
+                                    );
+                                })}
                             </div>
                         ))}
                     </div>
 
-                    <Note>Uvedeno autory modelu.</Note>
+                    <Note>
+                        {hasBenchmarkBars
+                            ? "Uvedeno autory modelu. Délka pruhu odpovídá uvedenému výsledku."
+                            : "Uvedeno autory modelu."}
+                    </Note>
                 </Section>
             )}
 
