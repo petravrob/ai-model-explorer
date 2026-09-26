@@ -6,7 +6,7 @@
  * se ukládají do databáze, takže se každý model generuje jen jednou.
  */
 
-const { SUMMARY_API_KEY } = require("../config/env");
+const { SUMMARY_ENABLED } = require("../config/env");
 const ModelDescription = require("../models/ModelDescription");
 const { requestCompletion } = require("./aiCompletion");
 
@@ -161,7 +161,7 @@ const pendingGenerations = new Set();
  * Hotové popisky se ukládají do databáze. Bez nastaveného klíče se nic neposílá.
  */
 async function generateDescriptions(models) {
-    if (!SUMMARY_API_KEY) {
+    if (!SUMMARY_ENABLED) {
         return [];
     }
 
