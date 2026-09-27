@@ -1,9 +1,5 @@
 import { AIModel } from "../types";
-import {
-    ModelFilterKey,
-    ModelFilters,
-    MODEL_FILTERS_CONFIG,
-} from "../filters";
+import { MODEL_FILTERS_CONFIG, type ModelFilterKey, type ModelFilters } from "../filters";
 
 /** Sestaví prázdný výběr všech filtrů podle konfigurace (výpis modelů nijak nezúží). */
 export const buildEmptyFilters = (): ModelFilters =>
@@ -68,4 +64,3 @@ export const applyFilters = (
             );
         })
     );
-    

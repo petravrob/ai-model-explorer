@@ -29,7 +29,6 @@ function ModelList({ models, onModelClick }: ModelListProps) {
                         <div className="model-list__media">
                             <ModelImage
                                 name={model.name}
-                                task={model.task}
                                 author={model.author}
                                 avatarUrl={model.avatarUrl}
                             />

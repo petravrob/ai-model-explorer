@@ -14,7 +14,7 @@
 
 .user-dropdown__trigger:hover,
 .user-dropdown.is-open .user-dropdown__trigger {
-    background: rgba(42, 82, 56, .06);
+    background: rgb(255 255 255 / 12%);
 }
 
 .user-dropdown .avatar {
@@ -27,7 +27,7 @@
     height: 0;
     border-right: 4px solid transparent;
     border-left: 4px solid transparent;
-    border-top: 5px solid var(--text-muted);
+    border-top: 5px solid currentColor;
     transition: transform .15s ease;
 }
 
@@ -44,8 +44,8 @@
     padding: .5rem 0;
     border: 1px solid var(--border);
     border-radius: 10px;
-    background: white;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, .1);
+    background: var(--surface);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, .12);
 }
 
 .user-dropdown__header {
@@ -86,15 +86,15 @@
 }
 
 .user-dropdown__item:hover {
-    background: var(--surface-warm);
+    background: var(--surface-muted);
 }
 
 .user-dropdown__item--logout {
-    color: #c0392b;
+    color: var(--danger);
 }
 
 .user-dropdown__item--logout:hover {
-    background: #fdf2f0;
+    background: var(--danger-light);
 }
 
 .user-dropdown__icon {
