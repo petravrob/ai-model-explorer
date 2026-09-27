@@ -6,7 +6,7 @@ interface CheckboxProps {
     onChange: () => void;
 }
 
-/** Zaškrtávací pole s popiskem. */
+/** Pole pro výběr s popiskem. */
 function Checkbox({ label, checked, onChange }: CheckboxProps) {
 
     return (

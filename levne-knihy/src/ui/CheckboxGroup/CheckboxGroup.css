@@ -1,125 +1,40 @@
-/* Rozbalovací kategorie filtrů */
-
-.checkbox-group__trigger {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    min-height: 3.7rem;
-    padding: 0.6rem 0.7rem;
-    color: var(--text);
-    background: var(--surface);
-    border: 1px solid #dfe6ee;
-    border-radius: var(--radius-lg);
-    text-align: left;
-    cursor: pointer;
-    transition: background-color var(--transition-fast), border-color var(--transition-fast);
-}
-
-.checkbox-group__trigger:hover,
-.checkbox-group--open .checkbox-group__trigger {
-    background: var(--surface-soft);
-    border-color: #cbd9ed;
-}
-
-.checkbox-group__icon {
-    display: grid;
-    place-items: center;
-    width: 2rem;
-    height: 2rem;
-    margin-right: 0.75rem;
-    flex-shrink: 0;
-    color: var(--primary);
-}
-
-/* Velikost ikony má přednost před výchozí velikostí komponenty Icon */
-.checkbox-group__trigger .checkbox-group__icon-svg {
-    width: 1.3rem;
-    height: 1.3rem;
-}
-
-.checkbox-group__title {
-    flex: 1;
-    font-size: 0.95rem;
-    font-weight: 600;
-}
-
-.checkbox-group__count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.8rem;
-    height: 1.7rem;
-    padding: 0 0.45rem;
-    margin-right: 0.7rem;
-    color: var(--primary);
-    background: #f1f6ff;
-    border: 1px solid #d5e2f7;
-    border-radius: var(--radius-pill);
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.checkbox-group__arrow {
-    width: 0.55rem;
-    height: 0.55rem;
-    flex-shrink: 0;
-    border-top: 1.7px solid var(--primary);
-    border-right: 1.7px solid var(--primary);
-    transform: rotate(45deg);
-    transition: transform 0.18s ease;
-}
-
-.checkbox-group--open .checkbox-group__arrow {
-    transform: rotate(135deg);
-}
-
-/* Rozbalené hodnoty */
-
-.checkbox-group__content {
-    padding: 0.5rem 0.35rem 0.2rem;
-}
-
-.checkbox-group__options {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 0.5rem;
-    margin: 0;
+/* Kategorie filtrů */
+.checkbox-group {
     padding: 0;
-    list-style: none;
 }
 
-.checkbox-group__option-item {
-    min-width: 0;
+/* Kategorie se od sebe oddělují mezerou a čárou */
+.checkbox-group + .checkbox-group {
+    margin-top: .5rem;
+    padding-top: .5rem;
+    border-top: 1px solid rgb(15 23 42 / 10%);
 }
 
-/* Podkategorie zabírá celý řádek mřížky a její hodnoty jsou odsazené */
-.checkbox-group__group-item {
-    grid-column: 1 / -1;
-    margin-bottom: 0.3rem;
+/* Hodnoty kategorií */
+.checkbox-group__content {
+    padding: 0 .2rem .4rem;
 }
 
-.checkbox-group__group-item .checkbox-group__options {
-    padding-left: 0.7rem;
-}
-
-.checkbox-group__group-label {
-    display: flex;
-    align-items: center;
-    padding: 0.2rem 0;
-    font-size: 0.78rem;
+/* Odkaz na zbytek hodnot filtru ("Zobrazit další") */
+.checkbox-group__more {
+    display: block;
+    width: 100%;
+    margin-top: .05rem;
+    padding: .15rem .35rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--primary-hover);
+    font-size: .72rem;
     font-weight: 600;
+    text-align: left;
 }
 
-.checkbox-group__group-label .checkbox-group__group-icon {
-    width: 0.95rem;
-    height: 0.95rem;
-    margin-right: 0.4rem;
-    flex-shrink: 0;
-    color: var(--primary);
+.checkbox-group__more:hover {
+    text-decoration: underline;
 }
 
-@media (max-width: 700px) {
-    .checkbox-group__options {
-        grid-template-columns: 1fr;
-    }
+.checkbox-group__more:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }

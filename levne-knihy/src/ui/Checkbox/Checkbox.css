@@ -38,7 +38,7 @@
     border-color: var(--primary);
 }
 
-/* Zmáčknutí pole je znát i na dotykových obrazovkách */
+/* Pro dotykové obrazovky */
 .checkbox:active .checkbox__input {
     transform: scale(0.92);
 }
