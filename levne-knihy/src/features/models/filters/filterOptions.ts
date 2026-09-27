@@ -20,12 +20,12 @@ export const TASK_FILTER_OPTIONS = [
         label: "obrázky",
         icon: "M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8.5 11.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM21 15l-5-5L5 21",
         children: [
+            { value: "text-to-image", label: "generování" },
             { value: "image-classification", label: "rozpoznávání" },
+            { value: "image-to-text", label: "popis obrázků" },
             { value: "object-detection", label: "detekce objektů" },
             { value: "image-segmentation", label: "segmentace" },
             { value: "image-to-image", label: "úprava" },
-            { value: "text-to-image", label: "generování" },
-            { value: "image-to-text", label: "popis obrázků" },
             { value: "text-to-3d", label: "generování 3D" },
             { value: "image-to-3d", label: "generování 3D" },
         ],
@@ -36,10 +36,10 @@ export const TASK_FILTER_OPTIONS = [
         icon: "M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8",
         children: [
             { value: "automatic-speech-recognition", label: "přepis řeči" },
-            { value: "audio-classification", label: "rozpoznávání zvuků" },
-            { value: "voice-activity-detection", label: "detekce řeči" },
             { value: "text-to-speech", label: "převod textu na řeč" },
+            { value: "audio-classification", label: "rozpoznávání zvuků" },
             { value: "text-to-audio", label: "generování zvuku" },
+            { value: "voice-activity-detection", label: "detekce řeči" },
             { value: "audio-to-audio", label: "úprava zvuku" },
         ],
     },
@@ -50,9 +50,9 @@ export const TASK_FILTER_OPTIONS = [
         children: [
             { value: "text-to-video", label: "generování" },
             { value: "image-to-video", label: "generování" },
+            { value: "video-text-to-text", label: "analýza" },
             { value: "video-classification", label: "rozpoznávání" },
             { value: "video-to-video", label: "úprava" },
-            { value: "video-text-to-text", label: "analýza" },
         ],
     },
     {
@@ -70,10 +70,10 @@ export const TASK_FILTER_OPTIONS = [
         label: "vyhledávání a podobnost",
         icon: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35",
         children: [
-            { value: "sentence-similarity", label: "podobný obsah" },
             { value: "feature-extraction", label: "extrakce vlastností" },
-            { value: "image-feature-extraction", label: "extrakce vlastností obrázků" },
+            { value: "sentence-similarity", label: "podobný obsah" },
             { value: "text-ranking", label: "řazení výsledků" },
+            { value: "image-feature-extraction", label: "extrakce vlastností obrázků" },
         ],
     },
     {
@@ -82,9 +82,9 @@ export const TASK_FILTER_OPTIONS = [
         icon: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
         children: [
             { value: "image-text-to-text", label: "obrázek a text" },
+            { value: "visual-question-answering", label: "otázky k obrázku" },
             { value: "image-text-to-image", label: "obrázek a text" },
             { value: "image-text-to-video", label: "obrázek a text" },
-            { value: "visual-question-answering", label: "otázky k obrázku" },
             { value: "video-text-to-text", label: "video a text" },
             { value: "any-to-any", label: "více typů obsahu" },
         ],
@@ -158,4 +158,26 @@ export const AUTHOR_FILTER_OPTIONS = [
     { value: "openai", label: "OpenAI" },
     { value: "Qwen", label: "Qwen (Alibaba)" },
     { value: "stabilityai", label: "Stability AI" },
+] as const;
+
+/** Knihovny, ve kterých se modely nejčastěji používají (library_name na Hugging Face). */
+export const LIBRARY_FILTER_OPTIONS = [
+    { value: "transformers", label: "Transformers" },
+    { value: "diffusers", label: "Diffusers" },
+    { value: "sentence-transformers", label: "Sentence Transformers" },
+    { value: "timm", label: "Timm" },
+    { value: "keras", label: "Keras" },
+    { value: "pytorch", label: "PyTorch" },
+] as const;
+
+/** Licence, které modely uvádějí nejčastěji. */
+export const LICENSE_FILTER_OPTIONS = [
+    { value: "apache-2.0", label: "Apache 2.0" },
+    { value: "mit", label: "MIT" },
+    { value: "cc-by-4.0", label: "CC BY 4.0" },
+    { value: "cc-by-nc-4.0", label: "CC BY-NC 4.0" },
+    { value: "openrail", label: "OpenRAIL" },
+    { value: "creativeml-openrail-m", label: "CreativeML OpenRAIL-M" },
+    { value: "llama3", label: "Llama 3" },
+    { value: "gemma", label: "Gemma" },
 ] as const;

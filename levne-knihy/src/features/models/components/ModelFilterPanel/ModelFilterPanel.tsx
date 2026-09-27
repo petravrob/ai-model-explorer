@@ -1,6 +1,6 @@
 import "./ModelFilterPanel.css";
 
-import { Button, CheckboxGroup, PageTitle } from "@/ui";
+import { Button, CheckboxGroup, FILTER_ICON, Icon, PageTitle } from "@/ui";
 
 import { ModelFilterPanelProps } from "../../types";
 import { MODEL_FILTERS_CONFIG } from "../../filters";
@@ -15,28 +15,28 @@ function ModelFilterPanel({
     return (
         <aside className="model-filter-panel">
             <div className="model-filter-panel__header">
+                <Icon path={FILTER_ICON} className="model-filter-panel__icon" />
+
                 <PageTitle compact>Filtry</PageTitle>
 
-                <div className="model-filter-panel__actions">
-                    {isFilterActive && (
-                        <Button
-                            variant="outline"
-                            className="model-filter-panel__reset"
-                            onClick={onReset}
-                        >
-                            Vymazat filtry
-                        </Button>
-                    )}
-                </div>
+                {isFilterActive && (
+                    <Button
+                        variant="outline"
+                        className="model-filter-panel__reset"
+                        onClick={onReset}
+                    >
+                        Vymazat vše
+                    </Button>
+                )}
             </div>
 
             <div className="model-filter-panel__categories">
                 {MODEL_FILTERS_CONFIG.map((filterConfig) => (
                     <CheckboxGroup
                         key={filterConfig.key}
-                        filterKey={filterConfig.key}
                         title={filterConfig.title}
                         icon={filterConfig.icon}
+                        visibleValues={filterConfig.visibleValues}
                         options={filterConfig.options}
                         selected={filters[filterConfig.key]}
                         onToggle={(value: string) =>

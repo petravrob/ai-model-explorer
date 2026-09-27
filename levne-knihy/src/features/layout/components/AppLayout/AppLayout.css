@@ -1,0 +1,11 @@
+/* Rozvržení aplikace: horní lišta s logem a obsah stránky */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+.app-layout__main {
+    flex: 1;
+    background: var(--background);
+}

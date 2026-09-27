@@ -1,0 +1,86 @@
+/* Kategorie se celá dá rozbalit a skrýt */
+.checkbox-group__header {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    width: 100%;
+    padding: .45rem .4rem;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    text-align: left;
+    transition: background-color var(--transition-fast);
+}
+
+/* Zvýrazní kategorii na hover */
+.checkbox-group__header:hover {
+    background: rgb(255 255 255 / 60%);
+}
+
+.checkbox-group__header:hover .checkbox-group__title {
+    color: var(--primary);
+}
+
+/* Ovládání klávesnicí */
+.checkbox-group__header:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Ikona kategorie */
+.checkbox-group__icon {
+    display: grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    flex-shrink: 0;
+    color: var(--primary);
+    background: var(--primary-light);
+    border-radius: var(--radius-md);
+}
+
+/* Velikost ikony */
+.checkbox-group__header .checkbox-group__icon-svg {
+    width: .85rem;
+    height: .85rem;
+}
+
+.checkbox-group__title {
+    flex: 1;
+    color: var(--text);
+    font-size: .9rem;
+    font-weight: 600;
+}
+
+/* Počet zvolených hodnot v kategorii */
+.checkbox-group__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.2rem;
+    flex-shrink: 0;
+    padding: 0 .4rem;
+    color: var(--primary);
+    background: var(--primary-light);
+    border-radius: var(--radius-pill);
+    font-size: .66rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Šipka ukazuje, zda jsou hodnoty kategorie zobrazené */
+.checkbox-group__chevron {
+    width: .5rem;
+    height: .5rem;
+    flex-shrink: 0;
+    margin: -.15rem .3rem 0 0;
+    border-right: 1.6px solid var(--text-subtle);
+    border-bottom: 1.6px solid var(--text-subtle);
+    transform: rotate(45deg);
+    transition: transform .18s ease;
+}
+
+.checkbox-group__chevron--open {
+    margin-top: .15rem;
+    transform: rotate(225deg);
+}

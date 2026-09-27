@@ -3,7 +3,7 @@ import "./DetailItem.css";
 import type { ReactNode } from "react";
 
 /** Hodnota, která se zobrazí místo chybějícího údaje. */
-export const MISSING_VALUE = "——";
+export const MISSING_VALUE = "neuvedeno";
 
 interface DetailItemProps {
     label: string;

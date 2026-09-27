@@ -15,3 +15,12 @@ export const TEXT_ICON = "M4 6h16M4 12h16M4 18h10";
 export const IMAGE_ICON = "M4 5h16v14H4zM9.5 10.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M4 16l5-5 4 4 3-3 4 4";
 export const AUDIO_ICON = "M5 9v6h3l4 4V5L8 9H5M16 9a4 4 0 0 1 0 6";
 export const VIDEO_ICON = "M3 6h12v12H3zM15 10l6-4v12l-6-4";
+
+// Logo aplikace
+export const ROBOT_ICON = "M4.5 11.5A4 4 0 0 1 8.5 7.5h7a4 4 0 0 1 4 4v2.5a4 4 0 0 1-4 4h-7a4 4 0 0 1-4-4zM12 3.6v3.9M13 2.6a1 1 0 1 1-2 0 1 1 0 0 1 2 0M9.7 11.2v1.9M14.3 11.2v1.9M9.8 14.7q2.2 1.9 4.4 0M2.7 12.1v2.8M21.3 12.1v2.8";
+
+// Zobrazení zvolených filtrů 
+export const FILTER_ICON = "M4 6h16M7 12h10M10 18h4";
+
+// Přihlášený uživatel
+export const USER_ICON = "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";

@@ -24,7 +24,7 @@
     color: var(--text-muted);
 }
 
-/* Skrytí nativního mazátka u type="search" – používáme vlastní tlačítko */
+/* Skrytí nativního mazátka u type="search" - používáme vlastní tlačítko */
 .search-field__input::-webkit-search-cancel-button,
 .search-field__input::-webkit-search-decoration {
     -webkit-appearance: none;

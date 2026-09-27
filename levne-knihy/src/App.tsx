@@ -1,31 +1,28 @@
 import "./styles/global.css";
-import "./App.css";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AppLayout } from "@/features/layout";
 import { AuthProvider } from "@/features/user";
-import { Footer, Header } from "@/features/layout";
 import { AppRoutes } from "@/routes";
 
 function App() {
   return (
     <AuthProvider>
-    <div className="app">
-      <Header/>
-      <main>
+      <AppLayout>
         <AppRoutes />
-      </main>
+      </AppLayout>
+
       <ToastContainer
-                position="bottom-left"
-                autoClose={4000}
-                hideProgressBar={true}
-                newestOnTop
-                closeOnClick
-                pauseOnHover
-                draggable
-                theme="light"
-            />
-    </div>
+        position="bottom-left"
+        autoClose={4000}
+        hideProgressBar={true}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+      />
     </AuthProvider>
   );
 }

@@ -1,54 +1,64 @@
+/* Panel s filtry (na celou výšku) */
 .model-filter-panel {
-    position: sticky;
-    top: calc(var(--header-height) + 5rem);
     display: flex;
+    flex: 1;
+    min-height: 0;
     flex-direction: column;
-    height: calc(100vh - var(--header-height) - 5rem - 1rem);
-    max-height: calc(100vh - var(--header-height) - 5rem - 1rem);
-    align-self: start;
-    padding: 1.15rem;
-    background: var(--surface);
-    border: 1px solid #e1e7ef;
-    border-radius: var(--radius-lg);
-    box-shadow:
-        0 1px 2px rgba(15, 23, 42, 0.03),
-        0 5px 14px rgba(15, 23, 42, 0.05);
-    overflow: hidden;
-    margin-right: 25px;
 }
 
 .model-filter-panel__header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding-bottom: 0.9rem;
-    margin-bottom: 0.8rem;
-    border-bottom: 1px solid var(--border);
-    line-height: 2rem;
+    gap: .6rem;
+    padding: 0 .4rem .5rem;
 }
 
-.model-filter-panel__actions {
-    display: flex;
-    min-height: 2.7rem;
-    align-items: center;
-    gap: var(--space-2);
+/* Ikona */
+.model-filter-panel .model-filter-panel__icon {
+    width: 1.05rem;
+    height: 1.05rem;
+    color: var(--primary);
 }
 
-/* Kompaktní tlačítko „Vymazat filtry“ v hlavičce panelu */
-.model-filter-panel__reset {
-    padding: 0.35rem 0.8rem;
-    font-size: 0.8rem;
-    line-height: 1rem;
+/* Nadpis panelu */
+.model-filter-panel .page-title {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 700;
 }
 
+/* Tlačítko "Vymazat vše" */
+.model-filter-panel .model-filter-panel__reset {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--primary-hover);
+    font-size: .78rem;
+    font-weight: 600;
+    line-height: 1.1rem;
+}
+
+.model-filter-panel .model-filter-panel__reset:hover {
+    background: transparent;
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.model-filter-panel .model-filter-panel__reset:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Kategorie (na celý řádek) */
 .model-filter-panel__categories {
+    display: flex;
     flex: 1;
     min-height: 0;
-    display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding-right: 0.2rem;
+    padding-top: .4rem;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: var(--border-muted) transparent;
 }
@@ -62,14 +72,11 @@
     border-radius: var(--radius-pill);
 }
 
-/* Na mobilu panel není přichycený a roste s obsahem */
-@media (max-width: 600px) {
-    .model-filter-panel {
-        position: static;
-        height: auto;
-        max-height: none;
-        padding: 1rem;
-        overflow: visible;
+@media (max-width: 900px) {
+    .model-filter-panel,
+    .model-filter-panel__categories {
+        flex: none;
+        min-height: auto;
     }
 
     .model-filter-panel__categories {

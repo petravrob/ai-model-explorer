@@ -1,6 +1,6 @@
 .model-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1rem;
     margin: 0;
     padding: 0;
@@ -13,37 +13,44 @@
     overflow: hidden;
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    background: white;
+    background: var(--surface);
     box-shadow:
         0 1px 2px rgba(15, 23, 42, .04),
-        0 6px 16px rgba(15, 23, 42, .05);
+        0 8px 20px rgba(15, 23, 42, .06);
     cursor: pointer;
-    transition: transform .2s ease, box-shadow .2s ease;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 
 .model-list__item:hover {
-    transform: translateY(-3px);
-    border-color: #d3ddec;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, .12);
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, .11);
 }
 
 /* Hlavička karty s logem modelu, jeho názvem a poskytovatelem */
 .model-list__media {
     display: flex;
     align-items: center;
-    gap: .8rem;
-    min-height: 92px;
+    gap: .9rem;
     padding: 1.1rem 1.15rem .8rem;
 }
 
 /* Logo autora, případně zástupný obrázek s počátečním písmenem */
 .model-list__image {
     display: block;
-    width: 72px;
-    height: 72px;
+    width: 80px;
+    height: 80px;
     flex-shrink: 0;
+    padding: .35rem;
     object-fit: contain;
     border-radius: var(--radius-md);
+    background: var(--surface-soft);
+    box-shadow: 0 0 0 1px var(--border);
+    transition: box-shadow var(--transition-fast);
+}
+
+.model-list__item:hover .model-list__image {
+    box-shadow: 0 0 0 1px var(--primary);
 }
 
 /* Název modelu a poskytovatel vedle loga */
@@ -103,23 +110,31 @@
 .model-list__meta {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: .5rem;
-    margin-top: .3rem;
+    gap: .5rem .55rem;
+    margin-top: auto;
+    padding-top: .35rem;
+}
+
+.model-list__meta .detail-item {
+    gap: .1rem;
 }
 
 /* Údaje v kartě jsou kompaktnější než v detailu modelu */
 .model-list__meta .detail-item__label {
-    font-size: .62rem;
+    overflow: hidden;
+    color: var(--text-subtle);
+    font-size: .64rem;
+    letter-spacing: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .model-list__meta .detail-item__value {
-    display: -webkit-box;
     overflow: hidden;
-    font-size: .82rem;
-    line-height: 1.3;
-    overflow-wrap: anywhere;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    font-size: .76rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .model-list__stats {
@@ -128,8 +143,10 @@
     align-items: center;
     justify-content: space-between;
     gap: .5rem;
-    margin-top: auto;
-    padding-top: .7rem;
+    margin: 0 -1.15rem -1.15rem;
+    padding: .7rem 1.15rem;
+    border-top: 1px solid var(--border);
+    background: var(--surface-soft);
 }
 
 @media (max-width: 600px) {
@@ -139,13 +156,12 @@
     }
 
     .model-list__media {
-        min-height: 84px;
         padding: .9rem 1rem .7rem;
     }
 
     .model-list__image {
-        width: 64px;
-        height: 64px;
+        width: 72px;
+        height: 72px;
     }
 
     .model-list__body {
@@ -154,5 +170,10 @@
 
     .model-list__name {
         font-size: 1rem;
+    }
+
+    .model-list__stats {
+        margin: 0 -1rem -1.05rem;
+        padding: .65rem 1rem;
     }
 }

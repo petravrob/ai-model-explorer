@@ -5,10 +5,10 @@
 }
 
 .detail-item__label {
-    color: var(--text-faint);
+    color: var(--text-subtle);
     font-size: .7rem;
     font-weight: 600;
-    letter-spacing: .04em;
+    letter-spacing: .02em;
     text-transform: uppercase;
 }
 
@@ -16,4 +16,10 @@
     color: var(--text);
     font-size: .95rem;
     font-weight: 600;
+}
+
+/* Chybějící údaj */
+.detail-item__value--missing {
+    color: var(--text-subtle);
+    font-weight: 400;
 }

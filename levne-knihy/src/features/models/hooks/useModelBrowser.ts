@@ -43,15 +43,12 @@ function useModelBrowser() {
     // nesmí ji přepsat prázdným seznamem po konkrétním vyfiltrování.
     const [allModels, setAllModels] = useState<AIModel[]>([]);
 
-    const [loading, setLoading] =
-        useState<boolean>(true);
+    const [loading, setLoading] = useState(true);
 
-    const [error, setError] =
-        useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-    // Příznak dokončeného úvodního načtení – při obnově kvůli filtrům zůstane na stránce stávající výpis
-    const [hasLoaded, setHasLoaded] =
-        useState<boolean>(false);
+    // Příznak dokončeného úvodního načtení: při obnově kvůli filtrům zůstane na stránce stávající výpis
+    const [hasLoaded, setHasLoaded] = useState(false);
 
     const navigate = useNavigate();
 
@@ -74,10 +71,9 @@ function useModelBrowser() {
     const [sort, setSort] = useState<ModelSortKey>(DEFAULT_SORT);
 
     // Kolik modelů je z výpisu zobrazených (další se přidají tlačítkem)
-    const [visibleCount, setVisibleCount] = useState<number>(MODELS_PER_LOADING);
+    const [visibleCount, setVisibleCount] = useState(MODELS_PER_LOADING);
 
     // Načtení modelů podle zvolených filtrů (s filtry se filtruje přímo na serveru z Hugging Face)
-    // TODO: prověřit aktuální práci s databází, možná to upravit
     useEffect(() => {
 
         const requestId = ++latestRequestIdRef.current;
@@ -221,13 +217,6 @@ function useModelBrowser() {
         };
     }, [visibleModels]);
 
-    // Změní řazení výpisu modelů (výpis se načte znovu z Hugging Face)
-    const handleSortChange = (newSort: ModelSortKey): void => {
-
-        setSort(newSort);
-    };
-
-
     // Přechod na stránku detailu modelu
     const handleModelClick = (
         model: AIModel
@@ -238,48 +227,28 @@ function useModelBrowser() {
 
     };
 
-
     // Načte do výpisu další množství modelů
     const loadMore = (): void => {
         setVisibleCount((current) => current + MODELS_PER_LOADING);
     };
 
-
     return {
         models: visibleModels,
-
-        totalCount: searchedModels.length,
-
         hasMore: searchedModels.length > visibleModels.length,
-
         loadMore,
-
         searchQuery,
-
         isFuzzySearch,
-
         filters,
-
         isFilterActive,
-
         handleFilterChange,
-
         resetFilters,
-
         sort,
-
-        handleSortChange,
-
+        setSort,
         handleModelClick,
-
         loading,
-
         hasLoaded,
-
         error,
     };
 }
 
-
 export default useModelBrowser;
-

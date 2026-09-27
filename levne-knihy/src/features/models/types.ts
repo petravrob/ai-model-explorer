@@ -2,7 +2,6 @@ import type { ModelFilterKey, ModelFilters } from "./filters";
 
 export interface AIModel {
     // Databázový identifikátor (modely načtené živě z Hugging Face ho nemají)
-    // TODO: prověřit aktuální práci s databází, možná to upravit
     _id?: string;
     modelId: string;
     name: string;
@@ -13,6 +12,8 @@ export interface AIModel {
     downloads: number;
     likes: number;
     tags: string[];
+    trendingScore?: number | null;
+    createdAt?: string | null;
     // Krátký český popis modelu pro kartu (doplňuje ho skript generateDescriptions na serveru)
     description?: string | null;
     license: string | null;
@@ -20,12 +21,6 @@ export interface AIModel {
     lastModified: string | null;
     url: string;
     avatarUrl: string | null;
-}
-/** Text model card (README) modelu tak, jak je na Hugging Face. */
-export interface ModelCardContent {
-    modelId: string;
-    // Text karty v Markdownu; null když model vlastní popis nemá
-    content: string | null;
 }
 /** Výsledek benchmarku uvedený přímo v dokumentaci modelu. */
 export interface ModelBenchmark {
@@ -110,4 +105,3 @@ export interface ModelFilterPanelProps {
     onFilterChange: (key: ModelFilterKey, value: string) => void;
     onReset: () => void;
 }
-

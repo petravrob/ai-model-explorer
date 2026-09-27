@@ -177,7 +177,6 @@ function ModelDetail({ model, insights }: {
                 <ModelImage
                     className="model-detail__image"
                     name={model.name}
-                    task={model.task}
                     author={model.author}
                     avatarUrl={model.avatarUrl}
                 />
