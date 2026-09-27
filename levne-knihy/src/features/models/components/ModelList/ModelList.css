@@ -95,9 +95,12 @@
     white-space: nowrap;
 }
 
-/* Popis modelu má dvě věty, do karty se vejde na pět řádků */
+/* Popis modelu má dvě věty, do karty se vejde na pět řádků.
+   Prostor pro popis je vyhrazený už při vytvoření karty, aby se karta
+   po vygenerování textu nemusela zvětšovat a výpis modelů neposkakoval. */
 .model-list__summary {
     display: -webkit-box;
+    min-height: 7.25em; /* pět řádků popisu (5 × 1.45) */
     margin: 0;
     overflow: hidden;
     color: var(--text-muted);
@@ -105,6 +108,42 @@
     line-height: 1.45;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 5;
+}
+
+/* Kostra popisku, který se teprve generuje (stejný prostor jako hotový text) */
+.model-list__summary--placeholder {
+    display: flex;
+    flex-direction: column;
+    gap: .75em;
+}
+
+.model-list__summary-line {
+    height: .7em;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(90deg, var(--surface-muted), var(--surface-soft) 45%, var(--surface-muted));
+    background-size: 220% 100%;
+    animation: model-list-placeholder 1.6s ease-in-out infinite;
+}
+
+/* Poslední řádek kostry je kratší, aby připomínal konec popisu */
+.model-list__summary-line:last-child {
+    width: 60%;
+}
+
+@keyframes model-list-placeholder {
+    from {
+        background-position: 100% 0;
+    }
+
+    to {
+        background-position: -100% 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .model-list__summary-line {
+        animation: none;
+    }
 }
 
 .model-list__meta {

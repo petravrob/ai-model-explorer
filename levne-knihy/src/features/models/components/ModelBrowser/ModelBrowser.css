@@ -39,13 +39,49 @@
     margin-left: auto;
 }
 
-/* Poznámky nad prohlížečem modelů: obnova výsledků při změně filtrů apod. */
-.model-browser__refresh-note,
+/* Poznámky nad prohlížečem modelů: nález podobných modelů, význam štítku */
 .model-browser__fuzzy-note,
 .model-browser__tab-note {
     margin: 0 0 1.25rem;
     color: var(--text-muted);
     font-size: .875rem;
+}
+
+/* Výsledky výpisu */
+.model-browser__results {
+    position: relative;
+}
+
+/*
+ * Animace při načítaní
+ */
+.model-browser__loading {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    align-items: start;
+    justify-items: center;
+    padding: 2rem 0;
+    border-radius: var(--radius-lg);
+    background: rgb(255 255 255 / 70%);
+    backdrop-filter: blur(2px);
+    pointer-events: none;
+}
+
+/* Animace se rovná ke středu obrazovky, aby byla vidět i u dlouhého výpisu */
+.model-browser__loading .logo-loader {
+    position: sticky;
+    top: 50vh;
+    transform: translateY(-50%);
+}
+
+/* První načtení stránky */
+.model-browser__initial-loading {
+    display: grid;
+    place-items: center;
+    min-height: 42vh;
+    padding: 3rem 0;
 }
 
 /* Tlačítko "Načíst další modely" */

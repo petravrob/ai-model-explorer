@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 
 import { ROUTE_PATHS } from "@/routes/paths";
 import { UserDropdown, useCurrentUser, useLogout } from "@/features/user";
-import { Icon, LinkButton, ROBOT_ICON, USER_ICON } from "@/ui";
+import { Icon, LinkButton, LogoBadge, USER_ICON } from "@/ui";
 
 import SearchBar from "./SearchBar";
 
@@ -19,9 +19,7 @@ function Header() {
 
                 <NavLink to={ROUTE_PATHS.home} className="header__brand">
                     
-                    <span className="header__logo">
-                        <Icon path={ROBOT_ICON} className="header__logo-icon" />
-                    </span>
+                    <LogoBadge />
 
                     <span className="header__brand-text">
                         <span className="header__title">AI Modely</span>

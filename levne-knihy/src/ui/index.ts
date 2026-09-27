@@ -19,6 +19,8 @@ export { default as FormField } from "./FormField/FormField";
 export { default as Icon } from "./Icon/Icon";
 export { DOWNLOAD_ICON, FILTER_ICON, LIKE_ICON, ROBOT_ICON, USER_ICON } from "./Icon/icons";
 export { default as LinkButton } from "./LinkButton/LinkButton";
+export { default as LogoBadge } from "./LogoBadge/LogoBadge";
+export { default as LogoLoader } from "./LogoLoader/LogoLoader";
 export { default as MetricGrid } from "./MetricGrid/MetricGrid";
 export type { MetricItem } from "./MetricGrid/MetricGrid";
 export { default as ModalityBadges } from "./ModalityBadges/ModalityBadges";

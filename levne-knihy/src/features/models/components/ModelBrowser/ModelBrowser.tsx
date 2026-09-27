@@ -2,7 +2,7 @@ import "./ModelBrowser.css";
 
 import useModelBrowser from "../../hooks/useModelBrowser";
 import { DEFAULT_TAB, MODEL_TABS_CONFIG } from "../../modelTabsConfig";
-import { Button, PageContainer, PageMessage } from "@/ui";
+import { Button, LogoLoader, PageContainer, PageMessage } from "@/ui";
 
 import ModelFilterPanel from "../ModelFilterPanel/ModelFilterPanel";
 import ModelList from "../ModelList/ModelList";
@@ -14,6 +14,7 @@ function ModelBrowser() {
 
     const {
         models,
+        pendingDescriptionIds,
         hasMore,
         loadMore,
         searchQuery,
@@ -39,7 +40,13 @@ function ModelBrowser() {
         return (
             <PageContainer>
                 <div className="model-browser">
-                    <PageMessage>{error ?? "Načítání modelů..."}</PageMessage>
+                    {error ? (
+                        <PageMessage>{error}</PageMessage>
+                    ) : (
+                        <div className="model-browser__initial-loading">
+                            <LogoLoader label="Načítání modelů" />
+                        </div>
+                    )}
                 </div>
             </PageContainer>
         );
@@ -93,13 +100,7 @@ function ModelBrowser() {
                     ) : models.length === 0 ? (
                         <PageMessage>{emptyMessage}</PageMessage>
                     ) : (
-                        <>
-                            {loading && (
-                                <p className="model-browser__refresh-note" role="status">
-                                    Aktualizace modelů...
-                                </p>
-                            )}
-
+                        <div className="model-browser__results">
                             {isFuzzySearch && (
                                 <p className="model-browser__fuzzy-note">
                                     Přesná shoda nenalezena, zobrazují se nejpodobnější modely.
@@ -109,6 +110,7 @@ function ModelBrowser() {
                             <ModelList
                                 models={models}
                                 onModelClick={handleModelClick}
+                                pendingDescriptionIds={pendingDescriptionIds}
                             />
 
                             {hasMore && (
@@ -118,7 +120,14 @@ function ModelBrowser() {
                                     </Button>
                                 </div>
                             )}
-                        </>
+
+                            {/* Obnova výpisu (filtry, řazení, štítek): animace s logem se pokládá přes výsledky, takže se výpis neposouvá */}
+                            {loading && (
+                                <div className="model-browser__loading">
+                                    <LogoLoader />
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
             </PageContainer>
