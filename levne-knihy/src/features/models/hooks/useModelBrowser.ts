@@ -38,6 +38,9 @@ const FILTERS_FETCH_DELAY_MS = 400;
 // Kolik modelů se zobrazí na jedno načtení (menší množství znamená méně generovaných popisků)
 const MODELS_PER_LOADING = 24;
 
+// Kolik popisků se vyžádá najednou (stejný počet jich na jedno vyžádání vygeneruje i server)
+const DESCRIPTIONS_PER_LOAD = 3;
+
 /** Obstarává logiku zobrazení seznamu modelů a přechodu na jejich detail */
 function useModelBrowser() {
 
@@ -192,41 +195,82 @@ function useModelBrowser() {
     // Zobrazuje se jen první načtené modely (24), další se přidají tlačítkem "Načíst další"
     const visibleModels = searchedModels.slice(0, visibleCount);
 
+    // Modely, u kterých už doplnění popisku proběhlo (i když popisek nakonec nedorazil).
+    // Karta podle toho pozná, že místo kostry má zobrazit zástupný text.
+    const [finishedDescriptionIds, setFinishedDescriptionIds] = useState<string[]>([]);
+
+    // Popisky, které se právě doplňují, aby se stejný popisek nežádal víckrát
+    const requestedDescriptionIdsRef = useRef(new Set<string>());
+
     // Popisky se doplňují postupně po třech, aby se negenerovalo všechno najednou.
     // Hotové se uloží a příště se jen zobrazí, takže se každý model generuje jen jednou.
     useEffect(() => {
-        const missing = visibleModels.filter((model) => !model.description).slice(0, 3);
+
+        // Vyžádaná dávka popisků se eviduje, aby se stejný popisek nežádal víckrát
+        const requestedIds = requestedDescriptionIdsRef.current;
+
+        // Další dávka se vyžádá, až když předchozí dorazí (server jich víc najednou negeneruje)
+        if (requestedIds.size > 0) {
+            return;
+        }
+
+        const missing = visibleModels
+            .filter((model) =>
+                !model.description?.trim() &&
+                !finishedDescriptionIds.includes(model.modelId)
+            )
+            .slice(0, DESCRIPTIONS_PER_LOAD);
 
         if (missing.length === 0) {
             return;
         }
 
-        let isCancelled = false;
+        const missingIds = missing.map((model) => model.modelId);
+
+        missingIds.forEach((modelId) => requestedIds.add(modelId));
 
         void (async () => {
+
             try {
+
                 const generated = await createDescriptions(missing);
 
-                if (isCancelled || generated.length === 0) {
-                    return;
+                if (generated.length > 0) {
+                    setAllModels((current) =>
+                        current.map((model) => {
+                            const filled = generated.find((item) => item.modelId === model.modelId);
+
+                            return filled ? { ...model, description: filled.description } : model;
+                        })
+                    );
                 }
 
-                setAllModels((current) =>
-                    current.map((model) => {
-                        const filled = generated.find((item) => item.modelId === model.modelId);
-
-                        return filled ? { ...model, description: filled.description } : model;
-                    })
-                );
             } catch (error) {
+
                 console.error("Nepodařilo se doplnit popisky:", error);
+
+            } finally {
+
+                missingIds.forEach((modelId) => requestedIds.delete(modelId));
+
+                // Vyřízená dávka se ohlásí: karty, které popisek nedostaly, už na něj nečekají
+                // (místo kostry se u nich zobrazí zástupný text) a vyžádá se další dávka
+                setFinishedDescriptionIds((current) => [...new Set([...current, ...missingIds])]);
+
             }
+
         })();
 
-        return () => {
-            isCancelled = true;
-        };
-    }, [visibleModels]);
+    }, [visibleModels, finishedDescriptionIds]);
+
+    // Modely, kterým se popisek teprve generuje: karta za ně drží stejně velký prostor, jako
+    // zabere hotový text, takže se výpis při doplňování popisků nepřeskupuje
+    const pendingDescriptionIds = useMemo(
+        () => visibleModels
+            .filter((model) => !model.description?.trim() && !finishedDescriptionIds.includes(model.modelId))
+            .map((model) => model.modelId),
+        [visibleModels, finishedDescriptionIds]
+    );
 
     // Přechod na stránku detailu modelu
     const handleModelClick = (
@@ -245,6 +289,7 @@ function useModelBrowser() {
 
     return {
         models: visibleModels,
+        pendingDescriptionIds,
         hasMore: searchedModels.length > visibleModels.length,
         loadMore,
         searchQuery,

@@ -14,6 +14,7 @@ function ModelBrowser() {
 
     const {
         models,
+        pendingDescriptionIds,
         hasMore,
         loadMore,
         searchQuery,
@@ -109,6 +110,7 @@ function ModelBrowser() {
                             <ModelList
                                 models={models}
                                 onModelClick={handleModelClick}
+                                pendingDescriptionIds={pendingDescriptionIds}
                             />
 
                             {hasMore && (

@@ -97,6 +97,8 @@ export interface ModelInsights {
 export interface ModelListProps {
     models: AIModel[];
     onModelClick: (model: AIModel) => void;
+    // Identifikátory modelů, kterým se popisek teprve generuje (karta za něj drží připravený prostor)
+    pendingDescriptionIds?: string[];
 }
 /** Vlastnosti levého panelu s filtry pro filtrování modelů. */
 export interface ModelFilterPanelProps {

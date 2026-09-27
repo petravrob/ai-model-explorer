@@ -7,8 +7,22 @@ import { ChipList, DetailItem, DOWNLOAD_ICON, LIKE_ICON, MISSING_VALUE, Stat } f
 
 import ModelImage from "./ModelImage";
 
+// Kolik řádků má kostra popisku (odpovídá pěti řádkům, na které se popis ořezává)
+const SUMMARY_PLACEHOLDER_LINES = 5;
+
+/** Kostra popisku, který se teprve generuje (drží stejný prostor jako hotový text) */
+function SummaryPlaceholder() {
+    return (
+        <p className="model-list__summary model-list__summary--placeholder" aria-hidden="true">
+            {Array.from({ length: SUMMARY_PLACEHOLDER_LINES }, (_, index) => (
+                <span className="model-list__summary-line" key={index} />
+            ))}
+        </p>
+    );
+}
+
 /** Zobrazuje seznam modelů */
-function ModelList({ models, onModelClick }: ModelListProps) {
+function ModelList({ models, onModelClick, pendingDescriptionIds = [] }: ModelListProps) {
     return (
         <ul className="model-list">
             {models.map((model) => {
@@ -16,6 +30,10 @@ function ModelList({ models, onModelClick }: ModelListProps) {
                 const tags = getModelTagList(model);
                 const summary = getModelSummary(model);
                 const provider = getModelProvider(model.author);
+
+                // Popisek se teprve doplňuje: místo zástupného textu se ukáže kostra,
+                // aby se karta po dopsání popisku nemusela zvětšovat
+                const isSummaryPending = pendingDescriptionIds.includes(model.modelId);
 
                 // Když model nemá vlastní štítek, ukáže se aspoň jeho úloha
                 const chipTags = tags.secondary.length > 0 ? tags.secondary : (tags.primary ? [tags.primary] : []);
@@ -45,9 +63,13 @@ function ModelList({ models, onModelClick }: ModelListProps) {
                         </div>
 
                         <div className="model-list__body">
-                            <p className="model-list__summary" title={summary}>
-                                {summary}
-                            </p>
+                            {isSummaryPending ? (
+                                <SummaryPlaceholder />
+                            ) : (
+                                <p className="model-list__summary" title={summary}>
+                                    {summary}
+                                </p>
+                            )}
 
                             {chipTags.length > 0 && (
                                 <ChipList
