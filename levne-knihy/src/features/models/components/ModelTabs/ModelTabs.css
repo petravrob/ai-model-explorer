@@ -7,19 +7,19 @@
 
 /* Jeden štítek */
 .model-tabs__tab {
-    padding: .3rem .85rem;
+    padding: .44rem .85rem;
     border: 1px solid var(--border-muted);
     border-radius: var(--radius-pill);
     background: var(--surface);
     color: var(--text-muted);
     font-size: .85rem;
     font-weight: 600;
+    line-height: 1;
     transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .model-tabs__tab:hover {
     border-color: var(--primary);
-    background: var(--primary-light);
     color: var(--primary);
 }
 
@@ -32,7 +32,7 @@
 .model-tabs__tab--active,
 .model-tabs__tab--active:hover {
     border-color: var(--primary);
-    background: var(--primary);
-    color: var(--on-primary);
+    background: var(--primary-light);
+    color: var(--primary);
 }
 
