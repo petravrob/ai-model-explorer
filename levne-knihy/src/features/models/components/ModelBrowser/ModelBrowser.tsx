@@ -1,11 +1,13 @@
 import "./ModelBrowser.css";
 
 import useModelBrowser from "../../hooks/useModelBrowser";
+import { DEFAULT_TAB, MODEL_TABS_CONFIG } from "../../modelTabsConfig";
 import { Button, PageContainer, PageMessage } from "@/ui";
 
 import ModelFilterPanel from "../ModelFilterPanel/ModelFilterPanel";
 import ModelList from "../ModelList/ModelList";
 import ModelSort from "../ModelSort/ModelSort";
+import ModelTabs from "../ModelTabs/ModelTabs";
 
 /** Rozhraní pro zobrazení seznamu modelů. */
 function ModelBrowser() {
@@ -22,6 +24,8 @@ function ModelBrowser() {
         resetFilters,
         sort,
         setSort,
+        tab,
+        setTab,
         handleModelClick,
 
         loading,
@@ -41,12 +45,21 @@ function ModelBrowser() {
         );
     }
 
-    // Zpráva pro prázdný výpis, rozliší hledání a prázdnou databázi
+    // Zvolený štítek (jiný než výchozí) výpis zúží, jeho význam se vypíše nad výsledky
+    const isTabActive = tab !== DEFAULT_TAB;
+
+    const activeTab = MODEL_TABS_CONFIG.find(
+        (tabOption) => tabOption.value === tab
+    ) ?? MODEL_TABS_CONFIG[0];
+
+    // Zpráva pro prázdný výpis, rozliší hledání, filtry, štítek a prázdnou databázi
     const emptyMessage = searchQuery
         ? `Pro hledaný výraz „${searchQuery}“ nebyly nalezeny žádné modely.`
         : isFilterActive
             ? "Podle zvolených filtrů nebyly nalezeny žádné modely."
-            : "Nebyly nalezeny žádné modely.";
+            : isTabActive
+                ? `Pro štítek „${activeTab.label}“ nebyly nalezeny žádné modely.`
+                : "Nebyly nalezeny žádné modely.";
 
     return (
         <div className="model-browser-layout">
@@ -64,8 +77,16 @@ function ModelBrowser() {
                 <div className="model-browser" aria-busy={loading}>
 
                     <div className="model-browser__toolbar">
+                        <ModelTabs value={tab} onChange={setTab} />
                         <ModelSort value={sort} onChange={setSort} />
                     </div>
+
+                    {/* Význam zvoleného štítku, aby bylo jasné, jaké modely výpis obsahuje */}
+                    {isTabActive && (
+                        <p className="model-browser__tab-note">
+                            {activeTab.description}
+                        </p>
+                    )}
 
                     {error ? (
                         <PageMessage>{error}</PageMessage>

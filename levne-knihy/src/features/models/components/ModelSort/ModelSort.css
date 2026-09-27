@@ -6,7 +6,8 @@
 
 .model-sort__label {
     color: var(--text-muted);
-    font-size: .9rem;
+    font-size: .85rem;
+    line-height: 1;
 }
 
 .model-sort__control {
@@ -23,8 +24,9 @@
     background: transparent;
     color: var(--text);
     font: inherit;
-    font-size: 1rem;
+    font-size: .9rem;
     font-weight: 600;
+    line-height: 1;
 }
 
 .model-sort__select:hover,

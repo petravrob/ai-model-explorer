@@ -25,6 +25,19 @@ const SORT_PARAMS = {
     created: "createdAt",
 };
 
+// Štítky nad výpisem modelů: určují, ze kterého výpisu Hugging Face se modely vybírají.
+// Výpis podle popularity se používá jen pro štítek "vše" (odpovídá zvolenému řazení),
+// každý další štítek má vlastní výpis, aby se obsah štítků neopakoval.
+// Hodnoty jsou klíče řazení z SORT_PARAMS, null znamená běžný výpis podle zvoleného řazení.
+const TAB_SORT_KEYS = {
+    all: null,
+    recommended: "downloads",
+    new: "created",
+    trending: "likes",
+    local: "downloads",
+    server: "downloads",
+};
+
 // Kolik modelů se načte pro seřazený výpis
 const DEFAULT_SORT_LIMIT = 100;
 
@@ -243,6 +256,7 @@ async function getModelCard(modelId) {
 module.exports = {
     DEFAULT_TASKS,
     SORT_PARAMS,
+    TAB_SORT_KEYS,
     getModel,
     getModelCard,
     getModels,

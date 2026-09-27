@@ -2,6 +2,7 @@ import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
 import { AIModel, ModelFilters, ModelInsights } from "@/features/models";
 import type { ModelSortKey } from "../modelSortsConfig";
+import type { ModelTabKey } from "../modelTabsConfig";
 
 /** Sestaví dotazovací řetězec ze zvolených filtrů (žádný filtr = bez parametrů). */
 const buildFiltersQuery = (filters: ModelFilters): string => {
@@ -18,10 +19,11 @@ const buildFiltersQuery = (filters: ModelFilters): string => {
     return query ? `?${query}` : "";
 };
 
-/** Načte modely se zvolenými filtry a řazením ze serveru. */
+/** Načte modely se zvolenými filtry, štítkem a řazením ze serveru. */
 export const getModels = async (
     filters?: ModelFilters,
     sort?: ModelSortKey,
+    tab?: ModelTabKey,
     signal?: AbortSignal
 ): Promise<AIModel[]> => {
 
@@ -29,6 +31,10 @@ export const getModels = async (
 
     if (sort) {
         params.set("sort", sort);
+    }
+
+    if (tab) {
+        params.set("tab", tab);
     }
 
     const response = await fetch(
