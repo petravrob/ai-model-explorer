@@ -34,6 +34,8 @@ const TAB_SORT_KEYS = {
     recommended: "downloads",
     new: "created",
     trending: "likes",
+    local: "downloads",
+    server: "downloads",
 };
 
 // Kolik modelů se načte pro seřazený výpis

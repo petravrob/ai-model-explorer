@@ -15,6 +15,15 @@ export interface ModelTabOption {
 // Kolik dní od zveřejnění se model ještě považuje za nový
 const NEW_MODEL_DAYS = 60;
 
+// Štítky (tagy) Hugging Face, podle kterých se pozná kvantizovaná varianta pro běh na vlastním počítači
+const LOCAL_FORMAT_TAGS = ["gguf", "awq", "gptq", "onnx", "openvino", "mlx"];
+
+// Největší model (v parametrech), který se ještě vejde na běžný počítač
+const LOCAL_MAX_PARAMETERS = 1_000_000_000;
+
+// Nejméně velký model (v parametrech), který už patří na server nebo výkonné GPU
+const SERVER_MIN_PARAMETERS = 13_000_000_000;
+
 /** Určí, zda byl model zveřejněn v posledních zadaných dnech. */
 const isNewlyCreated = (createdAt: string | null | undefined, days: number): boolean => {
 
@@ -31,6 +40,19 @@ const isNewlyCreated = (createdAt: string | null | undefined, days: number): boo
 /** Určí, zda má model úplné údaje pro bezpečné použití (licenci, velikost i knihovnu) a je používaný. */
 const isRecommendedModel = (model: AIModel): boolean =>
     Boolean(model.license && model.library && model.parameters && model.likes > 0);
+
+/** Určí, zda má model kvantizovanou variantu pro běh na vlastním počítači. */
+const hasLocalFormat = (model: AIModel): boolean =>
+    (model.tags ?? []).some((tag) => LOCAL_FORMAT_TAGS.includes(tag));
+
+/** Určí, zda model zvládne běžný počítač (má kvantizovanou variantu nebo je dost malý). */
+const isLocalModel = (model: AIModel): boolean =>
+    hasLocalFormat(model) ||
+    Boolean(model.parameters && model.parameters <= LOCAL_MAX_PARAMETERS);
+
+/** Určí, zda model patří na server nebo výkonné GPU (je nad zvolenou velikost). */
+const isServerModel = (model: AIModel): boolean =>
+    Boolean(model.parameters && model.parameters > SERVER_MIN_PARAMETERS);
 
 /**
  * Štítky nad výpisem modelů, jejich pořadí odpovídá zobrazení.
@@ -64,6 +86,18 @@ export const MODEL_TABS_CONFIG = [
         description: "Nejoblíbenější modely, které právě nabírají na popularitě (skóre trendů Hugging Face).",
         filter: (models: AIModel[]) =>
             models.filter((model) => (model.trendingScore ?? 0) > 0),
+    },
+    {
+        value: "local",
+        label: "Lokální běh",
+        description: "Modely s kvantizovanou variantou (GGUF, AWQ, GPTQ) nebo do 1 mld. parametrů, které spustíš i na běžném počítači.",
+        filter: (models: AIModel[]) => models.filter(isLocalModel),
+    },
+    {
+        value: "server",
+        label: "Na serveru",
+        description: "Modely nad 13 mld. parametrů, které potřebují výkonný server nebo GPU.",
+        filter: (models: AIModel[]) => models.filter(isServerModel),
     },
 ] as const satisfies readonly ModelTabOption[];
 
