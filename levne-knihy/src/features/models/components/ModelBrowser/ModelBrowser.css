@@ -1,50 +1,67 @@
+/* Rozvržení stránky: vlevo filtry, vpravo prohlížeč modelů */
+.model-browser-layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    align-items: start;
+}
+
+/* Sloupec s filtry */
+.model-browser-layout__sidebar {
+    position: sticky;
+    top: var(--header-height);
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--header-height));
+    padding: 1.1rem 1rem 1.1rem 1.5rem;
+    background: var(--surface-sidebar);
+    border-right: 1px solid var(--border-muted);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-muted) transparent;
+}
+
+/* Prohlížeč modelů v pravém sloupci */
+.model-browser {
+    padding-top: 1.5rem;
+}
+
+/* Lišta s řazením nad prohlížečem modelů */
+.model-browser__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .75rem;
+    margin-bottom: 1.1rem;
+}
+
+/* Poznámky nad prohlížečem modelů: obnova výsledků při změně filtrů apod. */
+.model-browser__refresh-note,
 .model-browser__fuzzy-note {
     margin: 0 0 1.25rem;
     color: var(--text-muted);
     font-size: .875rem;
 }
 
-/* Poznámka o probíhající obnově výpisu při změně filtrů */
-.model-browser__refresh-note {
-    margin: 0 0 1.25rem;
-    color: var(--text-muted);
-    font-size: .875rem;
-}
-
-/* Rozvržení stránky s levým panelem filtrů a výpisem modelů */
-.model-browser__layout {
-    display: grid;
-    grid-template-columns: 370px minmax(0, 1fr);
-    align-items: start;
-}
-
-/* Řádek řazení je součástí mřížky a roztáhne se přes oba sloupce nad nimi */
-.model-browser__layout > .model-sort {
-    grid-column: 1 / -1;
-    margin-bottom: 0;
-}
-
-.model-browser__content {
-    min-width: 0;
-}
-
-/* Dávkování výpisu – další modely se přidají tlačítkem */
+/* Tlačítko "Načíst další modely" */
 .model-browser__more {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: .5rem;
-    margin: 1.25rem 0 0;
+    justify-content: center;
+    margin: 1.5rem 0 0;
 }
 
-.model-browser__more-note {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: .8rem;
-}
-
+/* Na užších obrazovkách jdou filtry nad prohlížeč modelů */
 @media (max-width: 900px) {
-    .model-browser__layout {
-        grid-template-columns: 1fr;
+    .model-browser-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .model-browser-layout__sidebar {
+        position: static;
+        height: auto;
+        padding: 1rem;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+        overflow: visible;
     }
 }

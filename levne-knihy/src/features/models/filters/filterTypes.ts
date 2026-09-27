@@ -27,6 +27,8 @@ export interface FilterCategoryConfig {
     icon: string;
     // Nabídka hodnot zobrazená uživateli
     options: readonly FilterOption[];
+    // Kolik hodnot se z kategorie ukáže ve zkrácené nabídce panelu, než se zbytek schová za odkaz "Zobrazit další"
+    visibleValues: number;
     // Hodnoty modelu, které se při klientském filtrování porovnávají se zvolenými hodnotami
     getValues: (model: AIModel) => string[];
 }

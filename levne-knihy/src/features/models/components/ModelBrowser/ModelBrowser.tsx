@@ -1,18 +1,17 @@
 import "./ModelBrowser.css";
 
 import useModelBrowser from "../../hooks/useModelBrowser";
+import { Button, PageContainer, PageMessage } from "@/ui";
 
 import ModelFilterPanel from "../ModelFilterPanel/ModelFilterPanel";
 import ModelList from "../ModelList/ModelList";
 import ModelSort from "../ModelSort/ModelSort";
-import { PageContainer, PageMessage, Button } from "@/ui";
 
 /** Rozhraní pro zobrazení seznamu modelů. */
 function ModelBrowser() {
 
     const {
         models,
-        totalCount,
         hasMore,
         loadMore,
         searchQuery,
@@ -22,7 +21,7 @@ function ModelBrowser() {
         handleFilterChange,
         resetFilters,
         sort,
-        handleSortChange,
+        setSort,
         handleModelClick,
 
         loading,
@@ -30,13 +29,14 @@ function ModelBrowser() {
         error,
     } = useModelBrowser();
 
-
     // Celostránková zpráva se ukáže jen před prvním načtením (případně při jeho neúspěchu).
     // Při obnově kvůli změně filtrů zůstane rozvržení i stávající výpis modelů na stránce.
     if (!hasLoaded) {
         return (
             <PageContainer>
-                <PageMessage>{error ?? "Načítání modelů..."}</PageMessage>
+                <div className="model-browser">
+                    <PageMessage>{error ?? "Načítání modelů..."}</PageMessage>
+                </div>
             </PageContainer>
         );
     }
@@ -49,18 +49,24 @@ function ModelBrowser() {
             : "Nebyly nalezeny žádné modely.";
 
     return (
-        <PageContainer>
-            <div className="model-browser__layout">
+        <div className="model-browser-layout">
 
+            <div className="model-browser-layout__sidebar">
                 <ModelFilterPanel
                     filters={filters}
                     isFilterActive={isFilterActive}
                     onFilterChange={handleFilterChange}
                     onReset={resetFilters}
                 />
+            </div>
 
-                <div className="model-browser__content" aria-busy={loading}>
-                    <ModelSort value={sort} onChange={handleSortChange} />
+            <PageContainer>
+                <div className="model-browser" aria-busy={loading}>
+
+                    <div className="model-browser__toolbar">
+                        <ModelSort value={sort} onChange={setSort} />
+                    </div>
+
                     {error ? (
                         <PageMessage>{error}</PageMessage>
                     ) : models.length === 0 ? (
@@ -89,19 +95,14 @@ function ModelBrowser() {
                                     <Button variant="outline" onClick={loadMore}>
                                         Načíst další modely
                                     </Button>
-
-                                    <p className="model-browser__more-note">
-                                        Zobrazeno {models.length} z {totalCount} modelů
-                                    </p>
                                 </div>
                             )}
                         </>
                     )}
                 </div>
-            </div>
-        </PageContainer>
+            </PageContainer>
+        </div>
     );
 }
 
 export default ModelBrowser;
-
