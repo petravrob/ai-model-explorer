@@ -8,7 +8,9 @@ import { getBenchmarkPercent } from "../../utils/benchmarkScores";
 import {
     BulletList,
     ChipList,
+    DataTable,
     DocumentImage,
+    DocumentVideo,
     DOWNLOAD_ICON,
     FieldGroup,
     FlowDiagram,
@@ -132,8 +134,10 @@ function ModelDetail({ model, insights }: {
     // Skládanka nasazení: doložené nástroje a nároky na provoz
     const deploymentSteps = [...deployment.slice(0, 4), ...hardware.slice(0, 2)];
 
-    // Obrázky z dokumentace modelu (diagramy, ukázky výsledků)
+    // Obrázky, videa a tabulky se berou přímo z dokumentace modelu
     const images = insights?.images ?? [];
+    const videos = insights?.videos ?? [];
+    const tables = insights?.tables ?? [];
 
     // Rodina modelu: jen vztahy, které dokumentace nebo data skutečně uvádějí
     const familySteps = [
@@ -330,6 +334,21 @@ function ModelDetail({ model, insights }: {
                 </Section>
             )}
 
+            {tables.length > 0 && (
+                <Section title="Přehled a výsledky">
+                    {tables.map((table, index) => (
+                        <FieldGroup
+                            label={table.title || "Tabulka z dokumentace"}
+                            key={`${table.title}-${index}`}
+                        >
+                            <DataTable headers={table.headers} rows={table.rows} />
+                        </FieldGroup>
+                    ))}
+
+                    <Note>Převzato z dokumentace modelu na Hugging Face.</Note>
+                </Section>
+            )}
+
             {limitations.length > 0 && (
                 <Section title="Omezení">
                     <div className="model-detail__panel">
@@ -366,13 +385,33 @@ function ModelDetail({ model, insights }: {
                 </Section>
             )}
 
-            {images.length > 0 && (
-                <Section title="Obrázky z dokumentace">
-                    <div className="model-detail__images">
-                        {images.map((image) => (
-                            <DocumentImage src={image.url} alt={image.alt} key={image.url} />
-                        ))}
-                    </div>
+            {(videos.length > 0 || images.length > 0) && (
+                <Section title="Vizuální ukázky">
+                    {videos.length > 0 && (
+                        <div className="model-detail__images">
+                            {videos.map((video) => (
+                                <DocumentVideo
+                                    url={video.url}
+                                    title={video.title}
+                                    thumbnail={video.thumbnail}
+                                    key={video.url}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {images.length > 0 && (
+                        <div className="model-detail__images">
+                            {images.map((image) => (
+                                <DocumentImage
+                                    src={image.url}
+                                    alt={image.alt}
+                                    caption={image.caption}
+                                    key={image.url}
+                                />
+                            ))}
+                        </div>
+                    )}
 
                     <Note>Převzato z dokumentace modelu na Hugging Face.</Note>
                 </Section>

@@ -10,6 +10,7 @@ export { default as DetailGrid } from "./DetailGrid/DetailGrid";
 export type { DetailGridItem } from "./DetailGrid/DetailGrid";
 export { default as DetailItem, MISSING_VALUE } from "./DetailItem/DetailItem";
 export { default as DocumentImage } from "./DocumentImage/DocumentImage";
+export { default as DocumentVideo } from "./DocumentVideo/DocumentVideo";
 export { default as FieldGroup } from "./FieldGroup/FieldGroup";
 export { default as FlowDiagram } from "./FlowDiagram/FlowDiagram";
 export { default as Form } from "./Form/Form";

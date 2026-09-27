@@ -34,11 +34,18 @@ const MAX_USE_CASES = 8;
 // Nejvýš tolik výsledků benchmarků (delší výčty už jsou jen na opis)
 const MAX_BENCHMARKS = 24;
 
-// Nejvýš tolik obrázků a tabulek se z dokumentace použije
-const MAX_IMAGES = 4;
-const MAX_TABLES = 2;
-const MAX_TABLE_ROWS = 12;
+// Nejvýš tolik obrázků, videí a tabulek se z dokumentace použije
+const MAX_IMAGES = 6;
+const MAX_VIDEOS = 2;
+const MAX_TABLES = 3;
+const MAX_TABLE_ROWS = 14;
 const MAX_TABLE_COLUMNS = 8;
+
+// Adresy videí, která se dají přehrát přímo v prohlížeči
+const VIDEO_EXTENSION = /\.(mp4|webm|mov|m4v|ogv)($|\?)/i;
+
+// Odkazy na YouTube (watch, youtu.be, embed, shorts)
+const YOUTUBE_LINK = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/i;
 
 // Obrázky, které patří k repozitáři, ne k modelu (štítky, loga, avatary, statistiky)
 const IGNORED_IMAGE = /(badge|shield|logo|icon|favicon|avatar|star|trend|visitor|counter|commit|pypi|npm|conda|colab|discord|twitter)/i;
@@ -189,8 +196,8 @@ function extractImages(documentation, modelId) {
             const alt = (match[1] ?? "").trim().replace(/\s+/g, " ").slice(0, 120);
             const url = (match[2] || match[3] || "").trim();
 
-            // Štítky, loga a animace do detailu nepatří
-            if (!url || IGNORED_IMAGE.test(url) || /\.(gif|svg)($|\?)/i.test(url)) {
+            // Štítky, loga a odkazy na videa do obrázků nepatří
+            if (!url || IGNORED_IMAGE.test(url) || VIDEO_EXTENSION.test(url) || /\.svg($|\?)/i.test(url)) {
                 continue;
             }
 
@@ -209,6 +216,72 @@ function extractImages(documentation, modelId) {
     }
 
     return images;
+}
+
+/** Rozpozná video a vrátí jeho adresu i případný náhledový obrázek. */
+function videoFromUrl(url, title, modelId) {
+    const youtube = url.match(YOUTUBE_LINK);
+
+    if (youtube) {
+        return {
+            url: `https://www.youtube.com/watch?v=${youtube[1]}`,
+            title,
+            thumbnail: `https://i.ytimg.com/vi/${youtube[1]}/hqdefault.jpg`,
+        };
+    }
+
+    if (VIDEO_EXTENSION.test(url)) {
+        return { url: toAbsoluteImageUrl(url, modelId), title, thumbnail: "" };
+    }
+
+    return null;
+}
+
+/**
+ * Vytáhne z dokumentace videa - přehratelná přímo i odkazy na YouTube.
+ * Jako popisek se používá text odkazu, nebo nadpis, pod kterým video stojí.
+ */
+function extractVideos(documentation, modelId) {
+    const videos = [];
+    let heading = "";
+
+    const push = (url, title) => {
+        const video = videoFromUrl(url, title || heading, modelId);
+
+        if (video && !videos.some((item) => item.url === video.url)) {
+            videos.push(video);
+        }
+    };
+
+    for (const line of documentation.split("\n")) {
+        const title = line.match(/^#{1,4}\s+(.*)$/);
+
+        if (title) {
+            heading = title[1].trim().replace(/\s+/g, " ").slice(0, 120);
+            continue;
+        }
+
+        // Přehrávač přímo v dokumentaci
+        for (const match of line.matchAll(/<(?:video|source)[^>]*src=["']([^"']+)["']/gi)) {
+            push(match[1], heading);
+        }
+
+        // Vložený přehrávač (např. z YouTube)
+        for (const match of line.matchAll(/<iframe[^>]*src=["']([^"']+)["']/gi)) {
+            push(match[1], heading);
+        }
+
+        // Odkazy na video – markdown i prosté adresy
+        for (const match of line.matchAll(/\[([^\]]*)\]\(([^)\s]+)[^)]*\)|(https?:\/\/[^\s)<>"']+)/gi)) {
+            push(match[2] || match[3] || "", (match[1] ?? "").trim() || heading);
+        }
+
+        if (videos.length >= MAX_VIDEOS) {
+            break;
+        }
+    }
+
+    return videos;
 }
 
 /** Odstraní z buňky tabulky markdown, který se v tabulce nevykresluje. */
@@ -361,7 +434,7 @@ function selectRelevantParts(documentation) {
     return [mainText, benchmarkText].filter(Boolean).join("\n\n");
 }
 
-const PROMPT_VERSION = "v16";
+const PROMPT_VERSION = "v17";
 
 /**
  * Vytvoří otisk vstupu, ze kterého přehledy vznikají (verze zadání + dokumentace).
@@ -529,12 +602,33 @@ function toInsights(doc) {
             alt: item.alt ?? "",
             caption: item.caption ?? "",
         })),
+        videos: (doc.videos ?? []).map((item) => ({
+            url: item.url,
+            title: item.title ?? "",
+            thumbnail: item.thumbnail ?? "",
+        })),
         tables: (doc.tables ?? []).map((table) => ({
             title: table.title ?? "",
             headers: table.headers ?? [],
             rows: (table.rows ?? []).map((row) => row ?? []),
         })),
     };
+}
+
+/**
+ * Uloží aspoň obrázky a tabulky z dokumentace, když se texty od AI nepodaří vytvořit.
+ * Otisk se záměrně neukládá, aby se texty zkusily znovu, až bude služba dostupná.
+ */
+async function saveVisualOnly(modelId, visual, stored) {
+    const isEmpty = visual.images.length === 0 && visual.videos.length === 0 && visual.tables.length === 0;
+
+    if (isEmpty) {
+        return stored ? toInsights(stored) : null;
+    }
+
+    await ModelInsights.updateOne({ modelId }, { $set: visual }, { upsert: true });
+
+    return { ...toInsights(stored ?? {}), ...visual };
 }
 
 // Modely, u kterých právě běží zpracování dokumentace
@@ -572,6 +666,14 @@ async function generateInsights(modelId) {
 
     pendingInsights.add(modelId);
 
+    // Obrázky a tabulky se berou přímo z dokumentace a AI je nevymýšlí,
+    // takže se dají uložit i tehdy, když se texty od AI nepodaří vytvořit.
+    const visual = {
+        images: extractImages(documentation, modelId),
+        videos: extractVideos(documentation, modelId),
+        tables: extractTables(documentation),
+    };
+
     try {
         const data = await requestCompletion({
             system: SYSTEM_PROMPT,
@@ -585,23 +687,20 @@ async function generateInsights(modelId) {
         if (!insights) {
             console.error(`Přehledy modelu „${modelId}“ se nepodařilo přečíst z odpovědi.`);
 
-            return stored ? toInsights(stored) : null;
+            return saveVisualOnly(modelId, visual, stored);
         }
-
-        // Obrázky a tabulky se berou přímo z dokumentace, AI je nevymýšlí
-        insights.images = extractImages(documentation, modelId);
-        insights.tables = extractTables(documentation);
 
         await ModelInsights.updateOne(
             { modelId },
-            { $set: { ...insights, sourceFingerprint } },
+            { $set: { ...insights, ...visual, sourceFingerprint } },
             { upsert: true }
         );
-        return insights;
+
+        return { ...insights, ...visual };
     } catch (error) {
         console.error(`Přehledy modelu „${modelId}“ se nepodařilo vytvořit: ${error.message}`);
 
-        return stored ? toInsights(stored) : null;
+        return saveVisualOnly(modelId, visual, stored);
     } finally {
         pendingInsights.delete(modelId);
     }

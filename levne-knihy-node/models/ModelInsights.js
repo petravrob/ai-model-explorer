@@ -53,6 +53,29 @@ const imageSchema = new mongoose.Schema(
     }
 );
 
+// Video převzaté z dokumentace modelu
+const videoSchema = new mongoose.Schema(
+    {
+        url: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        title: {
+            type: String,
+            trim: true,
+        },
+        // Náhledový obrázek, pokud ho dokumentace nebo videoportál poskytuje
+        thumbnail: {
+            type: String,
+            trim: true,
+        },
+    },
+    {
+        _id: false,
+    }
+);
+
 // Tabulka převzatá z dokumentace modelu
 const tableSchema = new mongoose.Schema(
     {
@@ -195,6 +218,11 @@ const modelInsightsSchema = new mongoose.Schema(
         // Obrázky z dokumentace modelu (diagramy, ukázky výsledků)
         images: {
             type: [imageSchema],
+            default: [],
+        },
+        // Videa z dokumentace modelu (mp4, YouTube)
+        videos: {
+            type: [videoSchema],
             default: [],
         },
         // Tabulky z dokumentace modelu (přehledy, parametry, varianty)

@@ -12,6 +12,8 @@ export type {
     ModelFilterPanelProps,
     ModelInsightImage,
     ModelInsights,
+    ModelInsightTable,
+    ModelInsightVideo,
     ModelListProps,
 } from "./types";
 export type {
