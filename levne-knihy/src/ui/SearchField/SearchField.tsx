@@ -1,6 +1,6 @@
 import "./SearchField.css";
 
-import type { ChangeEvent, FormEvent, KeyboardEvent } from "react";
+import type { ChangeEvent, FormEvent, KeyboardEvent, Ref } from "react";
 
 import Button from "../Button/Button";
 
@@ -9,6 +9,8 @@ interface SearchFieldProps {
     placeholder?: string;
     ariaLabel?: string;
     className?: string;
+    // Odkaz na vstup, aby do něj šlo přesunout kurzor klávesovou zkratkou
+    inputRef?: Ref<HTMLInputElement>;
     onChange: (event: ChangeEvent<HTMLInputElement>) => void;
     onSubmit: () => void;
     onClear?: () => void;
@@ -20,6 +22,7 @@ function SearchField({
     placeholder = "Hledat…",
     ariaLabel = "Hledat",
     className,
+    inputRef,
     onChange,
     onSubmit,
     onClear,
@@ -68,6 +71,7 @@ function SearchField({
             </Button>
 
             <input
+                ref={inputRef}
                 className="search-field__input"
                 type="search"
                 value={value}

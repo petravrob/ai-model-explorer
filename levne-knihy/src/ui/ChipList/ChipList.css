@@ -23,7 +23,7 @@
     align-self: flex-start;
     padding: .15rem .5rem;
     border-radius: var(--radius-sm);
-    background: #f1f5f9;
+    background: var(--surface-muted);
     color: var(--text-muted);
     font-size: .7rem;
     line-height: 1.35;

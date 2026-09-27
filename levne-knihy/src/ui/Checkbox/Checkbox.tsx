@@ -1,7 +1,5 @@
 import "./Checkbox.css";
 
-import type { ChangeEvent } from "react";
-
 interface CheckboxProps {
     label: string;
     checked: boolean;
@@ -11,19 +9,16 @@ interface CheckboxProps {
 /** Zaškrtávací pole s popiskem. */
 function Checkbox({ label, checked, onChange }: CheckboxProps) {
 
-    const handleChange = (_event: ChangeEvent<HTMLInputElement>): void =>
-        onChange();
-
     return (
         <label className="checkbox">
             <input
                 className="checkbox__input"
                 type="checkbox"
                 checked={checked}
-                onChange={handleChange}
+                onChange={onChange}
             />
 
-            <span className="checkbox__label">{label}</span>
+            <span className="checkbox__label" title={label}>{label}</span>
         </label>
     );
 }

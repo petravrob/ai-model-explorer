@@ -7,7 +7,7 @@
     border: none;
     border-radius: var(--radius-pill);
     background: var(--primary);
-    color: white;
+    color: var(--on-primary);
     font-size: .9rem;
     font-weight: 500;
 }
@@ -24,7 +24,7 @@
 
 .btn-outline:hover {
     background: var(--primary);
-    color: white;
+    color: var(--on-primary);
 }
 
 .btn-icon {
