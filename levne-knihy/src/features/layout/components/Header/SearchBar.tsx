@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
@@ -9,10 +9,15 @@ import {
 } from "@/routes/paths";
 import { SearchField } from "@/ui";
 
+/** Běží aplikace na macOS, kde mají klávesové zkratky vlastní symbol */
+const IS_MAC = navigator.userAgent.includes("Mac");
+
+/** Je stisknutá zkratka pro přesun kurzoru do hledání (na macOS ⌘K, na Windows a Linuxu Ctrl+K) */
+const isSearchShortcut = (event: KeyboardEvent): boolean =>
+    (IS_MAC ? event.metaKey : event.ctrlKey) && event.key.toLowerCase() === "k";
+
 /**
  * Vyhledávání modelů v hlavičce.
- * Na stránkách se seznamem modelů (domovská stránka) filtruje modely průběžně při psaní,
- * na ostatních stránkách po odeslání přesune na domovskou stránku s výsledky.
  */
 function SearchBar() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -23,16 +28,34 @@ function SearchBar() {
 
     const [value, setValue] = useState<string>(urlQuery);
 
+    // Odkaz na pole hledání, aby do něj klávesová zkratka přesunula kurzor
+    const inputRef = useRef<HTMLInputElement>(null);
+
     // Synchronizace pole s URL (např. po přechodu na jinou stránku se vyprázdní)
     useEffect(() => {
         const urlValue = searchParams.get(SEARCH_QUERY_PARAM) ?? "";
 
-        // URL ukládá výraz bez okrajových mezer, takže když odpovídá právě
-        // psanému textu, pole se nepřepíše, aby se při psaní nemažaly mezery
         setValue((current) =>
             urlValue.trim() === current.trim() ? current : urlValue
         );
     }, [searchParams, location.pathname]);
+
+    // Klávesová zkratka přesune kurzor do hledání (na macOS ⌘K, na Windows a Linuxu Ctrl+K)
+    useEffect(() => {
+        const handleShortcut = (event: KeyboardEvent): void => {
+
+            if (!isSearchShortcut(event)) {
+                return;
+            }
+
+            event.preventDefault();
+            inputRef.current?.focus();
+        };
+
+        document.addEventListener("keydown", handleShortcut);
+
+        return () => document.removeEventListener("keydown", handleShortcut);
+    }, []);
 
     const isSearchablePage =
         isSearchablePath(location.pathname);
@@ -51,7 +74,6 @@ function SearchBar() {
                 params.delete(SEARCH_QUERY_PARAM);
             }
 
-            // „replace“ zamezí zaplavání historie při psaní
             setSearchParams(params, { replace: true });
 
         } else {
@@ -85,8 +107,9 @@ function SearchBar() {
     return (
         <SearchField
             className="header__search"
+            inputRef={inputRef}
             value={value}
-            placeholder="Hledat modely…"
+            placeholder="Hledat modely, autory nebo tagy…"
             ariaLabel="Hledat modely"
             onChange={handleChange}
             onSubmit={() => applySearch(value)}
