@@ -7,6 +7,8 @@ import { SEARCH_QUERY_PARAM, modelDetailUrl } from "@/routes/paths";
 import { createDescriptions, getModels } from "../api/modelsApi";
 import useModelFilters from "./useModelFilters";
 import { DEFAULT_SORT, type ModelSortKey } from "../modelSortsConfig";
+import { DEFAULT_TAB, type ModelTabKey } from "../modelTabsConfig";
+import { applyTab } from "../utils/modelTabUtils";
 
 /** Převede text na malá písmena bez diakritiky pro nezávislé vyhledávání. */
 const normalizeText = (text: string): string =>
@@ -58,6 +60,15 @@ function useModelBrowser() {
     // Hledaný výraz z URL (např. /?q=gpt), oříznutý o okrajové mezery
     const searchQuery = (searchParams.get(SEARCH_QUERY_PARAM) ?? "").trim();
 
+    // Zvolený štítek, který vyfiltruje výpis na určitou skupinu modelů (např. jen nové, trendující)
+    const [tab, setTab] = useState<ModelTabKey>(DEFAULT_TAB);
+
+    // Štítek vyfiltruje načtené modely, teprve nad ním se použijí filtry z levého panelu
+    const tabModels = useMemo(
+        () => applyTab(allModels, tab),
+        [allModels, tab]
+    );
+
     // Filtry z levého panelu, které zúží výpis před samotným hledáním
     const {
         filters,
@@ -65,7 +76,7 @@ function useModelBrowser() {
         handleFilterChange,
         resetFilters,
         filteredModels,
-    } = useModelFilters(allModels);
+    } = useModelFilters(tabModels);
 
     // Zvolený způsob řazení výpisu modelů
     const [sort, setSort] = useState<ModelSortKey>(DEFAULT_SORT);
@@ -88,7 +99,7 @@ function useModelBrowser() {
 
             try {
 
-                const data = await getModels(filters, sort, controller.signal);
+                const data = await getModels(filters, sort, tab, controller.signal);
 
                 if (controller.signal.aborted || requestId !== latestRequestIdRef.current) {
                     return;
@@ -142,7 +153,7 @@ function useModelBrowser() {
             clearTimeout(timeoutId);
         };
 
-    }, [filters, sort]);
+    }, [filters, sort, tab]);
 
     // Fuzzy vyhledávání nad modely vyfiltrovanými podle filtrů (index se sestaví jen při načtení nebo změně dat)
     const fuzzySearch = useMemo(
@@ -244,6 +255,8 @@ function useModelBrowser() {
         resetFilters,
         sort,
         setSort,
+        tab,
+        setTab,
         handleModelClick,
         loading,
         hasLoaded,

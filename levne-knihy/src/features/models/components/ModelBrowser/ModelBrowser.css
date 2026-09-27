@@ -25,19 +25,24 @@
     padding-top: 1.5rem;
 }
 
-/* Lišta s řazením nad prohlížečem modelů */
+/* Lišta se štítky a řazením nad prohlížečem modelů */
 .model-browser__toolbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: flex-end;
     gap: .75rem;
     margin-bottom: 1.1rem;
 }
 
+/* Řazení zůstává na pravém okraji, i když se zalomí pod štítky na další řádek */
+.model-browser__toolbar .model-sort {
+    margin-left: auto;
+}
+
 /* Poznámky nad prohlížečem modelů: obnova výsledků při změně filtrů apod. */
 .model-browser__refresh-note,
-.model-browser__fuzzy-note {
+.model-browser__fuzzy-note,
+.model-browser__tab-note {
     margin: 0 0 1.25rem;
     color: var(--text-muted);
     font-size: .875rem;

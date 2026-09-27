@@ -4,6 +4,7 @@ const AIModel = require("../models/AIModel");
 const {
     DEFAULT_TASKS,
     SORT_PARAMS,
+    TAB_SORT_KEYS,
     getModels: fetchHuggingFaceModels,
     getAllModels,
     getModel: fetchHuggingFaceModel,
@@ -108,7 +109,7 @@ const attachStoredDescriptions = async (models) => {
 
 const getModels = async (req, res) => {
     try {
-        const { sort } = req.query;
+        const { sort, tab } = req.query;
         const tasks = toArrayParam(req.query.tasks);
         const languages = toArrayParam(req.query.languages);
 
@@ -119,18 +120,29 @@ const getModels = async (req, res) => {
             });
         }
 
+        if (tab && !Object.hasOwn(TAB_SORT_KEYS, tab)) {
+            return res.status(400).json({
+                status: "error",
+                error: "Neznámý štítek.",
+            });
+        }
+
         // Řazený výpis se načte z Hugging Face, filtry se zachovají nad výslednými modely.
         if (sort) {
+            // Štítek určuje, ze kterého výpisu se modely vyberou (např. "nové" z nejnovějších),
+            // zvolené řazení se pak použije až nad takto vybranými modely. Klient řazení posílá vždy.
+            const poolSort = TAB_SORT_KEYS[tab] ?? sort;
+
             // S vybranými úlohami se Hugging Face dotáže na každou zvlášť (pipeline_tag),
             // jinak se načte celek seřazený podle klíče. Filtrovat úlohy až nad malým
             // celkovým výpisem by pro méně časté úlohy (překlad, shrnutí…) nenašlo nic.
             const rawResults = tasks.length > 0
                 ? await Promise.all(
                     tasks.map((task) =>
-                        getSortedModels(sort, FILTERED_MODELS_PER_TASK, task)
+                        getSortedModels(poolSort, FILTERED_MODELS_PER_TASK, task)
                     )
                 )
-                : [await getSortedModels(sort)];
+                : [await getSortedModels(poolSort)];
 
             // Sloučené výpisy jednotlivých úloh se znovu seřadí podle zvoleného klíče,
             // aby pořadí odpovídalo řazení a ne tomu, v jakém pořadí se úlohy načetly
