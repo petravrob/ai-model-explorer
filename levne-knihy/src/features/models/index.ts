@@ -10,7 +10,10 @@ export type {
     ModelBenchmark,
     ModelCardContent,
     ModelFilterPanelProps,
+    ModelInsightImage,
     ModelInsights,
+    ModelInsightTable,
+    ModelInsightVideo,
     ModelListProps,
 } from "./types";
 export type {

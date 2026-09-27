@@ -1,0 +1,42 @@
+.data-table {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+}
+
+.data-table__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .85rem;
+}
+
+.data-table__head {
+    padding: .55rem .7rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-soft);
+    color: var(--text-muted);
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.data-table__cell {
+    padding: .5rem .7rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.data-table__row:last-child .data-table__cell {
+    border-bottom: 0;
+}
+
+/* První sloupec bývá popisek řádku, proto je výraznější */
+.data-table__cell:first-child {
+    color: var(--text);
+    font-weight: 600;
+}

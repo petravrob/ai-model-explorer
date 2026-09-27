@@ -1,0 +1,6 @@
+/* Ikona ze SVG cesty - velikost i barvu může upravit vlastní třída */
+.icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}

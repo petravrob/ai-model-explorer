@@ -6,7 +6,7 @@
     margin-top: 1.5rem;
 }
 
-/* Hlavička s logem, názvem, schopnostmi a statistikami */
+/* Hlavička s logem, názvem, štítky a statistikami */
 .model-detail__hero {
     display: flex;
     align-items: flex-start;
@@ -49,31 +49,6 @@
     font-size: .95rem;
 }
 
-.model-detail__chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .35rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.model-detail__chip {
-    padding: .18rem .6rem;
-    border-radius: var(--radius-pill);
-    background: var(--primary-light);
-    color: var(--primary);
-    font-size: .72rem;
-    font-weight: 600;
-}
-
-/* Vysvětlení, odkud seznam oblastí použití pochází */
-.model-detail__note {
-    margin: 0;
-    color: var(--text-faint);
-    font-size: .78rem;
-}
-
 .model-detail__stats {
     display: flex;
     flex-wrap: wrap;
@@ -83,24 +58,31 @@
     border-top: 1px solid var(--border);
 }
 
-.model-detail__stat {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
-    color: var(--text-subtle);
-    font-size: .85rem;
-}
-
-.model-detail__stat strong {
-    color: var(--text);
-    font-weight: 700;
-}
-
-.model-detail__icon {
-    width: 1rem;
-    height: 1rem;
-    flex-shrink: 0;
+/* Odkaz na Hugging Face patří k hlavičce, proto je drobný */
+.model-detail__hero-link {
+    align-self: flex-start;
     color: var(--primary);
+    font-size: .82rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.model-detail__hero-link:hover {
+    text-decoration: underline;
+}
+
+/* Profil modelu hned pod hlavičkou: odznaky modalit a mřížka klíčových údajů */
+.model-detail__profile {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+}
+
+/* Obrázky z dokumentace modelu vedle sebe */
+.model-detail__images {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
 }
 
 /* Popisek modelu je zvýrazněný jako úvodní odstavec */
@@ -115,56 +97,19 @@
     line-height: 1.6;
 }
 
-.model-detail__section {
-    display: flex;
-    flex-direction: column;
-    gap: .8rem;
-}
-
-/* Nadpis sekce má uvnitř rozvržení detailu mezeru jen z rozestupu sekce */
-.model-detail__section .section-title {
-    margin: 0;
-}
-
-/* Údaje o modelu se rozloží do tolika sloupců, kolik se jich vejde */
-.model-detail__details {
+/* Dvojice sekcí vedle sebe (vlastnosti modelu a oblasti použití) */
+.model-detail__split {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem 2rem;
 }
 
-.model-detail__link {
-    align-self: flex-start;
-}
-
-/* Poznámka o načítání textu model card */
-.model-detail__card-note {
+/* Odstavec sekce "Jak funguje" - může obsahovat víc odstavců */
+.model-detail__text {
     margin: 0;
-    color: var(--text-faint);
-    font-size: .85rem;
-}
-
-/* Faktické důvody, proč může být model zajímavý */
-.model-detail__highlights {
-    display: flex;
-    flex-direction: column;
-    gap: .35rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font-size: .92rem;
-}
-
-.model-detail__highlights li {
-    display: flex;
-    gap: .5rem;
     color: var(--text-muted);
-}
-
-.model-detail__highlights li::before {
-    content: "✓";
-    color: var(--primary);
-    font-weight: 700;
+    line-height: 1.6;
+    white-space: pre-line;
 }
 
 /* Výsledky benchmarků z dokumentace modelu */
@@ -178,16 +123,6 @@
     display: flex;
     flex-direction: column;
     gap: .35rem;
-}
-
-/* Oblast benchmarku (např. kódování), pokud ji dokumentace uvádí */
-.model-detail__benchmark-category {
-    margin: 0;
-    color: var(--text-faint);
-    font-size: .7rem;
-    font-weight: 600;
-    letter-spacing: .04em;
-    text-transform: uppercase;
 }
 
 /* Jeden řádek: název benchmarku a jeho výsledek */
@@ -210,6 +145,7 @@
 .model-detail__benchmark-name {
     color: var(--text);
     font-weight: 600;
+    overflow-wrap: anywhere;
 }
 
 .model-detail__benchmark-score {
@@ -224,16 +160,46 @@
     font-size: .78rem;
 }
 
+/* Pruh výsledku je pod názvem a zabírá celou šířku řádku */
+.model-detail__benchmark-bar {
+    grid-column: 1 / -1;
+    margin-top: .1rem;
+}
+
+/* Omezení jsou záměrně odlišená, ale zůstávají v barvách aplikace */
+.model-detail__panel {
+    padding: .9rem 1.1rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-muted);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    background: var(--surface-warm);
+}
+
 /* Omezení vypsaná z dokumentace modelu */
 .model-detail__limitations {
     display: flex;
     flex-direction: column;
     gap: .4rem;
     margin: 0;
-    padding-left: 1.2rem;
+    padding-left: 1.1rem;
     color: var(--text-muted);
     font-size: .9rem;
     line-height: 1.5;
+}
+
+/* Odkaz na původní dokumentaci na konci stránky */
+.model-detail__documentation {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem 1.25rem;
+}
+
+.model-detail__documentation p {
+    flex: 1 1 280px;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: .9rem;
 }
 
 @media (max-width: 700px) {
@@ -254,12 +220,22 @@
         align-items: center;
     }
 
-    .model-detail__chips,
+    .model-detail__identity .chip-list,
     .model-detail__stats {
         justify-content: center;
     }
 
-    .model-detail__link {
+    .model-detail__hero-link {
         align-self: center;
+    }
+
+    /* Na úzké obrazovce jdou sekce pod sebe */
+    .model-detail__split {
+        grid-template-columns: 1fr;
+    }
+
+    .model-detail__documentation {
+        flex-direction: column;
+        align-items: stretch;
     }
 }

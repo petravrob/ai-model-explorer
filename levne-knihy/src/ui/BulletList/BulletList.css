@@ -1,0 +1,33 @@
+.bullet-list {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--text-muted);
+    font-size: .88rem;
+}
+
+.bullet-list li {
+    display: flex;
+    gap: .5rem;
+    overflow-wrap: anywhere;
+}
+
+.bullet-list li::before {
+    content: "•";
+    flex-shrink: 0;
+    color: var(--primary);
+}
+
+/* Fajfky pro výčet vlastností */
+.bullet-list--check {
+    gap: .35rem;
+    font-size: .92rem;
+}
+
+.bullet-list--check li::before {
+    content: "✓";
+    font-weight: 700;
+}

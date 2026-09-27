@@ -361,6 +361,19 @@ const isProperName = (label: string): boolean => {
     );
 };
 
+/** Pozná, zda jde o název modelu samotného (používá se u variant a odvozených modelů). */
+export const isModelItself = (model: AIModel, value: string): boolean => {
+    const normalize = (text: string): string => text.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    const names = [
+        model.modelId,
+        model.modelId.split("/").pop() ?? "",
+        model.name,
+    ].map(normalize);
+
+    return names.includes(normalize(value));
+};
+
 /** Převede běžný popisek na malé písmeno pro použití uprostřed věty. */
 export const toSentenceCase = (label: string): string =>
     isProperName(label)

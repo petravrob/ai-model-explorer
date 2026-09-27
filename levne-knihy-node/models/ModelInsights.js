@@ -30,6 +30,73 @@ const benchmarkSchema = new mongoose.Schema(
     }
 );
 
+// Obrázek převzatý z dokumentace modelu (diagram, ukázka výsledků)
+const imageSchema = new mongoose.Schema(
+    {
+        url: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        alt: {
+            type: String,
+            trim: true,
+        },
+        // Nadpis, pod kterým obrázek v dokumentaci stojí
+        caption: {
+            type: String,
+            trim: true,
+        },
+    },
+    {
+        _id: false,
+    }
+);
+
+// Video převzaté z dokumentace modelu
+const videoSchema = new mongoose.Schema(
+    {
+        url: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        title: {
+            type: String,
+            trim: true,
+        },
+        // Náhledový obrázek, pokud ho dokumentace nebo videoportál poskytuje
+        thumbnail: {
+            type: String,
+            trim: true,
+        },
+    },
+    {
+        _id: false,
+    }
+);
+
+// Tabulka převzatá z dokumentace modelu
+const tableSchema = new mongoose.Schema(
+    {
+        title: {
+            type: String,
+            trim: true,
+        },
+        headers: {
+            type: [String],
+            default: [],
+        },
+        rows: {
+            type: [[String]],
+            default: [],
+        },
+    },
+    {
+        _id: false,
+    }
+);
+
 // České přehledy z dokumentace se ukládají zvlášť, aby se dokumentace nezpracovávala víckrát
 const modelInsightsSchema = new mongoose.Schema(
     {
@@ -45,6 +112,16 @@ const modelInsightsSchema = new mongoose.Schema(
             trim: true,
         },
         overview: {
+            type: String,
+            trim: true,
+        },
+        // Konkrétní vlastnosti, kterými se model odlišuje
+        highlights: {
+            type: [String],
+            default: [],
+        },
+        // Vysvětlení, jak model funguje, běžným jazykem
+        howItWorks: {
             type: String,
             trim: true,
         },
@@ -83,8 +160,23 @@ const modelInsightsSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        // Aktivní parametry u modelů typu MoE, pokud je dokumentace uvádí
+        activeParameters: {
+            type: String,
+            trim: true,
+        },
         // Způsob tréninku, pokud ho dokumentace výslovně uvádí (např. destilace, RL)
         trainingMethod: {
+            type: String,
+            trim: true,
+        },
+        // Verze nebo označení vydání modelu, pokud ji dokumentace uvádí
+        version: {
+            type: String,
+            trim: true,
+        },
+        // Model, ze kterého tento vychází (u odvozených modelů)
+        baseModel: {
             type: String,
             trim: true,
         },
@@ -98,9 +190,44 @@ const modelInsightsSchema = new mongoose.Schema(
             type: [String],
             default: [],
         },
+        // Nároky na hardware nebo prostředí, které dokumentace uvádí
+        hardwareRequirements: {
+            type: [String],
+            default: [],
+        },
+        // Kvantizace nebo formáty, které dokumentace uvádí (fp16, int8, GGUF…)
+        quantization: {
+            type: [String],
+            default: [],
+        },
+        // S čím je model kompatibilní nebo co vyžaduje
+        compatibility: {
+            type: [String],
+            default: [],
+        },
+        // Další praktické poznámky, které se nevejdou do ostatních polí
+        notes: {
+            type: [String],
+            default: [],
+        },
         // Výsledky benchmarků, které dokumentace modelu uvádí
         benchmarks: {
             type: [benchmarkSchema],
+            default: [],
+        },
+        // Obrázky z dokumentace modelu (diagramy, ukázky výsledků)
+        images: {
+            type: [imageSchema],
+            default: [],
+        },
+        // Videa z dokumentace modelu (mp4, YouTube)
+        videos: {
+            type: [videoSchema],
+            default: [],
+        },
+        // Tabulky z dokumentace modelu (přehledy, parametry, varianty)
+        tables: {
+            type: [tableSchema],
             default: [],
         },
     },

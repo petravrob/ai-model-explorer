@@ -3,6 +3,7 @@ import "./CheckboxGroup.css";
 import { useState } from "react";
 
 import Checkbox from "../Checkbox/Checkbox";
+import Icon from "../Icon/Icon";
 
 /** Jedna hodnota v nabídce skupiny zaškrtávacích polí. */
 export interface CheckboxGroupOption {
@@ -21,24 +22,6 @@ interface CheckboxGroupProps {
     options: readonly CheckboxGroupOption[];
     selected: string[];
     onToggle: (value: string) => void;
-}
-
-/** Vykreslí ikonu ze SVG cesty (viewBox 24×24), barva se dědí z textu. */
-function FilterIcon({ path, className }: { path: string; className: string }) {
-    return (
-        <svg
-            className={className}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d={path} />
-        </svg>
-    );
 }
 
 function countSelected(
@@ -91,7 +74,7 @@ function CheckboxGroup({
                                     }`}
                                 >
                                     {option.icon && (
-                                        <FilterIcon
+                                        <Icon
                                             path={option.icon}
                                             className="checkbox-group__group-icon"
                                         />
@@ -132,7 +115,7 @@ function CheckboxGroup({
                     aria-hidden="true"
                 >
                     {icon && (
-                        <FilterIcon
+                        <Icon
                             path={icon}
                             className="checkbox-group__icon-svg"
                         />

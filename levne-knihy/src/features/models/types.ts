@@ -36,12 +36,39 @@ export interface ModelBenchmark {
     category?: string | null;
     context?: string | null;
 }
+/** Obrázek převzatý z dokumentace modelu (diagram, ukázka výsledků). */
+export interface ModelInsightImage {
+    url: string;
+    // Popisek obrázku z dokumentace (může být i prázdný)
+    alt: string;
+    // Nadpis, pod kterým obrázek v dokumentaci stojí
+    caption?: string;
+}
+/** Video převzaté z dokumentace modelu. */
+export interface ModelInsightVideo {
+    url: string;
+    // Text odkazu nebo nadpis, pod kterým video v dokumentaci stojí
+    title: string;
+    // Náhledový obrázek videa, pokud ho zdroj poskytuje
+    thumbnail: string;
+}
+/** Tabulka převzatá z dokumentace modelu. */
+export interface ModelInsightTable {
+    // Nadpis, pod kterým tabulka v dokumentaci stojí
+    title: string;
+    headers: string[];
+    rows: string[][];
+}
 /** České přehledy vytvořené z dokumentace modelu na Hugging Face. */
 export interface ModelInsights {
-    // Co model je a k čemu slouží
+    // Co model dělá, k čemu se používá a čím je zajímavý (2–4 věty)
     overview?: string | null;
+    // Konkrétní vlastnosti, kterými se model odlišuje
+    highlights?: string[];
+    // Jak model funguje, vysvětlené běžným jazykem
+    howItWorks?: string | null;
     bestFor?: string[];
-    // Konkrétní typy použití z dokumentace
+    // Konkrétní scénáře použití z dokumentace
     useCases?: string[];
     capabilities?: string[];
     // Druhy vstupů a výstupů (text, obrázky, zvuk, video)
@@ -50,11 +77,27 @@ export interface ModelInsights {
     contextLength?: string | null;
     // Stručně architektura a způsob tréninku, pokud je dokumentace uvádí
     architecture?: string | null;
+    // Aktivní parametry u modelů typu MoE, pokud je dokumentace uvádí
+    activeParameters?: string | null;
     trainingMethod?: string | null;
+    // Verze modelu a model, ze kterého tento vychází
+    version?: string | null;
+    baseModel?: string | null;
     variants?: string[];
     recommendedSettings?: string[];
+    // Nároky na hardware a další praktické poznámky z dokumentace
+    hardwareRequirements?: string[];
+    quantization?: string[];
+    compatibility?: string[];
+    notes?: string[];
     limitations?: string[];
     benchmarks?: ModelBenchmark[];
+    // Obrázky z dokumentace modelu (diagramy, ukázky výsledků)
+    images?: ModelInsightImage[];
+    // Videa z dokumentace modelu (mp4, YouTube)
+    videos?: ModelInsightVideo[];
+    // Tabulky z dokumentace modelu (přehledy, parametry, varianty)
+    tables?: ModelInsightTable[];
 }
 export interface ModelListProps {
     models: AIModel[];

@@ -100,27 +100,6 @@
     -webkit-line-clamp: 5;
 }
 
-.model-list__tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .35rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-/* Štítek je jen popisek, na kterém se nic nekliká */
-.model-list__tag {
-    align-self: flex-start;
-    padding: .15rem .5rem;
-    border-radius: var(--radius-sm);
-    background: #f1f5f9;
-    color: var(--text-muted);
-    font-size: .7rem;
-    font-weight: 600;
-    line-height: 1.35;
-}
-
 .model-list__meta {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -151,27 +130,6 @@
     gap: .5rem;
     margin-top: auto;
     padding-top: .7rem;
-}
-
-.model-list__stat {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
-    color: var(--text-subtle);
-    font-size: .78rem;
-}
-
-.model-list__stat strong {
-    color: var(--text);
-    font-size: .85rem;
-    font-weight: 700;
-}
-
-.model-list__icon {
-    width: .9rem;
-    height: .9rem;
-    flex-shrink: 0;
-    color: var(--primary);
 }
 
 @media (max-width: 600px) {

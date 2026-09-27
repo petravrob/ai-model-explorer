@@ -1,0 +1,41 @@
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: .75rem;
+    margin: 0;
+}
+
+.metric-grid__item {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: .2rem;
+    padding: .7rem .85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+}
+
+.metric-grid__label {
+    color: var(--text-faint);
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.metric-grid__value {
+    margin: 0;
+    color: var(--text);
+    font-size: 1.02rem;
+    font-weight: 700;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.metric-grid__note {
+    display: block;
+    color: var(--text-subtle);
+    font-size: .75rem;
+    font-weight: 400;
+}
