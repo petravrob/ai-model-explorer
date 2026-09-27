@@ -121,7 +121,7 @@ function ModelBrowser() {
                                 </div>
                             )}
 
-                                se položí animace s logem, takže se výpis nikam neposouvá */}
+                            {/* Obnova výpisu (filtry, řazení, štítek): animace s logem se pokládá přes výsledky, takže se výpis neposouvá */}
                             {loading && (
                                 <div className="model-browser__loading">
                                     <LogoLoader />

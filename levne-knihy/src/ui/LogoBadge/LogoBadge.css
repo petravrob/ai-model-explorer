@@ -1,0 +1,112 @@
+/*
+ * Animované logo aplikace
+ */
+.logo-badge {
+    --logo-badge-size: 4.4rem;
+    --logo-badge-icon-size: .55em;
+    --logo-badge-orbit: -.14em;
+    --logo-badge-breathe-animation: none;
+    --logo-badge-spin-animation: none;
+    --logo-badge-spark-opacity: 0;
+
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: var(--logo-badge-size);
+    height: var(--logo-badge-size);
+    font-size: var(--logo-badge-size);
+}
+
+/* Zapnutá animace */
+.logo-badge--playing {
+    --logo-badge-breathe-animation: logo-badge-breathe;
+    --logo-badge-spin-animation: logo-badge-spin;
+    --logo-badge-spark-opacity: 1;
+}
+
+.logo-badge__mark {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 1em;
+    height: 1em;
+    border-radius: .31em;
+    background: var(--surface);
+    box-shadow: 0 .17em .37em rgb(79 70 229 / 18%);
+    animation: var(--logo-badge-breathe-animation) 2.2s ease-in-out infinite;
+}
+
+.logo-badge__icon {
+    width: var(--logo-badge-icon-size);
+    height: var(--logo-badge-icon-size);
+    color: var(--primary);
+    stroke-width: 1.6;
+}
+
+.logo-badge__spark {
+    position: absolute;
+    inset: var(--logo-badge-orbit);
+    opacity: var(--logo-badge-spark-opacity);
+    transition: opacity var(--transition-fast);
+    animation: var(--logo-badge-spin-animation) 1.9s linear infinite;
+}
+
+.logo-badge__spark::before {
+    content: "";
+    position: absolute;
+    top: -.025em;
+    left: 50%;
+    width: .12em;
+    height: .12em;
+    margin-left: -.06em;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 .12em .025em rgb(79 70 229 / 45%);
+}
+
+.logo-badge__spark--slow {
+    animation-duration: 3.4s;
+    animation-delay: -1.7s;
+}
+
+.logo-badge__spark--slow::before {
+    background: #a78bfa;
+    box-shadow: 0 0 .12em .025em rgb(167 139 250 / 50%);
+}
+
+/* Popisek - na stránce se neukazuje, slouží jen čtečkám obrazovky */
+.logo-badge__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+@keyframes logo-badge-breathe {
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 .23em .45em rgb(79 70 229 / 26%);
+    }
+}
+
+@keyframes logo-badge-spin {
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .logo-badge__mark,
+    .logo-badge__spark {
+        animation: none;
+    }
+
+    .logo-badge__spark {
+        opacity: 0;
+    }
+}
