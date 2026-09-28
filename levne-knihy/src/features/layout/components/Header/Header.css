@@ -121,3 +121,39 @@
         max-width: none;
     }
 }
+
+/* Na telefonu je lišta nižší: logo v prvním řádku, hledání pod ním */
+@media (max-width: 600px) {
+    .header__container {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .5rem;
+        padding: .5rem .9rem .7rem;
+    }
+
+    .header__brand {
+        flex: 1;
+        gap: .55rem;
+        padding: 0;
+    }
+
+    .header__main {
+        display: contents;
+    }
+
+    .header .logo-badge {
+        --logo-badge-size: 2.3rem;
+        --logo-badge-icon-size: .7em;
+        --logo-badge-orbit: -.17em;
+    }
+
+    .header__title {
+        font-size: 1.1rem;
+    }
+
+    /* Podtitulek se na telefonu skryje, aby lišta nezabírala tolik místa */
+    .header__subtitle {
+        display: none;
+    }
+}

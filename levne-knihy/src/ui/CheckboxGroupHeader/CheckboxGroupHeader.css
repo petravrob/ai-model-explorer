@@ -84,3 +84,11 @@
     margin-top: .15rem;
     transform: rotate(225deg);
 }
+
+/* Na telefonu se kategorie rozbalují klepnutím, proto je celý řádek vyšší */
+@media (max-width: 900px) {
+    .checkbox-group__header {
+        min-height: 2.8rem;
+        padding: .55rem .4rem;
+    }
+}

@@ -38,3 +38,12 @@
     outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
+
+/* Na telefonu musí být odkaz na zbytek hodnot dobře trefitelný prstem */
+@media (max-width: 900px) {
+    .checkbox-group__more {
+        min-height: 2.6rem;
+        padding: .6rem .4rem;
+        font-size: .8rem;
+    }
+}

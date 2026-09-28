@@ -110,13 +110,25 @@
 
     .model-browser__toolbar {
         position: static;
+        padding-top: 0;
     }
 }
 
 @media (max-width: 600px) {
     .model-browser__toolbar {
+        gap: .6rem;
         margin: 0 -1rem;
-        padding-right: 1rem;
-        padding-left: 1rem;
+        padding: 0 1rem .9rem;
+    }
+
+    /* Poznámka zabírá na telefonu méně místa */
+    .model-browser__tab-note {
+        margin-bottom: 1rem;
+        font-size: .8rem;
+    }
+
+    /* Načtení dalších modelů se na telefonu roztáhne na celou šířku */
+    .model-browser__more .btn {
+        width: 100%;
     }
 }

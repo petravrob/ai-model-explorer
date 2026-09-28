@@ -72,6 +72,11 @@
     border-radius: var(--radius-pill);
 }
 
+/* Na širších obrazovkách jsou filtry vidět pořád, proto se rozbalování používá jen na telefonu */
+.model-filter-panel__toggle {
+    display: none;
+}
+
 @media (max-width: 900px) {
     .model-filter-panel,
     .model-filter-panel__categories {
@@ -79,7 +84,66 @@
         min-height: auto;
     }
 
+    /* Filtry se na telefonu rozbalují, aby nepřekážely před výpisem modelů */
     .model-filter-panel__categories {
+        display: none;
         overflow: visible;
+    }
+
+    .model-filter-panel--open .model-filter-panel__categories {
+        display: flex;
+    }
+
+    /* Nadpis nahrazuje tlačítko, na které se dá klepnout */
+    .model-filter-panel .page-title {
+        display: none;
+    }
+
+    /* Ikona by vedle tlačítka byla jen plocha, na kterou se nedá klepnout */
+    .model-filter-panel .model-filter-panel__icon {
+        display: none;
+    }
+
+    .model-filter-panel__toggle {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        gap: .5rem;
+        min-height: 2.6rem;
+        padding: .5rem .1rem;
+        border: 0;
+        background: transparent;
+        color: var(--text);
+        font-size: 1rem;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .model-filter-panel__toggle:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+    }
+
+    /* "Vymazat vše" je na telefonu taky na klepnutí, proto má větší plochu */
+    .model-filter-panel .model-filter-panel__reset {
+        min-height: 2.6rem;
+        padding: .5rem .3rem;
+    }
+
+    /* Šipka ukazuje, zda jsou filtry rozbalené */
+    .model-filter-panel__chevron {
+        width: .5rem;
+        height: .5rem;
+        flex-shrink: 0;
+        margin: -.15rem .3rem 0 0;
+        border-right: 1.6px solid var(--text-subtle);
+        border-bottom: 1.6px solid var(--text-subtle);
+        transform: rotate(45deg);
+        transition: transform .18s ease;
+    }
+
+    .model-filter-panel--open .model-filter-panel__chevron {
+        margin-top: .15rem;
+        transform: rotate(225deg);
     }
 }
