@@ -64,7 +64,7 @@ export const MODEL_TABS_CONFIG = [
     {
         value: "all",
         label: "Vše",
-        description: "Všechny modely bez dalšího zúžení.",
+        description: "Prohlížení všech dostupných modelů.",
         filter: (models: AIModel[]) => models,
     },
     {
@@ -90,7 +90,7 @@ export const MODEL_TABS_CONFIG = [
     {
         value: "local",
         label: "Lokální běh",
-        description: "Modely s kvantizovanou variantou (GGUF, AWQ, GPTQ) nebo do 1 mld. parametrů, které spustíš i na běžném počítači.",
+        description: "Modely s kvantizovanou variantou (GGUF, AWQ, GPTQ) nebo do 1 mld. parametrů, které lze spustit i na běžném počítači.",
         filter: (models: AIModel[]) => models.filter(isLocalModel),
     },
     {
