@@ -3,12 +3,11 @@ import "./styles/global.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AppLayout } from "@/features/layout";
-import { AuthProvider } from "@/features/user";
 import { AppRoutes } from "@/routes";
 
 function App() {
   return (
-    <AuthProvider>
+    <>
       <AppLayout>
         <AppRoutes />
       </AppLayout>
@@ -23,7 +22,7 @@ function App() {
         draggable
         theme="light"
       />
-    </AuthProvider>
+    </>
   );
 }
 

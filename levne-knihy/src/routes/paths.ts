@@ -7,9 +7,6 @@
 export const ROUTE_PATHS = {
     home: "/",
     modelDetail: "/model/:modelId",
-    login: "/prihlasit-se",
-    signUp: "/registrovat-se",
-    user: "/uzivatel",
     notFound: "*",
 } as const;
 
@@ -39,9 +36,3 @@ export const SEARCHABLE_PATHS: readonly string[] = [
 export const isSearchablePath = (pathname: string): boolean =>
     SEARCHABLE_PATHS.includes(pathname);
 
-/** Stav předávaný přes React Router při přesměrování na přihlášení. */
-export interface AuthRedirectState {
-    from?: {
-        pathname?: string;
-    };
-}
