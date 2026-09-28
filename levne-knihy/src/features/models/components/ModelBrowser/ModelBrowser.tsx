@@ -89,11 +89,9 @@ function ModelBrowser() {
                     </div>
 
                     {/* Význam zvoleného štítku, aby bylo jasné, jaké modely výpis obsahuje */}
-                    {isTabActive && (
-                        <p className="model-browser__tab-note">
-                            {activeTab.description}
-                        </p>
-                    )}
+                    <p className="model-browser__tab-note">
+                        {activeTab.description}
+                    </p>
 
                     {error ? (
                         <PageMessage>{error}</PageMessage>
