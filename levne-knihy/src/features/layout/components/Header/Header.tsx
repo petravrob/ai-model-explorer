@@ -3,16 +3,12 @@ import "./Header.css";
 import { NavLink } from "react-router-dom";
 
 import { ROUTE_PATHS } from "@/routes/paths";
-import { UserDropdown, useCurrentUser, useLogout } from "@/features/user";
-import { Icon, LinkButton, LogoBadge, USER_ICON } from "@/ui";
+import { LogoBadge } from "@/ui";
 
 import SearchBar from "./SearchBar";
 
-/** Horní lišta aplikace: logo, vyhledávání modelů a přihlášení nebo účet uživatele. */
+/** Horní lišta aplikace: logo a vyhledávání modelů. */
 function Header() {
-    const { user } = useCurrentUser();
-    const { logout } = useLogout();
-
     return (
         <header className="header">
             <div className="header__container">
@@ -32,27 +28,6 @@ function Header() {
 
                 <div className="header__main">
                     <SearchBar />
-
-                    {!user ? (
-                        <div className="header__auth">
-                            <NavLink to={ROUTE_PATHS.login} className="header__login">
-                                <Icon path={USER_ICON} className="header__login-icon" />
-
-                                Přihlásit se
-                            </NavLink>
-
-                            <LinkButton to={ROUTE_PATHS.signUp}>
-                                Registrovat se
-                            </LinkButton>
-                        </div>
-                    ) : (
-                        <UserDropdown
-                            uname={user.uname}
-                            fname={user.fname}
-                            lname={user.lname}
-                            onLogout={logout}
-                        />
-                    )}
                 </div>
             </div>
         </header>

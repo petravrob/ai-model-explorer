@@ -95,53 +95,6 @@
     box-shadow: 0 2px 8px rgba(15, 23, 42, .16);
 }
 
-.header__auth {
-    display: flex;
-    align-items: center;
-    gap: .85rem;
-    margin-left: auto;
-}
-
-/* Registrace */
-.header .header__auth .btn {
-    border: 1px solid rgb(255 255 255 / 45%);
-    background: transparent;
-    color: var(--on-primary);
-}
-
-.header .header__auth .btn:hover {
-    border-color: rgb(255 255 255 / 70%);
-    background: rgb(255 255 255 / 14%);
-}
-
-/* Přepínač účtu */
-.header .user-dropdown__trigger .avatar {
-    background: var(--surface);
-}
-
-.header .user-dropdown__trigger .avatar::after {
-    background: var(--primary);
-    box-shadow: 0 6px 0 2px var(--primary);
-}
-
-.header__login {
-    display: inline-flex;
-    align-items: center;
-    gap: .45rem;
-    color: var(--on-primary);
-    font-size: .9rem;
-    text-decoration: none;
-}
-
-.header .header__login-icon {
-    width: 1.05rem;
-    height: 1.05rem;
-}
-
-.header__login:hover {
-    text-decoration: underline;
-}
-
 /* Menší šířka - logo se umístí nad vyhledávání */
 @media (max-width: 900px) {
     .header__container {
@@ -166,9 +119,5 @@
         order: 3;
         flex-basis: 100%;
         max-width: none;
-    }
-
-    .header__auth {
-        gap: .6rem;
     }
 }
