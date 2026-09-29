@@ -95,6 +95,7 @@ function ModelSort({ value, onChange, isOpen: controlledOpen, onOpenChange, clas
         };
     }, []);
 
+    // Zvolením možnosti se řazení rovnou použije a stránka s řazením se zavře
     const handleOptionClick = (sortKey: ModelSortKey): void => {
         onChange(sortKey);
         setIsOpen(false);
@@ -163,6 +164,7 @@ function ModelSort({ value, onChange, isOpen: controlledOpen, onOpenChange, clas
                     </div>
                 )}
             </div>
+
         </div>
     );
 }

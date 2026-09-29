@@ -12,13 +12,15 @@
     transition: background-color var(--transition-fast);
 }
 
-/* Zvýrazní kategorii na hover */
-.checkbox-group__header:hover {
-    background: rgb(255 255 255 / 60%);
-}
+/* Zvýrazní kategorii na hover. Jen na zařízeních s myší - na telefonu by barva po klepnutí zůstala viset. */
+@media (hover: hover) {
+    .checkbox-group__header:hover {
+        background: rgb(255 255 255 / 60%);
+    }
 
-.checkbox-group__header:hover .checkbox-group__title {
-    color: var(--primary);
+    .checkbox-group__header:hover .checkbox-group__title {
+        color: var(--primary);
+    }
 }
 
 /* Ovládání klávesnicí */

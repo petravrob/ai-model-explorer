@@ -10,8 +10,11 @@
     transition: background-color var(--transition-fast);
 }
 
-.checkbox:hover {
-    background: var(--primary-light);
+/* Podbarvení řádku na hover. Jen na zařízeních s myší - na telefonu by barva po klepnutí zůstala viset. */
+@media (hover: hover) {
+    .checkbox:hover {
+        background: var(--primary-light);
+    }
 }
 
 .checkbox__input {
@@ -33,7 +36,13 @@
         transform var(--transition-fast);
 }
 
-.checkbox:hover .checkbox__input,
+/* Zvýraznění zaškrtávátka pod kurzorem (na telefonu stačí až zvolený stav) */
+@media (hover: hover) {
+    .checkbox:hover .checkbox__input {
+        border-color: var(--primary);
+    }
+}
+
 .checkbox__input:checked {
     border-color: var(--primary);
 }

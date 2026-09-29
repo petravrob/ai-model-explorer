@@ -21,9 +21,11 @@
     min-width: 0;
 }
 
-/* Hover nad hodnotou filtru */
-.checkbox-group__option .checkbox:hover {
-    background: rgb(255 255 255 / 55%);
+/* Hover nad hodnotou filtru. Jen na zařízeních s myší - na telefonu by barva po klepnutí zůstala viset. */
+@media (hover: hover) {
+    .checkbox-group__option .checkbox:hover {
+        background: rgb(255 255 255 / 55%);
+    }
 }
 
 /* Podkategorie zabírá celý řádek */

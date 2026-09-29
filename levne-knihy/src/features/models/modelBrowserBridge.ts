@@ -6,6 +6,8 @@ export interface ModelBrowserBridgeState {
     isFilterOpen: boolean;
     // Je zvolený aspoň jeden filtr
     isFilterActive: boolean;
+    // Kolik hodnot filtrů je zvolených (počet se vypisuje na ikoně filtrů)
+    activeFilterCount: number;
     // Je otevřená nabídka řazení
     isSortOpen: boolean;
 }

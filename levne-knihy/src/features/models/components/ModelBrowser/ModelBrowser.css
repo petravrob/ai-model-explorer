@@ -109,7 +109,8 @@
         flex-direction: column;
         /* na telefonu musí bloky držet šířku */
         align-items: stretch;
-        padding: 0 1.75rem 3.5rem;
+        /* Tlačítko "Načíst další" u dolního okraje stránky */
+        padding: 0 1.75rem calc(1rem + env(safe-area-inset-bottom, 0px));
     }
 
     .model-browser-layout > .page-container,
@@ -131,16 +132,15 @@
         /* Při scrolování se tagy zabalí */
         max-height: 4rem;
         overflow-y: clip;
-        transition: max-height .25s ease, padding .25s ease, opacity .2s ease;
+        transition: transform .25s ease, opacity .2s ease;
     }
 
-    /* Při scrollu dolů se tagy zabalí */
+    /*
+     * Při scrollu dolů lišta vyjede nahoru pod horní lištu.
+     */
     .model-browser__toolbar--hidden {
-        max-height: 0;
-        padding-top: 0;
-        padding-bottom: 0;
+        transform: translateY(-100%);
         opacity: 0;
-        overflow: hidden;
         pointer-events: none;
     }
 
@@ -160,7 +160,8 @@
         inset: var(--header-height-mobile, var(--header-height)) 0 0;
         z-index: 20;
         margin: 0;
-        padding: 1rem 1.75rem 2.5rem;
+        /* Dole je místo pro potvrzovací tlačítko filtrů */
+        padding: 1rem 1.75rem 5rem;
         border: 0;
         background: var(--surface-sidebar);
         overflow-y: auto;
@@ -252,7 +253,7 @@
 @media (max-width: 600px) {
     /* Na užších telefonech drží stránka menší okraje */
     .model-browser-layout {
-        padding: 0 1rem 2.5rem;
+        padding: 0 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
     }
 
     .model-browser__toolbar {
@@ -267,7 +268,7 @@
 
     /* Na užších telefonech má stránka s filtry menší okraje */
     .model-browser-layout--filter-open .model-browser-layout__sidebar {
-        padding: 1rem 1rem 2.5rem;
+        padding: 1rem 1rem 5rem;
     }
 
     /* Vysvětlivka zabírá na telefonu méně místa */

@@ -51,6 +51,8 @@ function Header() {
     // Stav z ModelBrowseru: rozbalené/aktivní filtry a otevřené řazení (jen telefon)
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [isFilterActive, setIsFilterActive] = useState(false);
+    // Kolik hodnot filtrů je zvolených (číslo se vypisuje na ikoně filtrů)
+    const [activeFilterCount, setActiveFilterCount] = useState(0);
     const [isSortOpen, setIsSortOpen] = useState(false);
 
     useEffect(() => {
@@ -59,6 +61,7 @@ function Header() {
 
             setIsFilterOpen(state.isFilterOpen);
             setIsFilterActive(state.isFilterActive);
+            setActiveFilterCount(state.activeFilterCount);
             setIsSortOpen(state.isSortOpen);
 
             // Otevřené filtry nebo řazení vyhledávání zavřou (na telefonu zabírají celou stránku)
@@ -76,6 +79,8 @@ function Header() {
     useEffect(() => {
         if (!isModelBrowserPage) {
             setIsFilterOpen(false);
+            setIsFilterActive(false);
+            setActiveFilterCount(0);
             setIsSortOpen(false);
         }
     }, [isModelBrowserPage]);
@@ -139,14 +144,18 @@ function Header() {
                             <button
                                 type="button"
                                 className={`header__icon-button${isFilterOpen ? " header__icon-button--open" : ""}${isFilterActive ? " header__icon-button--active" : ""}`}
-                                aria-label={isFilterOpen ? "Skrýt filtry" : "Zobrazit filtry"}
+                                aria-label={`${isFilterOpen ? "Skrýt filtry" : "Zobrazit filtry"}${
+                                    activeFilterCount > 0 ? ` (zvoleno ${activeFilterCount})` : ""
+                                }`}
                                 aria-expanded={isFilterOpen}
                                 aria-controls="model-filter-categories"
                                 onClick={requestModelBrowserFilterToggle}
                             >
                                 <Icon path={FILTER_ICON} className="header__icon-button-icon" />
-                                {isFilterActive && (
-                                    <span className="header__icon-button-dot" aria-hidden="true" />
+                                {activeFilterCount > 0 && (
+                                    <span className="header__icon-button-badge" aria-hidden="true">
+                                        {activeFilterCount}
+                                    </span>
                                 )}
                             </button>
 

@@ -29,6 +29,7 @@ function ModelBrowser() {
         isFuzzySearch,
         filters,
         isFilterActive,
+        activeFilterCount,
         handleFilterChange,
         resetFilters,
         sort,
@@ -52,9 +53,9 @@ function ModelBrowser() {
     // Stav pro ikony v hlavičce (jen na telefonu): rozbalené filtry / aktivní filtry / otevřené řazení
     useEffect(() => {
         if (hasLoaded) {
-            publishModelBrowserState({ isFilterOpen, isFilterActive, isSortOpen });
+            publishModelBrowserState({ isFilterOpen, isFilterActive, activeFilterCount, isSortOpen });
         }
-    }, [hasLoaded, isFilterOpen, isFilterActive, isSortOpen]);
+    }, [hasLoaded, isFilterOpen, isFilterActive, activeFilterCount, isSortOpen]);
 
     // Požadavky z hlavičky (ikony na telefonu) přepínají filtry a řazení tady u výpisu.
     // Filtry, řazení a vyhledávání se navzájem vylučují - otevřením jednoho se ostatní zavřou.
@@ -87,6 +88,9 @@ function ModelBrowser() {
     // obsah posune nahoru - uživatel tak nezačíná na konci seznamu, který se právě schoval.
     useEffect(() => {
         if (!isFilterOpen && !isSortOpen) return;
+
+        setIsTagsHidden(false);
+
         if (!window.matchMedia("(max-width: 900px)").matches) return;
 
         window.scrollTo({ top: 0, left: 0 });
@@ -96,8 +100,32 @@ function ModelBrowser() {
     // Otevřené filtry nebo řazení lištu řeší samy (viz ModelBrowser.css).
     useEffect(() => {
         const mediaQuery = window.matchMedia("(max-width: 900px)");
+        const toolbar = document.querySelector(".model-browser__toolbar");
+
         let lastY = window.scrollY;
+        let moved = 0;
         let ticking = false;
+
+        // Kolik px musí uživatel pohnout jedním směrem, aby se lišta schovala nebo zase ukázala
+        const HIDE_AFTER_PX = 32;
+        const SHOW_AFTER_PX = 24;
+        // Úplně nahoře je lišta vždy vidět
+        const TOP_OFFSET_PX = 8;
+        const HIDE_FROM_PX = 140;
+        // Odsazení od konce stránky, kde se lišta už neschovává
+        const BOTTOM_OFFSET_PX = 24;
+
+        /**
+         * Určí, zda je uživatel u konce prohlížení,
+         * lišta by jinak u konce přeskakovala mezi schovanou a viditelnou.
+         */
+        const isNearPageBottom = (): boolean => {
+
+            const toolbarHeight = toolbar?.getBoundingClientRect().height ?? 0;
+            const viewportBottom = window.scrollY + window.innerHeight;
+
+            return viewportBottom >= document.documentElement.scrollHeight - toolbarHeight - BOTTOM_OFFSET_PX;
+        };
 
         // Horní lišta na telefonu nemá pevnou výšku (menší název, rozbalené vyhledávání),
         // proto se její skutečná výška měří a lišta se umístí přesně pod ni.
@@ -121,24 +149,27 @@ function ModelBrowser() {
 
         const handleScroll = (): void => {
             const currentY = window.scrollY;
-            // Drobné pohyby se ignorují, aby lišta nepřeblikávala
-            if (Math.abs(currentY - lastY) < 8) {
-                ticking = false;
-                return;
-            }
-            // Úplně nahoře je lišta vždycky vidět
-            if (currentY <= 8) {
-                setIsTagsHidden(false);
-            } else if (mediaQuery.matches && !isFilterOpen && !isSortOpen) {
-                // Schová se až po odscrollování, při scrollu nahoru se ukáže
-                if (currentY > lastY && currentY > 140) {
-                    setIsTagsHidden(true);
-                } else if (currentY < lastY) {
-                    setIsTagsHidden(false);
-                }
-            }
+            const delta = currentY - lastY;
             lastY = currentY;
             ticking = false;
+
+            if (!mediaQuery.matches || isFilterOpen || isSortOpen) return;
+
+            // Úplně nahoře je lišta vždycky vidět
+            if (currentY <= TOP_OFFSET_PX) {
+                moved = 0;
+                setIsTagsHidden(false);
+                return;
+            }
+
+            // Pohyb stejným směrem se nasčítá, změna směru počítá znovu - drobné kmity
+            moved = Math.sign(delta) === Math.sign(moved) ? moved + delta : delta;
+
+            if (moved >= HIDE_AFTER_PX && currentY > HIDE_FROM_PX && !isNearPageBottom()) {
+                setIsTagsHidden(true);
+            } else if (moved <= -SHOW_AFTER_PX) {
+                setIsTagsHidden(false);
+            }
         };
 
         const handleScrollThrottled = (): void => {
@@ -160,7 +191,7 @@ function ModelBrowser() {
     // Když prohlížeč zmizí - přepnutí na detail nějakého modelu
     useEffect(() => {
         return () => {
-            publishModelBrowserState({ isFilterOpen: false, isFilterActive: false, isSortOpen: false });
+            publishModelBrowserState({ isFilterOpen: false, isFilterActive: false, activeFilterCount: 0, isSortOpen: false });
         };
     }, []);
 
@@ -216,6 +247,7 @@ function ModelBrowser() {
                     isFilterActive={isFilterActive}
                     onFilterChange={handleFilterChange}
                     onReset={resetFilters}
+                    onApply={() => setIsFilterOpen(false)}
                 />
             </div>
 

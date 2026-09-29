@@ -199,6 +199,26 @@
         height: 1.15rem;
     }
 
+    /* Počet zvolených filtrů na ikoně filtru */
+    .header__icon-button-badge {
+        position: absolute;
+        top: -.3rem;
+        right: -.3rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.15rem;
+        height: 1.15rem;
+        padding: 0 .25rem;
+        border: 1.5px solid var(--header-bg-deep);
+        border-radius: var(--radius-pill);
+        background: var(--on-primary);
+        color: var(--header-bg);
+        font-size: .68rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
     /* Čtverec s logem má stejnou velikost jako tlačítka v liště */
     .header .logo-badge {
         --logo-badge-size: var(--header-action-size);

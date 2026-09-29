@@ -11,6 +11,7 @@ function ModelFilterPanel({
     isFilterActive,
     onFilterChange,
     onReset,
+    onApply,
 }: ModelFilterPanelProps) {
 
     return (
@@ -20,6 +21,7 @@ function ModelFilterPanel({
 
                 <PageTitle compact>Filtry</PageTitle>
 
+                {/* "Vymazat vše" zůstává ve stejném řádku jako nadpis, aby se filtry při zvolení neposouvaly */}
                 {isFilterActive && (
                     <Button
                         variant="outline"
@@ -35,17 +37,6 @@ function ModelFilterPanel({
                 className="model-filter-panel__categories"
                 id="model-filter-categories"
             >
-                {/* Na telefonu je "Vymazat vše" nahoře */}
-                {isFilterActive && (
-                    <Button
-                        variant="outline"
-                        className="model-filter-panel__reset model-filter-panel__reset--mobile"
-                        onClick={onReset}
-                    >
-                        Vymazat vše
-                    </Button>
-                )}
-
                 {MODEL_FILTERS_CONFIG.map((filterConfig) => (
                     <CheckboxGroup
                         key={filterConfig.key}
@@ -59,6 +50,13 @@ function ModelFilterPanel({
                         }
                     />
                 ))}
+            </div>
+
+            {/* Na telefonu je potvrzení filtrů u dolního okraje stránky (filtry se zvolí a stránka se zavře) */}
+            <div className="model-filter-panel__actions">
+                <Button className="model-filter-panel__apply" onClick={onApply}>
+                    Hotovo
+                </Button>
             </div>
         </aside>
     );
