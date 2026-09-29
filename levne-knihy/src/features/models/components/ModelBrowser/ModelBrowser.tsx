@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import useModelBrowser from "../../hooks/useModelBrowser";
 import {
+    MODEL_BROWSER_CLOSE_PANELS_EVENT,
     MODEL_BROWSER_TOGGLE_FILTERS_EVENT,
     MODEL_BROWSER_TOGGLE_SORT_EVENT,
     publishModelBrowserState,
@@ -55,22 +56,44 @@ function ModelBrowser() {
         }
     }, [hasLoaded, isFilterOpen, isFilterActive, isSortOpen]);
 
-    // Požadavky z hlavičky (ikony na telefonu) přepínají filtry a řazení tady u výpisu
+    // Požadavky z hlavičky (ikony na telefonu) přepínají filtry a řazení tady u výpisu.
+    // Filtry, řazení a vyhledávání se navzájem vylučují - otevřením jednoho se ostatní zavřou.
     useEffect(() => {
-        const handleToggleFilters = (): void => setIsFilterOpen((open) => !open);
-        const handleToggleSort = (): void => setIsSortOpen((open) => !open);
+        const handleToggleFilters = (): void => {
+            setIsSortOpen(false);
+            setIsFilterOpen((open) => !open);
+        };
+        const handleToggleSort = (): void => {
+            setIsFilterOpen(false);
+            setIsSortOpen((open) => !open);
+        };
+        const handleClosePanels = (): void => {
+            setIsFilterOpen(false);
+            setIsSortOpen(false);
+        };
 
         window.addEventListener(MODEL_BROWSER_TOGGLE_FILTERS_EVENT, handleToggleFilters);
         window.addEventListener(MODEL_BROWSER_TOGGLE_SORT_EVENT, handleToggleSort);
+        window.addEventListener(MODEL_BROWSER_CLOSE_PANELS_EVENT, handleClosePanels);
 
         return () => {
             window.removeEventListener(MODEL_BROWSER_TOGGLE_FILTERS_EVENT, handleToggleFilters);
             window.removeEventListener(MODEL_BROWSER_TOGGLE_SORT_EVENT, handleToggleSort);
+            window.removeEventListener(MODEL_BROWSER_CLOSE_PANELS_EVENT, handleClosePanels);
         };
     }, []);
 
+    // Na telefonu jsou filtry a řazení samostatné stránky, proto se při jejich otevření
+    // obsah posune nahoru - uživatel tak nezačíná na konci seznamu, který se právě schoval.
+    useEffect(() => {
+        if (!isFilterOpen && !isSortOpen) return;
+        if (!window.matchMedia("(max-width: 900px)").matches) return;
+
+        window.scrollTo({ top: 0, left: 0 });
+    }, [isFilterOpen, isSortOpen]);
+
     // Na telefonu se lišta se štítky při scrollu dolů schová, při scrollu nahoru zase ukáže.
-    // Dokud jsou otevřené filtry nebo řazení, lišta zůstává vidět.
+    // Otevřené filtry nebo řazení lištu řeší samy (viz ModelBrowser.css).
     useEffect(() => {
         const mediaQuery = window.matchMedia("(max-width: 900px)");
         let lastY = window.scrollY;
@@ -162,6 +185,11 @@ function ModelBrowser() {
     // Zvolený štítek (jiný než výchozí) výpis zúží, jeho význam se vypíše nad výsledky
     const isTabActive = tab !== DEFAULT_TAB;
 
+    // Na telefonu jsou filtry a řazení samostatné stránky, podle toho se upraví rozvržení
+    const layoutClassName = `model-browser-layout${
+        isFilterOpen ? " model-browser-layout--filter-open" : ""
+    }${isSortOpen ? " model-browser-layout--sort-open" : ""}`;
+
     const activeTab = MODEL_TABS_CONFIG.find(
         (tabOption) => tabOption.value === tab
     ) ?? MODEL_TABS_CONFIG[0];
@@ -176,7 +204,7 @@ function ModelBrowser() {
                 : "Nebyly nalezeny žádné modely.";
 
     return (
-        <div className="model-browser-layout">
+        <div className={layoutClassName}>
 
             <div
                 className={`model-browser-layout__sidebar${

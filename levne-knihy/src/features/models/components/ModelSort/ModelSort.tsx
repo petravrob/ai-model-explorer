@@ -2,6 +2,8 @@ import "./ModelSort.css";
 
 import { useEffect, useRef, useState } from "react";
 
+import { PageTitle } from "@/ui";
+
 import { MODEL_SORTS_CONFIG, type ModelSortKey } from "../../modelSortsConfig";
 
 interface ModelSortProps {
@@ -23,6 +25,8 @@ function ModelSort({ value, onChange, isOpen: controlledOpen, onOpenChange, clas
     const isOpen = isControlled ? controlledOpen : uncontrolledOpen;
 
     const controlRef = useRef<HTMLDivElement>(null);
+    // Na telefonu je nabídka celostránková, proto se hlídá i plocha celé stránky s řazením
+    const sortRef = useRef<HTMLDivElement>(null);
     const closeRef = useRef<() => void>(() => {});
     // Na otevření z hlavičky (ikona na telefonu) se nesmí hned reagovat zavřením z pointerdown
     const ignoreOutsideCloseUntilRef = useRef(0);
@@ -63,6 +67,10 @@ function ModelSort({ value, onChange, isOpen: controlledOpen, onOpenChange, clas
                 return;
             }
 
+            if (event.target === sortRef.current) {
+                return;
+            }
+
             if (!controlRef.current?.contains(event.target as Node)) {
                 if (Date.now() < ignoreOutsideCloseUntilRef.current) {
                     return;
@@ -93,7 +101,12 @@ function ModelSort({ value, onChange, isOpen: controlledOpen, onOpenChange, clas
     };
 
     return (
-        <div className={`model-sort${isOpen ? " model-sort--open" : ""}${className ? ` ${className}` : ""}`}>
+        <div
+            ref={sortRef}
+            className={`model-sort${isOpen ? " model-sort--open" : ""}${className ? ` ${className}` : ""}`}
+        >
+            {isOpen && <PageTitle compact>Řazení</PageTitle>}
+
             <label
                 className="model-sort__label"
                 htmlFor="model-sort-select"

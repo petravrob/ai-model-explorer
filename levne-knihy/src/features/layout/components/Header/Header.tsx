@@ -14,6 +14,7 @@ import {
 import {
     MODEL_BROWSER_STATE_EVENT,
     requestModelBrowserFilterToggle,
+    requestModelBrowserPanelsClose,
     requestModelBrowserSortToggle,
 } from "@/features/models/modelBrowserBridge";
 import type { ModelBrowserBridgeState } from "@/features/models/modelBrowserBridge";
@@ -26,8 +27,21 @@ function Header() {
     // Na menších šířkách je vyhledávání schované a rozbalí ho tlačítko s lupou
     const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-    // Rozbalení vyhledávání je oddělené kvůli klávesové zkratce v poli hledání
-    const openSearch = useCallback(() => setIsSearchOpen(true), []);
+    // Rozbalení vyhledávání je oddělené kvůli klávesové zkratce v poli hledání.
+    // Filtry, řazení a vyhledávání se navzájem vylučují - otevřením hledání se panely zavřou.
+    const openSearch = useCallback(() => {
+        setIsSearchOpen(true);
+        requestModelBrowserPanelsClose();
+    }, []);
+
+    const toggleSearch = useCallback(() => {
+        if (isSearchOpen) {
+            setIsSearchOpen(false);
+            return;
+        }
+
+        openSearch();
+    }, [isSearchOpen, openSearch]);
 
     const location = useLocation();
 
@@ -46,6 +60,11 @@ function Header() {
             setIsFilterOpen(state.isFilterOpen);
             setIsFilterActive(state.isFilterActive);
             setIsSortOpen(state.isSortOpen);
+
+            // Otevřené filtry nebo řazení vyhledávání zavřou (na telefonu zabírají celou stránku)
+            if (state.isFilterOpen || state.isSortOpen) {
+                setIsSearchOpen(false);
+            }
         };
 
         window.addEventListener(MODEL_BROWSER_STATE_EVENT, handleState);
@@ -60,6 +79,41 @@ function Header() {
             setIsSortOpen(false);
         }
     }, [isModelBrowserPage]);
+
+    // Na telefonu se rozbalené vyhledávání při scrollu dolů schová
+    // Zpátky se samo neotevírá - jinak by při scrollu nahoru vyskakovala klávesnice.
+    useEffect(() => {
+        if (!isSearchOpen) return;
+
+        const mediaQuery = window.matchMedia("(max-width: 900px)");
+        let lastY = window.scrollY;
+        let ticking = false;
+
+        const handleScroll = (): void => {
+            const currentY = window.scrollY;
+            ticking = false;
+
+            // Drobné pohyby se ignorují, aby se vyhledávání neschovalo omylem
+            if (Math.abs(currentY - lastY) < 8) return;
+
+            // Schová se až kousek od začátku stránky, ne hned při prvním posunu
+            if (mediaQuery.matches && currentY > lastY && currentY > 40) {
+                setIsSearchOpen(false);
+            }
+
+            lastY = currentY;
+        };
+
+        const handleScrollThrottled = (): void => {
+            if (ticking) return;
+            ticking = true;
+            window.requestAnimationFrame(handleScroll);
+        };
+
+        window.addEventListener("scroll", handleScrollThrottled, { passive: true });
+
+        return () => window.removeEventListener("scroll", handleScrollThrottled);
+    }, [isSearchOpen]);
 
     return (
         <header className="header">
@@ -115,7 +169,7 @@ function Header() {
                         aria-label="Vyhledávání"
                         aria-expanded={isSearchOpen}
                         aria-controls="header-search"
-                        onClick={() => setIsSearchOpen((open) => !open)}
+                        onClick={toggleSearch}
                     >
                         <Icon path={MAGNIFIER_ICON} className="header__search-toggle-icon" />
                     </button>

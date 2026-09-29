@@ -49,8 +49,8 @@
         overflow-x: auto;
         overscroll-behavior-x: contain;
         -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-        scrollbar-color: var(--border-muted) transparent;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
     }
 
     .model-tabs__tab {
@@ -60,12 +60,7 @@
     }
 
     .model-tabs::-webkit-scrollbar {
-        height: 5px;
-    }
-
-    .model-tabs::-webkit-scrollbar-thumb {
-        background: var(--border-muted);
-        border-radius: var(--radius-pill);
+        display: none;
     }
 }
 

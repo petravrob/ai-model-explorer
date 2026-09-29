@@ -84,8 +84,13 @@
         min-height: auto;
     }
 
-    /* Filtry se na telefonu rozbalují tlačítkem v liště nad prohlížečem */
+    /* Filtry jsou na telefonu samostatná stránka, proto mají vlastní nadpis */
     .model-filter-panel__header {
+        padding: 0 0 .5rem;
+    }
+
+    /* "Vymazat vše" zůstává mezi filtry - na telefonu má větší dotykovou plochu */
+    .model-filter-panel__header .model-filter-panel__reset {
         display: none;
     }
 

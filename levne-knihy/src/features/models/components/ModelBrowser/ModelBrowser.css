@@ -144,6 +144,72 @@
         pointer-events: none;
     }
 
+    /*
+     * Filtry jsou na telefonu samostatná stránka - lišta se štítky zmizí
+     */
+    .model-browser-layout--filter-open .model-browser__toolbar {
+        display: none;
+    }
+
+    /*
+     * Filtry jako stránka: panel je přes celou plochu pod horní lištou
+     * Rozbalení filtrů má animaci.
+     */
+    .model-browser-layout--filter-open .model-browser-layout__sidebar {
+        position: fixed;
+        inset: var(--header-height-mobile, var(--header-height)) 0 0;
+        z-index: 20;
+        margin: 0;
+        padding: 1rem 1.75rem 2.5rem;
+        border: 0;
+        background: var(--surface-sidebar);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        animation: panel-in var(--transition-panel);
+    }
+
+    /*
+     * Tagy se zakryjí.
+     */
+    .model-browser-layout--sort-open .model-browser__toolbar {
+        display: contents;
+    }
+
+    .model-browser-layout--sort-open .model-browser__toolbar .model-tabs {
+        display: none;
+    }
+
+    /*
+     * Kategorie filtrů se objevují jedna po druhé.
+     */
+    .model-browser-layout--filter-open .model-filter-panel__categories > * {
+        animation: panel-item-in var(--transition-panel) both;
+    }
+
+    .model-browser-layout--filter-open .model-filter-panel__categories > :nth-child(2) {
+        animation-delay: .07s;
+    }
+
+    .model-browser-layout--filter-open .model-filter-panel__categories > :nth-child(3) {
+        animation-delay: .14s;
+    }
+
+    .model-browser-layout--filter-open .model-filter-panel__categories > :nth-child(n + 4) {
+        animation-delay: .21s;
+    }
+
+    /*
+     * Dokud je otevřená stránka s filtry nebo řazením, nelze zobrazit prohlížeč.
+     */
+    .model-browser-layout--filter-open .model-browser__tab-note,
+    .model-browser-layout--filter-open .model-browser .page-message,
+    .model-browser-layout--filter-open .model-browser__results,
+    .model-browser-layout--sort-open .model-browser__tab-note,
+    .model-browser-layout--sort-open .model-browser .page-message,
+    .model-browser-layout--sort-open .model-browser__results {
+        display: none;
+    }
+
     /* Tagy jsou v jednom řádku (šířku a posouvání řeší ModelTabs.css) */
     .model-browser__toolbar .model-tabs {
         flex: 1 1 auto;
@@ -199,6 +265,11 @@
         padding: 1rem;
     }
 
+    /* Na užších telefonech má stránka s filtry menší okraje */
+    .model-browser-layout--filter-open .model-browser-layout__sidebar {
+        padding: 1rem 1rem 2.5rem;
+    }
+
     /* Vysvětlivka zabírá na telefonu méně místa */
     .model-browser__tab-note {
         margin: .5rem 0 .85rem;
@@ -208,5 +279,13 @@
     /* Tlačítko "Načíst další" se na telefonu roztáhne na celou šířku */
     .model-browser__more .btn {
         width: 100%;
+    }
+}
+
+/* Když má systém animace vypnuté, stránka s filtry se jen objeví */
+@media (prefers-reduced-motion: reduce) {
+    .model-browser-layout--filter-open .model-browser-layout__sidebar,
+    .model-browser-layout--filter-open .model-filter-panel__categories > * {
+        animation: none;
     }
 }

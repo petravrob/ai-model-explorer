@@ -109,6 +109,14 @@
  * Vyhledávání je schované a rozbalí se klepnutím na lupu.
  */
 @media (max-width: 900px) {
+    /*
+     * Velikost tlačítek v liště (filtr, řazení, lupa). Stejně velký je i čtverec
+     * s logem, aby byla lišta na telefonu vyrovnaná.
+     */
+    .header {
+        --header-action-size: 2.5rem;
+    }
+
     .header__container {
         display: flex;
         flex-wrap: wrap;
@@ -162,14 +170,14 @@
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        width: 2.5rem;
-        height: 2.5rem;
+        width: var(--header-action-size);
+        height: var(--header-action-size);
         padding: 0;
         border: 1px solid rgb(255 255 255 / 35%);
         border-radius: var(--radius-md);
         background: rgb(255 255 255 / 12%);
         color: var(--on-primary);
-        transition: background var(--transition-fast);
+        transition: background var(--transition-fast), transform var(--transition-fast);
     }
 
     .header__search-toggle:hover,
@@ -191,6 +199,50 @@
         height: 1.15rem;
     }
 
+    /* Čtverec s logem má stejnou velikost jako tlačítka v liště */
+    .header .logo-badge {
+        --logo-badge-size: var(--header-action-size);
+        --logo-badge-icon-size: .7em;
+        --logo-badge-orbit: -.17em;
+    }
+
+    /* Stisk tlačítka na telefonu je vidět */
+    .header__search-toggle:active,
+    .header__icon-button:active {
+        transform: scale(.92);
+    }
+
+    /* Otevřené tlačítko lehce poskočí, aby bylo vidět, že se panel otevřel */
+    .header__search-toggle[aria-expanded="true"],
+    .header__icon-button--open {
+        animation: header-icon-pop var(--transition-panel);
+    }
+
+    /* Rozbalené vyhledávání najede zeshora pod lištu */
+    .header__main--open .header__search {
+        animation: header-search-in var(--transition-panel);
+    }
+
+}
+
+/* Vyhledávání na telefonu najede zeshora pod lištu */
+@keyframes header-search-in {
+    from {
+        opacity: 0;
+        transform: translateY(-.6rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tlačítko v liště lehce poskočí při otevření panelu */
+@keyframes header-icon-pop {
+    50% {
+        transform: scale(1.1);
+    }
 }
 
 /* Na telefonu je lišta nižší a název menší */
@@ -208,12 +260,6 @@
         display: contents;
     }
 
-    .header .logo-badge {
-        --logo-badge-size: 2.3rem;
-        --logo-badge-icon-size: .7em;
-        --logo-badge-orbit: -.17em;
-    }
-
     .header__title {
         font-size: 1.1rem;
     }
@@ -221,5 +267,14 @@
     /* Podtitulek se na telefonu skryje, aby lišta nezabírala tolik místa */
     .header__subtitle {
         display: none;
+    }
+}
+
+/* Když má systém animace vypnuté, vyhledávání i tlačítka se jen objeví */
+@media (prefers-reduced-motion: reduce) {
+    .header__search-toggle[aria-expanded="true"],
+    .header__icon-button--open,
+    .header__main--open .header__search {
+        animation: none;
     }
 }
