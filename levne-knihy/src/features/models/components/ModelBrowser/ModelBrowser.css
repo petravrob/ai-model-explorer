@@ -211,6 +211,12 @@
         display: none;
     }
 
+    /* Tlačítko "Načíst další" je na telefonu zvýrazněné už od začátku */
+    .model-browser__more .btn {
+        background: var(--primary);
+        color: var(--on-primary);
+    }
+
     /* Tagy jsou v jednom řádku (šířku a posouvání řeší ModelTabs.css) */
     .model-browser__toolbar .model-tabs {
         flex: 1 1 auto;

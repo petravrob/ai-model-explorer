@@ -75,9 +75,11 @@ function Header() {
         return () => window.removeEventListener(MODEL_BROWSER_STATE_EVENT, handleState);
     }, []);
 
-    // Po odchodu z výpisu se ikony schovají a jejich stav vynuluje
+    // Po odchodu z výpisu se ikony schovají, jejich stav vynuluje
+    // a rozbalené vyhledávání (lupa) se zavře - třeba při otevření detailu modelu
     useEffect(() => {
         if (!isModelBrowserPage) {
+            setIsSearchOpen(false);
             setIsFilterOpen(false);
             setIsFilterActive(false);
             setActiveFilterCount(0);
