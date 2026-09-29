@@ -98,3 +98,112 @@
     font-size: .9rem;
     font-weight: 700;
 }
+
+/* Text na tlačítku se nepoužívá na telefonu  */
+.model-sort__button-label {
+    display: none;
+}
+
+/* Nadpis stránky s řazením se používá jen na telefonu (na počítači je řazení nabídka) */
+.model-sort > .page-title {
+    display: none;
+}
+
+/*
+ * Na telefonu se tlačítko pro řazení skryje a zobrazí se ikona v horní liště.
+ */
+@media (max-width: 900px) {
+    .model-sort--anchored {
+        display: none;
+        margin: 0;
+    }
+
+    /*
+     * Otevřené řazení je samostatná stránka přes celou obrazovku pod hlavičkou.
+     */
+    .model-sort--anchored.model-sort--open {
+        display: block;
+        position: fixed;
+        inset: var(--header-height-mobile, var(--header-height)) 0 0;
+        z-index: 20;
+        padding: 1.1rem 1.75rem calc(1rem + env(safe-area-inset-bottom, 0px));
+        background: var(--surface-sidebar);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        animation: panel-in var(--transition-panel);
+    }
+
+    /* Nadpis stránky s řazením */
+    .model-sort--anchored.model-sort--open > .page-title {
+        display: block;
+        margin: 0 0 .75rem;
+    }
+
+    .model-sort--anchored .model-sort__label,
+    .model-sort--anchored .model-sort__select {
+        display: none;
+    }
+
+    .model-sort--anchored .model-sort__control {
+        position: static;
+    }
+
+    /* Volby řazení se roztáhnou přes celou šířku stránky */
+    .model-sort--anchored.model-sort--open .model-sort__menu {
+        display: block;
+        position: static;
+        width: 100%;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .model-sort--anchored.model-sort--open .model-sort__option {
+        padding: .85rem .75rem;
+        border-radius: var(--radius-md);
+        font-size: .95rem;
+    }
+
+    .model-sort--anchored.model-sort--open .model-sort__option + .model-sort__option {
+        margin-top: .3rem;
+    }
+
+    /*
+     * Volby řazení se objevují jedna po druhé.
+     */
+    .model-sort--anchored.model-sort--open .model-sort__option {
+        animation: panel-item-in var(--transition-panel) both;
+    }
+
+    .model-sort--anchored.model-sort--open .model-sort__option:nth-child(2) {
+        animation-delay: .07s;
+    }
+
+    .model-sort--anchored.model-sort--open .model-sort__option:nth-child(3) {
+        animation-delay: .14s;
+    }
+
+    .model-sort--anchored.model-sort--open .model-sort__option:nth-child(n + 4) {
+        animation-delay: .21s;
+    }
+
+}
+
+@media (max-width: 600px) {
+    /* Na užších telefonech má stránka s řazením menší okraje */
+    .model-sort--anchored.model-sort--open {
+        padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* Když má systém animace vypnuté, stránka s řazením se jen objeví */
+@media (prefers-reduced-motion: reduce) {
+    .model-sort--anchored.model-sort--open,
+    .model-sort--anchored.model-sort--open .model-sort__option {
+        animation: none;
+    }
+}
+

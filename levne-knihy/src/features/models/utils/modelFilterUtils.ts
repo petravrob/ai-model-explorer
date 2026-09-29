@@ -15,6 +15,13 @@ export const buildEmptyFilters = (): ModelFilters =>
 export const isAnyFilterActive = (filters: ModelFilters): boolean =>
     Object.values(filters).some((selection) => selection.length > 0);
 
+/** Spočítá zvolené hodnoty ve všech filtrech (počet se ukazuje na ikoně filtrů v hlavičce). */
+export const countSelectedFilterValues = (filters: ModelFilters): number =>
+    Object.values(filters).reduce(
+        (selectedCount, selection) => selectedCount + selection.length,
+        0
+    );
+
 /** Přepne výběr jedné hodnoty filtru (zaškrtnutí hodnotu přidá, odškrtnutí odebere). */
 export const toggleFilterValue = (
     filters: ModelFilters,

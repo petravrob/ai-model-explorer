@@ -2,33 +2,87 @@ import "./ModelSort.css";
 
 import { useEffect, useRef, useState } from "react";
 
+import { PageTitle } from "@/ui";
+
 import { MODEL_SORTS_CONFIG, type ModelSortKey } from "../../modelSortsConfig";
 
 interface ModelSortProps {
     value: ModelSortKey;
     onChange: (value: ModelSortKey) => void;
+    // Hlavička na telefonu otevírá nabídku ikonou - otevření pak řídí ModelBrowser
+    isOpen?: boolean;
+    onOpenChange?: (isOpen: boolean) => void;
+    // Na telefonu se tlačítko schová (nahrazuje ho ikona v hlavičce), nabídka zůstává ukotvená v liště
+    className?: string;
 }
 
 /** Výběr řazení modelů nad výpisem. */
-function ModelSort({ value, onChange }: ModelSortProps) {
+function ModelSort({ value, onChange, isOpen: controlledOpen, onOpenChange, className }: ModelSortProps) {
 
-    const [isOpen, setIsOpen] = useState(false);
+    const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+
+    const isControlled = controlledOpen !== undefined;
+    const isOpen = isControlled ? controlledOpen : uncontrolledOpen;
+
     const controlRef = useRef<HTMLDivElement>(null);
+    // Na telefonu je nabídka celostránková, proto se hlídá i plocha celé stránky s řazením
+    const sortRef = useRef<HTMLDivElement>(null);
+    const closeRef = useRef<() => void>(() => {});
+    // Na otevření z hlavičky (ikona na telefonu) se nesmí hned reagovat zavřením z pointerdown
+    const ignoreOutsideCloseUntilRef = useRef(0);
+    closeRef.current = () => {
+        if (isControlled) {
+            onOpenChange?.(false);
+        } else {
+            setUncontrolledOpen(false);
+        }
+    };
+
+    const setIsOpen = (next: boolean | ((open: boolean) => boolean)): void => {
+        const resolved = typeof next === "function" ? next(isOpen) : next;
+
+        if (isControlled) {
+            onOpenChange?.(resolved);
+        } else {
+            setUncontrolledOpen(resolved);
+        }
+    };
 
     const selectedSort = MODEL_SORTS_CONFIG.find(
         (sortOption) => sortOption.value === value
     ) ?? MODEL_SORTS_CONFIG[0];
 
     useEffect(() => {
+        if (isOpen && isControlled) {
+            ignoreOutsideCloseUntilRef.current = Date.now() + 350;
+        }
+    }, [isOpen, isControlled]);
+
+    useEffect(() => {
         const handlePointerDown = (event: PointerEvent): void => {
+            const target = event.target as Element;
+
+            // Kliknutí na ikony v hlavičce řeší přepínač v ModelBrowseru, tady se nezavírá
+            if (target.closest?.(".header__icon-button")) {
+                return;
+            }
+
+            if (event.target === sortRef.current) {
+                return;
+            }
+
             if (!controlRef.current?.contains(event.target as Node)) {
-                setIsOpen(false);
+                if (Date.now() < ignoreOutsideCloseUntilRef.current) {
+                    return;
+                }
+
+                closeRef.current();
             }
         };
 
         const handleKeyDown = (event: KeyboardEvent): void => {
             if (event.key === "Escape") {
-                setIsOpen(false);
+                closeRef.current();
             }
         };
 
@@ -41,13 +95,19 @@ function ModelSort({ value, onChange }: ModelSortProps) {
         };
     }, []);
 
+    // Zvolením možnosti se řazení rovnou použije a stránka s řazením se zavře
     const handleOptionClick = (sortKey: ModelSortKey): void => {
         onChange(sortKey);
         setIsOpen(false);
     };
 
     return (
-        <div className="model-sort">
+        <div
+            ref={sortRef}
+            className={`model-sort${isOpen ? " model-sort--open" : ""}${className ? ` ${className}` : ""}`}
+        >
+            {isOpen && <PageTitle compact>Řazení</PageTitle>}
+
             <label
                 className="model-sort__label"
                 htmlFor="model-sort-select"
@@ -67,7 +127,10 @@ function ModelSort({ value, onChange }: ModelSortProps) {
                     aria-expanded={isOpen}
                     onClick={() => setIsOpen((open) => !open)}
                 >
-                    <span>{selectedSort.label}</span>
+                    <span className="model-sort__value">{selectedSort.label}</span>
+
+                    <span className="model-sort__button-label">Seřadit</span>
+
                     <span className="model-sort__chevron" aria-hidden="true" />
                 </button>
 
@@ -101,6 +164,7 @@ function ModelSort({ value, onChange }: ModelSortProps) {
                     </div>
                 )}
             </div>
+
         </div>
     );
 }

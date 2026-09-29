@@ -6,8 +6,9 @@ import { AIModel } from "../types";
 import { SEARCH_QUERY_PARAM, modelDetailUrl } from "@/routes/paths";
 import { createDescriptions, getModels } from "../api/modelsApi";
 import useModelFilters from "./useModelFilters";
-import { DEFAULT_SORT, type ModelSortKey } from "../modelSortsConfig";
-import { DEFAULT_TAB, type ModelTabKey } from "../modelTabsConfig";
+import type { ModelSortKey } from "../modelSortsConfig";
+import type { ModelTabKey } from "../modelTabsConfig";
+import { readSortFromParams, readTabFromParams, writeSortToParams, writeTabToParams } from "../utils/modelListParams";
 import { applyTab } from "../utils/modelTabUtils";
 
 /** Převede text na malá písmena bez diakritiky pro nezávislé vyhledávání. */
@@ -57,14 +58,39 @@ function useModelBrowser() {
 
     const navigate = useNavigate();
 
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const latestRequestIdRef = useRef(0);
 
     // Hledaný výraz z URL (např. /?q=gpt), oříznutý o okrajové mezery
     const searchQuery = (searchParams.get(SEARCH_QUERY_PARAM) ?? "").trim();
 
-    // Zvolený štítek, který vyfiltruje výpis na určitou skupinu modelů (např. jen nové, trendující)
-    const [tab, setTab] = useState<ModelTabKey>(DEFAULT_TAB);
+    // Zvolený štítek, řazení i filtry se drží v URL, aby zůstaly nastavené i po návratu z detailu modelu
+    const tab = readTabFromParams(searchParams);
+    const sort = readSortFromParams(searchParams);
+
+    /** Zapíše do URL novou hodnotu štítku nebo řazení a ostatní parametry (filtry, hledání) nechá být. */
+    const updateListParams = (
+        writeParams: (params: URLSearchParams) => void
+    ): void => {
+
+        setSearchParams(
+            (currentParams) => {
+
+                const params = new URLSearchParams(currentParams);
+
+                writeParams(params);
+
+                return params;
+            },
+            { replace: true }
+        );
+    };
+
+    const setTab = (nextTab: ModelTabKey): void =>
+        updateListParams((params) => writeTabToParams(params, nextTab));
+
+    const setSort = (nextSort: ModelSortKey): void =>
+        updateListParams((params) => writeSortToParams(params, nextSort));
 
     // Štítek vyfiltruje načtené modely, teprve nad ním se použijí filtry z levého panelu
     const tabModels = useMemo(
@@ -76,13 +102,11 @@ function useModelBrowser() {
     const {
         filters,
         isFilterActive,
+        activeFilterCount,
         handleFilterChange,
         resetFilters,
         filteredModels,
     } = useModelFilters(tabModels);
-
-    // Zvolený způsob řazení výpisu modelů
-    const [sort, setSort] = useState<ModelSortKey>(DEFAULT_SORT);
 
     // Kolik modelů je z výpisu zobrazených (další se přidají tlačítkem)
     const [visibleCount, setVisibleCount] = useState(MODELS_PER_LOADING);
@@ -296,6 +320,7 @@ function useModelBrowser() {
         isFuzzySearch,
         filters,
         isFilterActive,
+        activeFilterCount,
         handleFilterChange,
         resetFilters,
         sort,

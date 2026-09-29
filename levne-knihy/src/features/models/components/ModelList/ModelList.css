@@ -21,10 +21,17 @@
     transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 
-.model-list__item:hover {
-    transform: translateY(-2px);
-    border-color: var(--primary);
-    box-shadow: 0 12px 26px rgba(15, 23, 42, .11);
+/* Zvýraznění karty patří jen zařízením s myší, na telefonu by po klepnutí zůstalo */
+@media (hover: hover) {
+    .model-list__item:hover {
+        transform: translateY(-2px);
+        border-color: var(--primary);
+        box-shadow: 0 12px 26px rgba(15, 23, 42, .11);
+    }
+
+    .model-list__item:hover .model-list__image {
+        box-shadow: 0 0 0 1px var(--primary);
+    }
 }
 
 /* Hlavička karty s logem modelu, jeho názvem a poskytovatelem */
@@ -47,10 +54,6 @@
     background: var(--surface-soft);
     box-shadow: 0 0 0 1px var(--border);
     transition: box-shadow var(--transition-fast);
-}
-
-.model-list__item:hover .model-list__image {
-    box-shadow: 0 0 0 1px var(--primary);
 }
 
 /* Název modelu a poskytovatel vedle loga */
@@ -209,6 +212,22 @@
 
     .model-list__name {
         font-size: 1rem;
+    }
+
+    /* Údaje karty se vejdou do dvou sloupců, takže se text nemusí zkracovat */
+    .model-list__meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .6rem .8rem;
+    }
+
+    .model-list__meta .detail-item__label {
+        font-size: .68rem;
+    }
+
+    /* Delší údaj se na telefonu zalomí, místo aby se zkrátil třemi tečkami */
+    .model-list__meta .detail-item__value {
+        font-size: .8rem;
+        white-space: normal;
     }
 
     .model-list__stats {

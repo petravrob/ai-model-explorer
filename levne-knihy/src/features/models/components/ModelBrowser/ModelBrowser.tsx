@@ -1,6 +1,14 @@
 import "./ModelBrowser.css";
 
+import { useEffect, useState } from "react";
+
 import useModelBrowser from "../../hooks/useModelBrowser";
+import {
+    MODEL_BROWSER_CLOSE_PANELS_EVENT,
+    MODEL_BROWSER_TOGGLE_FILTERS_EVENT,
+    MODEL_BROWSER_TOGGLE_SORT_EVENT,
+    publishModelBrowserState,
+} from "../../modelBrowserBridge";
 import { DEFAULT_TAB, MODEL_TABS_CONFIG } from "../../modelTabsConfig";
 import { Button, LogoLoader, PageContainer, PageMessage } from "@/ui";
 
@@ -21,6 +29,7 @@ function ModelBrowser() {
         isFuzzySearch,
         filters,
         isFilterActive,
+        activeFilterCount,
         handleFilterChange,
         resetFilters,
         sort,
@@ -33,6 +42,158 @@ function ModelBrowser() {
         hasLoaded,
         error,
     } = useModelBrowser();
+
+    // Na obrazovce počítače jsou filtry vidět pořád, na menších šířkách se rozbalují ikonou v hlavičce
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    // Na telefonu otevírá nabídku řazení ikona v hlavičce, proto její stav drží prohlížeč
+    const [isSortOpen, setIsSortOpen] = useState(false);
+    // Na telefonu se lišta se štítky při scrollu dolů schová a při scrollu nahoru zase ukáže
+    const [isTagsHidden, setIsTagsHidden] = useState(false);
+
+    // Stav pro ikony v hlavičce (jen na telefonu): rozbalené filtry / aktivní filtry / otevřené řazení
+    useEffect(() => {
+        if (hasLoaded) {
+            publishModelBrowserState({ isFilterOpen, isFilterActive, activeFilterCount, isSortOpen });
+        }
+    }, [hasLoaded, isFilterOpen, isFilterActive, activeFilterCount, isSortOpen]);
+
+    // Požadavky z hlavičky (ikony na telefonu) přepínají filtry a řazení tady u výpisu.
+    // Filtry, řazení a vyhledávání se navzájem vylučují - otevřením jednoho se ostatní zavřou.
+    useEffect(() => {
+        const handleToggleFilters = (): void => {
+            setIsSortOpen(false);
+            setIsFilterOpen((open) => !open);
+        };
+        const handleToggleSort = (): void => {
+            setIsFilterOpen(false);
+            setIsSortOpen((open) => !open);
+        };
+        const handleClosePanels = (): void => {
+            setIsFilterOpen(false);
+            setIsSortOpen(false);
+        };
+
+        window.addEventListener(MODEL_BROWSER_TOGGLE_FILTERS_EVENT, handleToggleFilters);
+        window.addEventListener(MODEL_BROWSER_TOGGLE_SORT_EVENT, handleToggleSort);
+        window.addEventListener(MODEL_BROWSER_CLOSE_PANELS_EVENT, handleClosePanels);
+
+        return () => {
+            window.removeEventListener(MODEL_BROWSER_TOGGLE_FILTERS_EVENT, handleToggleFilters);
+            window.removeEventListener(MODEL_BROWSER_TOGGLE_SORT_EVENT, handleToggleSort);
+            window.removeEventListener(MODEL_BROWSER_CLOSE_PANELS_EVENT, handleClosePanels);
+        };
+    }, []);
+
+    // Na telefonu jsou filtry a řazení samostatné stránky, proto se při jejich otevření
+    // obsah posune nahoru - uživatel tak nezačíná na konci seznamu, který se právě schoval.
+    useEffect(() => {
+        if (!isFilterOpen && !isSortOpen) return;
+
+        setIsTagsHidden(false);
+
+        if (!window.matchMedia("(max-width: 900px)").matches) return;
+
+        window.scrollTo({ top: 0, left: 0 });
+    }, [isFilterOpen, isSortOpen]);
+
+    // Na telefonu se lišta se štítky při scrollu dolů schová, při scrollu nahoru zase ukáže.
+    // Otevřené filtry nebo řazení lištu řeší samy (viz ModelBrowser.css).
+    useEffect(() => {
+        const mediaQuery = window.matchMedia("(max-width: 900px)");
+        const toolbar = document.querySelector(".model-browser__toolbar");
+
+        let lastY = window.scrollY;
+        let moved = 0;
+        let ticking = false;
+
+        // Kolik px musí uživatel pohnout jedním směrem, aby se lišta schovala nebo zase ukázala
+        const HIDE_AFTER_PX = 32;
+        const SHOW_AFTER_PX = 24;
+        // Úplně nahoře je lišta vždy vidět
+        const TOP_OFFSET_PX = 8;
+        const HIDE_FROM_PX = 140;
+        // Odsazení od konce stránky, kde se lišta už neschovává
+        const BOTTOM_OFFSET_PX = 24;
+
+        /**
+         * Určí, zda je uživatel u konce prohlížení,
+         * lišta by jinak u konce přeskakovala mezi schovanou a viditelnou.
+         */
+        const isNearPageBottom = (): boolean => {
+
+            const toolbarHeight = toolbar?.getBoundingClientRect().height ?? 0;
+            const viewportBottom = window.scrollY + window.innerHeight;
+
+            return viewportBottom >= document.documentElement.scrollHeight - toolbarHeight - BOTTOM_OFFSET_PX;
+        };
+
+        // Horní lišta na telefonu nemá pevnou výšku (menší název, rozbalené vyhledávání),
+        // proto se její skutečná výška měří a lišta se umístí přesně pod ni.
+        const header = document.querySelector(".header");
+        const syncHeaderHeight = (): void => {
+            const height = header?.getBoundingClientRect().height;
+            if (height && height > 0) {
+                document.documentElement.style.setProperty(
+                    "--header-height-mobile",
+                    `${Math.round(height)}px`,
+                );
+            }
+        };
+        syncHeaderHeight();
+
+        let resizeObserver: ResizeObserver | null = null;
+        if (typeof ResizeObserver !== "undefined" && header) {
+            resizeObserver = new ResizeObserver(syncHeaderHeight);
+            resizeObserver.observe(header);
+        }
+
+        const handleScroll = (): void => {
+            const currentY = window.scrollY;
+            const delta = currentY - lastY;
+            lastY = currentY;
+            ticking = false;
+
+            if (!mediaQuery.matches || isFilterOpen || isSortOpen) return;
+
+            // Úplně nahoře je lišta vždycky vidět
+            if (currentY <= TOP_OFFSET_PX) {
+                moved = 0;
+                setIsTagsHidden(false);
+                return;
+            }
+
+            // Pohyb stejným směrem se nasčítá, změna směru počítá znovu - drobné kmity
+            moved = Math.sign(delta) === Math.sign(moved) ? moved + delta : delta;
+
+            if (moved >= HIDE_AFTER_PX && currentY > HIDE_FROM_PX && !isNearPageBottom()) {
+                setIsTagsHidden(true);
+            } else if (moved <= -SHOW_AFTER_PX) {
+                setIsTagsHidden(false);
+            }
+        };
+
+        const handleScrollThrottled = (): void => {
+            if (!ticking) {
+                ticking = true;
+                window.requestAnimationFrame(handleScroll);
+            }
+        };
+
+        window.addEventListener("scroll", handleScrollThrottled, { passive: true });
+
+        return () => {
+            window.removeEventListener("scroll", handleScrollThrottled);
+            resizeObserver?.disconnect();
+            document.documentElement.style.removeProperty("--header-height-mobile");
+        };
+    }, [isFilterOpen, isSortOpen]);
+
+    // Když prohlížeč zmizí - přepnutí na detail nějakého modelu
+    useEffect(() => {
+        return () => {
+            publishModelBrowserState({ isFilterOpen: false, isFilterActive: false, activeFilterCount: 0, isSortOpen: false });
+        };
+    }, []);
 
     // Celostránková zpráva se ukáže jen před prvním načtením (případně při jeho neúspěchu).
     // Při obnově kvůli změně filtrů zůstane rozvržení i stávající výpis modelů na stránce.
@@ -55,6 +216,11 @@ function ModelBrowser() {
     // Zvolený štítek (jiný než výchozí) výpis zúží, jeho význam se vypíše nad výsledky
     const isTabActive = tab !== DEFAULT_TAB;
 
+    // Na telefonu jsou filtry a řazení samostatné stránky, podle toho se upraví rozvržení
+    const layoutClassName = `model-browser-layout${
+        isFilterOpen ? " model-browser-layout--filter-open" : ""
+    }${isSortOpen ? " model-browser-layout--sort-open" : ""}`;
+
     const activeTab = MODEL_TABS_CONFIG.find(
         (tabOption) => tabOption.value === tab
     ) ?? MODEL_TABS_CONFIG[0];
@@ -69,23 +235,40 @@ function ModelBrowser() {
                 : "Nebyly nalezeny žádné modely.";
 
     return (
-        <div className="model-browser-layout">
+        <div className={layoutClassName}>
 
-            <div className="model-browser-layout__sidebar">
+            <div
+                className={`model-browser-layout__sidebar${
+                    isFilterOpen ? " model-browser-layout__sidebar--open" : ""
+                }`}
+            >
                 <ModelFilterPanel
                     filters={filters}
                     isFilterActive={isFilterActive}
                     onFilterChange={handleFilterChange}
                     onReset={resetFilters}
+                    onApply={() => setIsFilterOpen(false)}
                 />
             </div>
 
             <PageContainer>
                 <div className="model-browser" aria-busy={loading}>
 
-                    <div className="model-browser__toolbar">
+                    <div
+                        className={`model-browser__toolbar${
+                            isTagsHidden && !isFilterOpen && !isSortOpen
+                                ? " model-browser__toolbar--hidden"
+                                : ""
+                        }`}
+                    >
                         <ModelTabs value={tab} onChange={setTab} />
-                        <ModelSort value={sort} onChange={setSort} />
+                        <ModelSort
+                            value={sort}
+                            onChange={setSort}
+                            isOpen={isSortOpen}
+                            onOpenChange={setIsSortOpen}
+                            className="model-sort--anchored"
+                        />
                     </div>
 
                     {/* Význam zvoleného štítku, aby bylo jasné, jaké modely výpis obsahuje */}

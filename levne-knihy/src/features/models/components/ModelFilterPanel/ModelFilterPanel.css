@@ -72,6 +72,11 @@
     border-radius: var(--radius-pill);
 }
 
+/* Potvrzovací tlačítko se používá jen na telefonu (tam jsou filtry samostatná stránka) */
+.model-filter-panel__actions {
+    display: none;
+}
+
 @media (max-width: 900px) {
     .model-filter-panel,
     .model-filter-panel__categories {
@@ -79,7 +84,45 @@
         min-height: auto;
     }
 
+    /*
+     * Filtry jsou na telefonu samostatná stránka, proto mají vlastní nadpis.
+     */
+    .model-filter-panel__header {
+        min-height: 2.9rem;
+        padding: 0 0 .5rem;
+    }
+
+    /* "Vymazat vše" zůstává v řádku s nadpisem, na telefonu má větší dotykovou plochu */
+    .model-filter-panel__header .model-filter-panel__reset {
+        min-height: 2.4rem;
+        padding: .45rem .3rem;
+    }
+
     .model-filter-panel__categories {
         overflow: visible;
+    }
+
+    /* Potvrzení filtrů je pořád dostupné u dolního okraje stránky */
+    .model-filter-panel__actions {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 21;
+        display: flex;
+        padding: .75rem 1.75rem calc(.75rem + env(safe-area-inset-bottom, 0px));
+        background: var(--surface-sidebar);
+        box-shadow: 0 -1px 0 var(--border-muted);
+    }
+
+    .model-filter-panel__actions .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    /* Na užších telefonech drží potvrzení filtrů menší okraje */
+    .model-filter-panel__actions {
+        padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom, 0px));
     }
 }

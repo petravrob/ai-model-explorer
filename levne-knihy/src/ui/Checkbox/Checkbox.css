@@ -10,8 +10,11 @@
     transition: background-color var(--transition-fast);
 }
 
-.checkbox:hover {
-    background: var(--primary-light);
+/* Podbarvení řádku na hover. Jen na zařízeních s myší - na telefonu by barva po klepnutí zůstala viset. */
+@media (hover: hover) {
+    .checkbox:hover {
+        background: var(--primary-light);
+    }
 }
 
 .checkbox__input {
@@ -33,7 +36,13 @@
         transform var(--transition-fast);
 }
 
-.checkbox:hover .checkbox__input,
+/* Zvýraznění zaškrtávátka pod kurzorem (na telefonu stačí až zvolený stav) */
+@media (hover: hover) {
+    .checkbox:hover .checkbox__input {
+        border-color: var(--primary);
+    }
+}
+
 .checkbox__input:checked {
     border-color: var(--primary);
 }
@@ -60,4 +69,21 @@
     white-space: nowrap;
     font-size: 0.8rem;
     line-height: 1.35;
+}
+
+/* Na telefonu se hodnoty vybírají prstem, proto jsou řádky vyšší a zaškrtávátko větší */
+@media (max-width: 900px) {
+    .checkbox {
+        gap: .5rem;
+        padding: .5rem .4rem;
+    }
+
+    .checkbox__input {
+        width: 1.2rem;
+        height: 1.2rem;
+    }
+
+    .checkbox__label {
+        font-size: .85rem;
+    }
 }

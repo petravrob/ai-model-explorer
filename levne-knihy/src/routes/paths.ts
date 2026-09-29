@@ -13,6 +13,12 @@ export const ROUTE_PATHS = {
 /** Název URL parametru s hledaným výrazem (např. „/?q=gpt“). */
 export const SEARCH_QUERY_PARAM = "q";
 
+/** Název URL parametru s řazením výpisu modelů (např. „/?sort=downloads“). */
+export const SORT_QUERY_PARAM = "sort";
+
+/** Název URL parametru se štítkem výpisu modelů (např. „/?tab=new“). */
+export const TAB_QUERY_PARAM = "tab";
+
 /** Sestaví URL detailu konkrétního modelu (identifikátor se zakóduje, může obsahovat „/“ z Hugging Face). */
 export const modelDetailUrl = (modelId: string): string =>
     `/model/${encodeURIComponent(modelId)}`;

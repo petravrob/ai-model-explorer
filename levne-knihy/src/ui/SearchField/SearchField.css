@@ -54,3 +54,10 @@
 .search-field:focus-within .btn-icon {
     color: var(--primary);
 }
+
+/* Na telefonu má pole hledání stejnou výšku jako na počítači, jen větší písmo */
+@media (max-width: 600px) {
+    .search-field__input {
+        font-size: 1rem;
+    }
+}

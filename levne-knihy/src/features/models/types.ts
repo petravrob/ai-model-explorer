@@ -106,4 +106,6 @@ export interface ModelFilterPanelProps {
     isFilterActive: boolean;
     onFilterChange: (key: ModelFilterKey, value: string) => void;
     onReset: () => void;
+    // Potvrzení filtrů na telefonu (stránka s filtry se zavře)
+    onApply: () => void;
 }
