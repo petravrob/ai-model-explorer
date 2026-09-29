@@ -22,5 +22,11 @@ export const ROBOT_ICON = "M4.5 13.7A4 4 0 0 1 8.5 9.7h7a4 4 0 0 1 4 4v2.5a4 4 0
 // Zobrazení zvolených filtrů 
 export const FILTER_ICON = "M4 6h16M7 12h10M10 18h4";
 
+// Řazení (šipky nahoru a dolů)
+export const SORT_ICON = "M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3";
+
+// Hledání (lupa)
+export const MAGNIFIER_ICON = "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14M21 21l-4.5-4.5";
+
 // Přihlášený uživatel
 export const USER_ICON = "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";

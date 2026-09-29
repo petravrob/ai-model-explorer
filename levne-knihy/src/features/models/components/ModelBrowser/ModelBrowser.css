@@ -41,6 +41,11 @@
     margin-left: auto;
 }
 
+/* Tlačítko "Filtry" v liště se používá jen na telefonu (na počítači jsou filtry v levém panelu) */
+.model-browser__filters-toggle {
+    display: none;
+}
+
 /* Poznámky nad prohlížečem modelů */
 .model-browser__fuzzy-note,
 .model-browser__tab-note {
@@ -93,41 +98,114 @@
     margin: 1.5rem 0 0;
 }
 
-/* Na užších obrazovkách jdou filtry nad prohlížeč modelů */
+/*
+ * Na telefonu je v liště jen řádek se štítky (posouvají se tažením),
+ * filtry a řazení se ovládají ikonami v horní liště.
+ */
 @media (max-width: 900px) {
+    /* Tagy jsou hned pod hlavní horní lištou  */
     .model-browser-layout {
-        grid-template-columns: minmax(0, 1fr);
+        display: flex;
+        flex-direction: column;
+        /* na telefonu musí bloky držet šířku */
+        align-items: stretch;
+        padding: 0 1.75rem 3.5rem;
     }
 
+    .model-browser-layout > .page-container,
+    .model-browser-layout .model-browser {
+        display: contents;
+    }
+
+    /* Lišta zobrazuje jen štítky */
+    .model-browser__toolbar {
+        position: sticky;
+        top: var(--header-height-mobile, var(--header-height));
+        z-index: 5;
+        order: 1;
+        flex-wrap: nowrap;
+        align-items: center;
+        margin: 0 -1.75rem;
+        padding: .4rem 1.75rem .45rem;
+        background: var(--background);
+        /* Při scrolování se tagy zabalí */
+        max-height: 4rem;
+        overflow-y: clip;
+        transition: max-height .25s ease, padding .25s ease, opacity .2s ease;
+    }
+
+    /* Při scrollu dolů se tagy zabalí */
+    .model-browser__toolbar--hidden {
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        opacity: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    /* Tagy jsou v jednom řádku (šířku a posouvání řeší ModelTabs.css) */
+    .model-browser__toolbar .model-tabs {
+        flex: 1 1 auto;
+        min-width: 0;
+        margin: 0;
+        padding-right: 0;
+        padding-left: 0;
+    }
+
+    /* Rozbalené filtry se ukážou pod lištou, ne nad ní */
     .model-browser-layout__sidebar {
+        order: 2;
+        display: none;
         position: static;
         height: auto;
-        padding: 1rem;
+        margin: .45rem -1.75rem 0;
+        padding: 1rem 1.75rem;
         border-right: 0;
         border-bottom: 1px solid var(--border);
         overflow: visible;
     }
 
-    .model-browser__toolbar {
-        position: static;
-        padding-top: 0;
+    .model-browser-layout__sidebar--open {
+        display: block;
+    }
+
+    /* Poznámka a výpis modelů */
+    .model-browser__tab-note,
+    .model-browser .page-message,
+    .model-browser__results {
+        order: 3;
+    }
+
+    /* Pod tagy je hned popisek štítku */
+    .model-browser__tab-note {
+        margin: .55rem 0 .9rem;
     }
 }
 
 @media (max-width: 600px) {
-    .model-browser__toolbar {
-        gap: .6rem;
-        margin: 0 -1rem;
-        padding: 0 1rem .9rem;
+    /* Na užších telefonech drží stránka menší okraje */
+    .model-browser-layout {
+        padding: 0 1rem 2.5rem;
     }
 
-    /* Poznámka zabírá na telefonu méně místa */
+    .model-browser__toolbar {
+        margin: 0 -1rem;
+        padding: .4rem 1rem .45rem;
+    }
+
+    .model-browser-layout__sidebar {
+        margin: .45rem -1rem 0;
+        padding: 1rem;
+    }
+
+    /* Vysvětlivka zabírá na telefonu méně místa */
     .model-browser__tab-note {
-        margin-bottom: 1rem;
+        margin: .5rem 0 .85rem;
         font-size: .8rem;
     }
 
-    /* Načtení dalších modelů se na telefonu roztáhne na celou šířku */
+    /* Tlačítko "Načíst další" se na telefonu roztáhne na celou šířku */
     .model-browser__more .btn {
         width: 100%;
     }

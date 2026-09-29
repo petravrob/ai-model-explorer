@@ -98,3 +98,48 @@
     font-size: .9rem;
     font-weight: 700;
 }
+
+/* Text na tlačítku se nepoužívá na telefonu  */
+.model-sort__button-label {
+    display: none;
+}
+
+/*
+ * Na telefonu se tlačítko pro řazení skryje a zobrazí se ikona v horní liště.
+ */
+@media (max-width: 900px) {
+    .model-sort--anchored {
+        display: none;
+        margin: 0;
+    }
+
+    /* Možnosti řazení */
+    .model-sort--anchored.model-sort--open {
+        display: block;
+        position: absolute;
+        z-index: 10;
+        top: calc(100% + .15rem);
+        right: 1.75rem;
+    }
+
+    .model-sort--anchored .model-sort__label,
+    .model-sort--anchored .model-sort__select {
+        display: none;
+    }
+
+    .model-sort--anchored .model-sort__control {
+        position: static;
+    }
+
+    .model-sort--anchored .model-sort__menu {
+        min-width: 12rem;
+    }
+}
+
+@media (max-width: 600px) {
+    /* Na užších telefonech má stránka menší okraje */
+    .model-sort--anchored.model-sort--open {
+        right: 1rem;
+    }
+}
+

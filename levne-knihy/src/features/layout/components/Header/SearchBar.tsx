@@ -16,10 +16,17 @@ const IS_MAC = navigator.userAgent.includes("Mac");
 const isSearchShortcut = (event: KeyboardEvent): boolean =>
     (IS_MAC ? event.metaKey : event.ctrlKey) && event.key.toLowerCase() === "k";
 
+interface SearchBarProps {
+    // Přesune kurzor do pole hledání (na menších šířkách po rozbalení tlačítkem s lupou)
+    autoFocus?: boolean;
+    // Dá hlavičce vědět, že má vyhledávání na menších šířkách rozbalit
+    onRequestOpen?: () => void;
+}
+
 /**
  * Vyhledávání modelů v hlavičce.
  */
-function SearchBar() {
+function SearchBar({ autoFocus = false, onRequestOpen }: SearchBarProps) {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const location = useLocation();
@@ -40,6 +47,13 @@ function SearchBar() {
         );
     }, [searchParams, location.pathname]);
 
+    // Po rozbalení vyhledávání (na menších šířkách tlačítkem s lupou) přesune kurzor do pole
+    useEffect(() => {
+        if (autoFocus) {
+            inputRef.current?.focus();
+        }
+    }, [autoFocus]);
+
     // Klávesová zkratka přesune kurzor do hledání (na macOS ⌘K, na Windows a Linuxu Ctrl+K)
     useEffect(() => {
         const handleShortcut = (event: KeyboardEvent): void => {
@@ -49,13 +63,15 @@ function SearchBar() {
             }
 
             event.preventDefault();
+
+            onRequestOpen?.();
             inputRef.current?.focus();
         };
 
         document.addEventListener("keydown", handleShortcut);
 
         return () => document.removeEventListener("keydown", handleShortcut);
-    }, []);
+    }, [onRequestOpen]);
 
     const isSearchablePage =
         isSearchablePath(location.pathname);

@@ -1,6 +1,13 @@
 import "./ModelBrowser.css";
 
+import { useEffect, useState } from "react";
+
 import useModelBrowser from "../../hooks/useModelBrowser";
+import {
+    MODEL_BROWSER_TOGGLE_FILTERS_EVENT,
+    MODEL_BROWSER_TOGGLE_SORT_EVENT,
+    publishModelBrowserState,
+} from "../../modelBrowserBridge";
 import { DEFAULT_TAB, MODEL_TABS_CONFIG } from "../../modelTabsConfig";
 import { Button, LogoLoader, PageContainer, PageMessage } from "@/ui";
 
@@ -33,6 +40,106 @@ function ModelBrowser() {
         hasLoaded,
         error,
     } = useModelBrowser();
+
+    // Na obrazovce počítače jsou filtry vidět pořád, na menších šířkách se rozbalují ikonou v hlavičce
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    // Na telefonu otevírá nabídku řazení ikona v hlavičce, proto její stav drží prohlížeč
+    const [isSortOpen, setIsSortOpen] = useState(false);
+    // Na telefonu se lišta se štítky při scrollu dolů schová a při scrollu nahoru zase ukáže
+    const [isTagsHidden, setIsTagsHidden] = useState(false);
+
+    // Stav pro ikony v hlavičce (jen na telefonu): rozbalené filtry / aktivní filtry / otevřené řazení
+    useEffect(() => {
+        if (hasLoaded) {
+            publishModelBrowserState({ isFilterOpen, isFilterActive, isSortOpen });
+        }
+    }, [hasLoaded, isFilterOpen, isFilterActive, isSortOpen]);
+
+    // Požadavky z hlavičky (ikony na telefonu) přepínají filtry a řazení tady u výpisu
+    useEffect(() => {
+        const handleToggleFilters = (): void => setIsFilterOpen((open) => !open);
+        const handleToggleSort = (): void => setIsSortOpen((open) => !open);
+
+        window.addEventListener(MODEL_BROWSER_TOGGLE_FILTERS_EVENT, handleToggleFilters);
+        window.addEventListener(MODEL_BROWSER_TOGGLE_SORT_EVENT, handleToggleSort);
+
+        return () => {
+            window.removeEventListener(MODEL_BROWSER_TOGGLE_FILTERS_EVENT, handleToggleFilters);
+            window.removeEventListener(MODEL_BROWSER_TOGGLE_SORT_EVENT, handleToggleSort);
+        };
+    }, []);
+
+    // Na telefonu se lišta se štítky při scrollu dolů schová, při scrollu nahoru zase ukáže.
+    // Dokud jsou otevřené filtry nebo řazení, lišta zůstává vidět.
+    useEffect(() => {
+        const mediaQuery = window.matchMedia("(max-width: 900px)");
+        let lastY = window.scrollY;
+        let ticking = false;
+
+        // Horní lišta na telefonu nemá pevnou výšku (menší název, rozbalené vyhledávání),
+        // proto se její skutečná výška měří a lišta se umístí přesně pod ni.
+        const header = document.querySelector(".header");
+        const syncHeaderHeight = (): void => {
+            const height = header?.getBoundingClientRect().height;
+            if (height && height > 0) {
+                document.documentElement.style.setProperty(
+                    "--header-height-mobile",
+                    `${Math.round(height)}px`,
+                );
+            }
+        };
+        syncHeaderHeight();
+
+        let resizeObserver: ResizeObserver | null = null;
+        if (typeof ResizeObserver !== "undefined" && header) {
+            resizeObserver = new ResizeObserver(syncHeaderHeight);
+            resizeObserver.observe(header);
+        }
+
+        const handleScroll = (): void => {
+            const currentY = window.scrollY;
+            // Drobné pohyby se ignorují, aby lišta nepřeblikávala
+            if (Math.abs(currentY - lastY) < 8) {
+                ticking = false;
+                return;
+            }
+            // Úplně nahoře je lišta vždycky vidět
+            if (currentY <= 8) {
+                setIsTagsHidden(false);
+            } else if (mediaQuery.matches && !isFilterOpen && !isSortOpen) {
+                // Schová se až po odscrollování, při scrollu nahoru se ukáže
+                if (currentY > lastY && currentY > 140) {
+                    setIsTagsHidden(true);
+                } else if (currentY < lastY) {
+                    setIsTagsHidden(false);
+                }
+            }
+            lastY = currentY;
+            ticking = false;
+        };
+
+        const handleScrollThrottled = (): void => {
+            if (!ticking) {
+                ticking = true;
+                window.requestAnimationFrame(handleScroll);
+            }
+        };
+
+        window.addEventListener("scroll", handleScrollThrottled, { passive: true });
+
+        return () => {
+            window.removeEventListener("scroll", handleScrollThrottled);
+            resizeObserver?.disconnect();
+            document.documentElement.style.removeProperty("--header-height-mobile");
+        };
+    }, [isFilterOpen, isSortOpen]);
+
+    // Když prohlížeč zmizí - přepnutí na detail nějakého modelu
+    useEffect(() => {
+        return () => {
+            publishModelBrowserState({ isFilterOpen: false, isFilterActive: false, isSortOpen: false });
+        };
+    }, []);
 
     // Celostránková zpráva se ukáže jen před prvním načtením (případně při jeho neúspěchu).
     // Při obnově kvůli změně filtrů zůstane rozvržení i stávající výpis modelů na stránce.
@@ -71,7 +178,11 @@ function ModelBrowser() {
     return (
         <div className="model-browser-layout">
 
-            <div className="model-browser-layout__sidebar">
+            <div
+                className={`model-browser-layout__sidebar${
+                    isFilterOpen ? " model-browser-layout__sidebar--open" : ""
+                }`}
+            >
                 <ModelFilterPanel
                     filters={filters}
                     isFilterActive={isFilterActive}
@@ -83,9 +194,21 @@ function ModelBrowser() {
             <PageContainer>
                 <div className="model-browser" aria-busy={loading}>
 
-                    <div className="model-browser__toolbar">
+                    <div
+                        className={`model-browser__toolbar${
+                            isTagsHidden && !isFilterOpen && !isSortOpen
+                                ? " model-browser__toolbar--hidden"
+                                : ""
+                        }`}
+                    >
                         <ModelTabs value={tab} onChange={setTab} />
-                        <ModelSort value={sort} onChange={setSort} />
+                        <ModelSort
+                            value={sort}
+                            onChange={setSort}
+                            isOpen={isSortOpen}
+                            onOpenChange={setIsSortOpen}
+                            className="model-sort--anchored"
+                        />
                     </div>
 
                     {/* Význam zvoleného štítku, aby bylo jasné, jaké modely výpis obsahuje */}
