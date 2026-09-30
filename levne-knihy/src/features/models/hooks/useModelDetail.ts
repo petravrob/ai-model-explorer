@@ -27,6 +27,11 @@ function useModelDetail(modelId: string | undefined) {
     const navigate = useNavigate();
 
 
+    // Detail modelu se vždy otevře od začátku stránky (od shora, bez scrollu)
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [modelId]);
+
     // Načtení modelu podle identifikátoru v adrese
     useEffect(() => {
 
