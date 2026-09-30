@@ -3,6 +3,7 @@ import "./ModelBrowser.css";
 import { useEffect, useState } from "react";
 
 import useModelBrowser from "../../hooks/useModelBrowser";
+import useScrollRestoration from "../../hooks/useScrollRestoration";
 import {
     MODEL_BROWSER_CLOSE_PANELS_EVENT,
     MODEL_BROWSER_TOGGLE_FILTERS_EVENT,
@@ -42,6 +43,9 @@ function ModelBrowser() {
         hasLoaded,
         error,
     } = useModelBrowser();
+
+    // Pozice scrollu se po návratu z detailu modelu obnoví
+    useScrollRestoration(hasLoaded);
 
     // Na obrazovce počítače jsou filtry vidět pořád, na menších šířkách se rozbalují ikonou v hlavičce
     const [isFilterOpen, setIsFilterOpen] = useState(false);

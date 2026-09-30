@@ -1,6 +1,6 @@
 import Fuse, { type IFuseOptions } from "fuse.js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { AIModel } from "../types";
 import { SEARCH_QUERY_PARAM, modelDetailUrl } from "@/routes/paths";
@@ -8,6 +8,7 @@ import { createDescriptions, getModels } from "../api/modelsApi";
 import useModelFilters from "./useModelFilters";
 import type { ModelSortKey } from "../modelSortsConfig";
 import type { ModelTabKey } from "../modelTabsConfig";
+import { readVisibleCount, saveScrollPosition, saveVisibleCount } from "../utils/browserPageStorage";
 import { readSortFromParams, readTabFromParams, writeSortToParams, writeTabToParams } from "../utils/modelListParams";
 import { applyTab } from "../utils/modelTabUtils";
 
@@ -57,6 +58,9 @@ function useModelBrowser() {
     const [hasLoaded, setHasLoaded] = useState(false);
 
     const navigate = useNavigate();
+
+    // Klíč záznamu v historii - podle něj se po návratu z detailu obnoví prohlížeč modelů
+    const location = useLocation();
 
     const [searchParams, setSearchParams] = useSearchParams();
     const latestRequestIdRef = useRef(0);
@@ -108,8 +112,18 @@ function useModelBrowser() {
         filteredModels,
     } = useModelFilters(tabModels);
 
-    // Kolik modelů je z výpisu zobrazených (další se přidají tlačítkem)
-    const [visibleCount, setVisibleCount] = useState(MODELS_PER_LOADING);
+    const [visibleCount, setVisibleCount] = useState(() =>
+        readVisibleCount(location.key, MODELS_PER_LOADING)
+    );
+
+    // Počet zobrazených modelů se průběžně ukládá, aby se dal po návratu na stránku obnovit
+    useEffect(() => {
+        saveVisibleCount(location.key, visibleCount);
+    }, [location.key, visibleCount]);
+
+    // Úvodní načtení po otevření stránky počet zobrazených modelů neresetuje - může jít
+    // o návrat z detailu, kdy se rozbalený výpis obnovuje z uloženého stavu
+    const isInitialFetchRef = useRef(true);
 
     // Načtení modelů podle zvolených filtrů (s filtry se filtruje přímo na serveru z Hugging Face)
     useEffect(() => {
@@ -135,8 +149,13 @@ function useModelBrowser() {
                 setAllModels(data);
                 setHasLoaded(true);
 
-                // Nový výpis začíná prvními načtenými modely
-                setVisibleCount(MODELS_PER_LOADING);
+                // Nový výpis začíná prvními načtenými modely - kromě úvodního načtení,
+                // kdy se počet obnovuje z uloženého stavu (návrat z detailu modelu)
+                if (isInitialFetchRef.current) {
+                    isInitialFetchRef.current = false;
+                } else {
+                    setVisibleCount(MODELS_PER_LOADING);
+                }
 
             } catch (error) {
 
@@ -300,6 +319,9 @@ function useModelBrowser() {
     const handleModelClick = (
         model: AIModel
     ): void => {
+
+        // Pozice scrollu se uloží ještě před navigací
+        saveScrollPosition(location.key, window.scrollY);
 
         // Modely načtené živě z Hugging Face nemají databázové id, identifikátor se vezme z Hugging Face
         navigate(modelDetailUrl(model._id ?? model.modelId));
