@@ -1,59 +1,69 @@
+/* Schéma kroků z dokumentace modelu.
+   Vysvětlivka se zobrazuje jen po najetí myší (atribut title). */
+.flow-figure {
+    margin: 0;
+}
+
 .flow {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: .35rem;
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
+/* Jeden krok schématu (případná šipka a karta kroku) */
 .flow__step {
     display: flex;
     min-width: 0;
     flex-direction: column;
-    align-items: center;
-    gap: .35rem;
+    align-items: stretch;
+    gap: .3rem;
 }
 
-.flow__label {
-    max-width: 100%;
-    padding: .4rem .8rem;
+/* Karta kroku: pořadové číslo a popis vedle sebe */
+.flow__card {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: .6rem;
+    padding: .2rem .7rem;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     background: var(--surface);
+}
+
+/* Pořadové číslo kroku (1, 2, 3) */
+.flow__badge {
+    display: flex;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+.flow__label {
+    min-width: 0;
     color: var(--text);
     font-size: .85rem;
     font-weight: 600;
-    text-align: center;
     overflow-wrap: anywhere;
 }
 
-/* Šipka mezi kroky – směr se mění podle šířky obrazovky */
+/* Šipka mezi kroky: ukazuje, že kroky jdou za sebou */
 .flow__arrow {
+    margin: 0 auto;
     color: var(--text-faint);
     font-size: .9rem;
+    line-height: 1;
 }
 
 .flow__arrow::before {
     content: "↓";
-}
-
-/* Na širší obrazovce jde schéma vodorovně */
-@media (min-width: 700px) {
-    .flow {
-        flex-direction: row;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: .5rem;
-    }
-
-    .flow__step {
-        flex-direction: row;
-        gap: .5rem;
-    }
-
-    .flow__arrow::before {
-        content: "→";
-    }
 }

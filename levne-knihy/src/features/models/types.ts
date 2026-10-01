@@ -52,7 +52,7 @@ export interface ModelInsightTable {
     // Nadpis, pod kterým tabulka v dokumentaci stojí
     title: string;
     headers: string[];
-    rows: string[][];
+    rows: string[][]; 
 }
 /** České přehledy vytvořené z dokumentace modelu na Hugging Face. */
 export interface ModelInsights {

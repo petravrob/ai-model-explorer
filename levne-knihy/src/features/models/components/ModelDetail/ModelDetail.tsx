@@ -24,7 +24,6 @@ import {
     Section,
     SectionTitle,
     Stat,
-    TileGrid,
 } from "@/ui";
 
 import ModelFacts, { type ModelFactItem } from "./ModelFacts";
@@ -168,7 +167,8 @@ function ModelDetail({ model, insights }: {
     // Druhy vstupů a výstupů modelu jako odznaky s ikonou
     const modalityBadges = insights?.modalities ?? [];
 
-    // Schéma zapojení se kreslí jen tehdy, když dokumentace architekturu uvádí
+    // Schéma toku dat (vstup → zpracování → výstup) se kreslí jen tehdy,
+    // když dokumentace způsob zpracování uvádí
     const flowSteps = insights?.architecture
         ? [
             insights.modalities?.length ? `Vstup: ${insights.modalities.join(", ")}` : null,
@@ -238,7 +238,7 @@ function ModelDetail({ model, insights }: {
     const videos = insights?.videos ?? [];
     const tables = insights?.tables ?? [];
 
-    // Rodina modelu: jen vztahy, které dokumentace nebo data skutečně uvádějí
+    // Původ a varianty modelu: jen vztahy, které dokumentace nebo data skutečně uvádějí
     const familySteps = [
         insights?.baseModel ? `Vychází z: ${insights.baseModel}` : null,
         model.name,
@@ -258,11 +258,21 @@ function ModelDetail({ model, insights }: {
 
     // Boční panel se vykreslí jen tehdy, když je co ukázat
     const showTechnical = technical.length > 0;
+    const showFlow = flowSteps.length > 1;
+    const showBestFor = bestFor.length > 0;
+    const showFamily = familySteps.length > 1;
     const showDeployment = deployment.length > 0 || settings.length > 0;
     const showPerformance = performanceBenchmarks.length > 0;
     const showOtherBenchmarks = otherBenchmarks.length > 0;
     const showEfficiency = efficiencyBenchmarks.length > 0 || quantization.length > 0 || hardware.length > 0;
-    const hasSidebar = showTechnical || showDeployment || showPerformance || showOtherBenchmarks || showEfficiency;
+    const hasSidebar =
+        showTechnical ||
+        showFlow ||
+        showFamily ||
+        showDeployment ||
+        showPerformance ||
+        showOtherBenchmarks ||
+        showEfficiency;
 
     // Štítky v hlavičce: hlavní úloha a doplňkové štítky modelu
     const headerTags = [tags.primary, ...tags.secondary]
@@ -310,13 +320,18 @@ function ModelDetail({ model, insights }: {
                         Hugging Face ↗
                     </a>
 
-                    {(description.length > 0 || flowSteps.length > 1) && (
+                    {showBestFor && (
+                        <Section title="Nejvhodnější pro" className="model-detail__best-for">
+                            <ChipList items={bestFor} />
+
+                        </Section>
+                    )}
+
+                    {description.length > 0 && (
                         <div className="model-detail__about">
                             {description.map((paragraph) => (
                                 <p key={paragraph}>{paragraph}</p>
                             ))}
-
-                            {flowSteps.length > 1 && <FlowDiagram steps={flowSteps} />}
                         </div>
                     )}
                 </header>
@@ -341,18 +356,6 @@ function ModelDetail({ model, insights }: {
                             </Section>
                         )}
                     </div>
-                )}
-
-                {bestFor.length > 0 && (
-                    <Section title="Nejvhodnější pro">
-                        <TileGrid items={bestFor} />
-
-                        <Note>
-                            {documentedAreas.length > 0
-                                ? "Vychází z dokumentace modelu na Hugging Face."
-                                : "Vychází z úlohy a štítků modelu na Hugging Face."}
-                        </Note>
-                    </Section>
                 )}
 
                 {(videos.length > 0 || images.length > 0) && (
@@ -383,7 +386,6 @@ function ModelDetail({ model, insights }: {
                             </div>
                         )}
 
-                        <Note>Převzato z dokumentace modelu na Hugging Face.</Note>
                     </Section>
                 )}
 
@@ -398,14 +400,11 @@ function ModelDetail({ model, insights }: {
                             </FieldGroup>
                         ))}
 
-                        <Note>Převzato z dokumentace modelu na Hugging Face.</Note>
                     </Section>
                 )}
 
-                {(variants.length > 0 || insights?.baseModel || compatibility.length > 0 || notes.length > 0) && (
+                {(variants.length > 0 || compatibility.length > 0 || notes.length > 0) && (
                     <Section title="Důležité informace">
-                        {familySteps.length > 1 && <FlowDiagram steps={familySteps} />}
-
                         {variants.length > 0 && (
                             <FieldGroup label="Varianty">
                                 <ChipList items={variants} />
@@ -429,7 +428,25 @@ function ModelDetail({ model, insights }: {
 
             {hasSidebar && (
                 <aside className="model-detail__sidebar">
+                    {showFlow && (
+                        <Section title="Jak model pracuje">
+                            <FlowDiagram
+                                steps={flowSteps}
+                                description="Schéma znázorňuje cestu dat: co model dostane na vstup, jak je zpracuje a co vrátí."
+                            />
+                        </Section>
+                    )}
+
                     {showTechnical && <ModelFacts items={technical} />}
+
+                    {showFamily && (
+                        <Section title="Původ a varianty modelu">
+                            <FlowDiagram
+                                steps={familySteps}
+                                description="Schéma znázorňuje původ modelu: ze kterého modelu vychází a jaké má odvozené varianty."
+                            />
+                        </Section>
+                    )}
 
                     {showPerformance && (
                         <div className="model-detail__benchmark-section">
@@ -465,7 +482,6 @@ function ModelDetail({ model, insights }: {
                                 </FieldGroup>
                             )}
 
-                            <Note>Uvedeno v dokumentaci modelu.</Note>
                         </Section>
                     )}
 
@@ -487,7 +503,6 @@ function ModelDetail({ model, insights }: {
                                 </FieldGroup>
                             )}
 
-                            <Note>Uvedeno v dokumentaci modelu.</Note>
                         </Section>
                     )}
                 </aside>
