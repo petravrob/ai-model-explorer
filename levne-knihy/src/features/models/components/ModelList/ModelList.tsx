@@ -2,7 +2,7 @@ import "./ModelList.css";
 
 import { ModelListProps } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
-import { getModelLicense, getModelProvider, getModelSummary, getModelTagList } from "../../utils/modelCard";
+import { getModelCardPreview, getModelLicense, getModelProvider, getModelSummary, getModelTagList } from "../../utils/modelCard";
 import { ChipList, DetailItem, DOWNLOAD_ICON, LIKE_ICON, MISSING_VALUE, Stat } from "@/ui";
 
 import ModelImage from "./ModelImage";
@@ -29,6 +29,9 @@ function ModelList({ models, onModelClick, pendingDescriptionIds = [] }: ModelLi
 
                 const tags = getModelTagList(model);
                 const summary = getModelSummary(model);
+
+                // Na kartě se ukazuje jen úryvek popisu zakončený výpustkou, celý text je v detailu
+                const preview = getModelCardPreview(model);
                 const provider = getModelProvider(model.author);
 
                 // Popisek se teprve doplňuje: místo zástupného textu se ukáže kostra,
@@ -67,7 +70,7 @@ function ModelList({ models, onModelClick, pendingDescriptionIds = [] }: ModelLi
                                 <SummaryPlaceholder />
                             ) : (
                                 <p className="model-list__summary" title={summary}>
-                                    {summary}
+                                    {preview}
                                 </p>
                             )}
 

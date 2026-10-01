@@ -111,19 +111,10 @@ const modelInsightsSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
-        overview: {
-            type: String,
-            trim: true,
-        },
         // Konkrétní vlastnosti, kterými se model odlišuje
         highlights: {
             type: [String],
             default: [],
-        },
-        // Vysvětlení, jak model funguje, běžným jazykem
-        howItWorks: {
-            type: String,
-            trim: true,
         },
         bestFor: {
             type: [String],

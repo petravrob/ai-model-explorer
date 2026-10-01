@@ -14,6 +14,11 @@ const modelDescriptionSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        // Verze zadání, podle které popisek vznikl - při změně pravidel se popisek přegeneruje
+        version: {
+            type: String,
+            trim: true,
+        },
     },
     {
         collection: "modelDescriptions",
