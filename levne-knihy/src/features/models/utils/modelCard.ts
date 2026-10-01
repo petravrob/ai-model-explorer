@@ -417,3 +417,21 @@ export const getModelSummary = (model: AIModel): string => {
 
     return `${joined}.`;
 };
+
+// Kolik znaků popisu se nejvýš ukáže na kartě (zbytek textu čeká v detailu modelu)
+const CARD_PREVIEW_LENGTH = 240;
+
+/**
+ * Vrátí úryvek popisu pro kartu modelu.
+ *
+ * Popis má víc odstavců, na kartě se ale ukazuje jen jeho začátek
+ */
+export const getModelCardPreview = (model: AIModel): string => {
+    const summary = getModelSummary(model).replace(/\s+/g, " ").trim();
+
+    if (summary.length <= CARD_PREVIEW_LENGTH) {
+        return summary;
+    }
+
+    return `${summary.slice(0, CARD_PREVIEW_LENGTH).replace(/\s+\S*$/, "").trim()}…`;
+};

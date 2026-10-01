@@ -98,7 +98,6 @@
     white-space: nowrap;
 }
 
-/* Popis modelu má dvě věty, do karty se vejde na pět řádků.
    Prostor pro popis je vyhrazený už při vytvoření karty, aby se karta
    po vygenerování textu nemusela zvětšovat a výpis modelů neposkakoval. */
 .model-list__summary {

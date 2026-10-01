@@ -78,9 +78,7 @@ function buildPrompt(excerpt) {
         "",
         "Vrať pouze JSON v tomto tvaru (bez dalšího vysvětlování):",
         "{",
-        '  "overview": "2–5 vět: co model umí, jak se používá, čím je zajímavý a případně čím se liší od souvisejícího modelu",',
         '  "highlights": ["3–7 konkrétních vlastností, které model odlišují (schopnosti, architektura, délka kontextu, multimodalita, rychlost, podporovaná workflow, způsob tréninku, vlastnosti nasazení)"],',
-        '  "howItWorks": "2–4 odstavce oddělené prázdným řádkem (v JSON jako \\n\\n): architektura a zpracování vstupu; trénink, fine-tuning nebo destilace; zvláštní mechanismy (MoE, aktivní a celkové parametry, pozornost); co z toho plyne pro použití modelu",',
         '  "bestFor": ["oblasti použití, které dokumentace výslovně zmiňuje"],',
         '  "useCases": ["4–8 konkrétních praktických scénářů odvozených z dokumentace (např. asistent pro psaní kódu, dávkový přepis porad, úprava fotografií)"],',
         '  "capabilities": ["konkrétní schopnosti, které dokumentace výslovně zmiňuje"],',
@@ -115,8 +113,7 @@ function buildPrompt(excerpt) {
         "- co v dokumentaci není, nech prázdné (null nebo prázdné pole), nic nedomýšlej",
         "- položky piš krátce (2–6 slov) a věcně, bez hodnocení a bez doporučování",
         "- frameworky, názvy modelů a délku kontextu zachovej přesně jako v dokumentaci",
-        "- dodrž délky: overview 2–5 vět, highlights 3–7 bodů, useCases 4–8 bodů",
-        "- howItWorks piš jako 2–4 odstavce oddělené prázdným řádkem (v JSON jako \\n\\n); každý odstavec 2–4 věty, konkrétně k tomuto modelu a běžným jazykem",
+        "- dodrž počty: highlights 3–7 bodů, useCases 4–8 bodů",
         "- nejvýš 6 položek v ostatních seznamech (u omezení nejvýš 12, u benchmarků nejvýš 24)",
         "- vše piš konkrétně k tomuto modelu; obecné fráze typu „vhodný pro širokou škálu úloh“ nepatří nikam",
         "- nevypisuj obecně známé údaje (např. požadavky na Python nebo CUDA), pokud je dokumentace výslovně neuvádí",
@@ -434,7 +431,7 @@ function selectRelevantParts(documentation) {
     return [mainText, benchmarkText].filter(Boolean).join("\n\n");
 }
 
-const PROMPT_VERSION = "v17";
+const PROMPT_VERSION = "v18";
 
 /**
  * Vytvoří otisk vstupu, ze kterého přehledy vznikají (verze zadání + dokumentace).
@@ -533,9 +530,7 @@ function parseInsights(raw) {
         const parsed = JSON.parse(text.slice(start, end + 1));
 
         const insights = {
-            overview: toText(parsed.overview),
             highlights: toList(parsed.highlights),
-            howItWorks: toText(parsed.howItWorks),
             bestFor: toList(parsed.bestFor),
             useCases: toList(parsed.useCases, MAX_USE_CASES),
             capabilities: toList(parsed.capabilities),
@@ -569,9 +564,7 @@ function parseInsights(raw) {
 /** Převede uložený záznam na data pro klienta. */
 function toInsights(doc) {
     return {
-        overview: doc.overview ?? null,
         highlights: doc.highlights ?? [],
-        howItWorks: doc.howItWorks ?? null,
         bestFor: doc.bestFor ?? [],
         useCases: doc.useCases ?? [],
         capabilities: doc.capabilities ?? [],

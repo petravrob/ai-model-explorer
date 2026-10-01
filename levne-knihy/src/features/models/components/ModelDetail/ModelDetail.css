@@ -85,7 +85,7 @@
     gap: 1rem;
 }
 
-/* Popisek modelu je zvýrazněný jako úvodní odstavec */
+/* Popis modelu je zvýrazněný jako úvodní blok s odstavci */
 .model-detail__summary {
     margin: 0;
     padding: .9rem 1.1rem;
@@ -97,19 +97,19 @@
     line-height: 1.6;
 }
 
+.model-detail__summary p {
+    margin: 0;
+}
+
+.model-detail__summary p + p {
+    margin-top: .8em;
+}
+
 /* Dvojice sekcí vedle sebe (vlastnosti modelu a oblasti použití) */
 .model-detail__split {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem 2rem;
-}
-
-/* Odstavec sekce "Jak funguje" - může obsahovat víc odstavců */
-.model-detail__text {
-    margin: 0;
-    color: var(--text-muted);
-    line-height: 1.6;
-    white-space: pre-line;
 }
 
 /* Výsledky benchmarků z dokumentace modelu */

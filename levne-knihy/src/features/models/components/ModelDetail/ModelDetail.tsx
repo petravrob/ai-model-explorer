@@ -51,6 +51,10 @@ function ModelDetail({ model, insights }: {
 
     // Přehled: přednost má český text z dokumentace, jinak popisek modelu
     const overview = insights?.overview?.trim() || model.description?.trim() || getModelSummary(model);
+    const description = (model.description?.trim() || getModelSummary(model))
+        .split(/\n{2,}/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean);
 
     // Oblasti použití: přednost má dokumentace, jinak se použijí štítky modelu
     const documentedAreas = [...new Set([
@@ -77,12 +81,6 @@ function ModelDetail({ model, insights }: {
     const quantization = insights?.quantization ?? [];
     const compatibility = insights?.compatibility ?? [];
     const notes = insights?.notes ?? [];
-
-    // "Jak funguje" se skládá z odstavců, aby se text dal dobře číst
-    const howItWorks = (insights?.howItWorks ?? "")
-        .split(/\n{2,}/)
-        .map((paragraph) => paragraph.trim())
-        .filter(Boolean);
 
     // Varianta se stejným názvem, jako má model sám, se neuvádí
     const variants = (insights?.variants ?? []).filter((variant) => !isModelItself(model, variant));
@@ -216,9 +214,13 @@ function ModelDetail({ model, insights }: {
                 </div>
             )}
 
-            {overview && (
+            {description.length > 0 && (
                 <Section title="Přehled">
-                    <p className="model-detail__summary">{overview}</p>
+                    <div className="model-detail__summary">
+                        {description.map((paragraph) => (
+                            <p key={paragraph}>{paragraph}</p>
+                        ))}
+                    </div>
                 </Section>
             )}
 
@@ -242,22 +244,6 @@ function ModelDetail({ model, insights }: {
                         </Section>
                     )}
                 </div>
-            )}
-
-            {howItWorks.length > 0 && (
-                <Section title="Jak funguje">
-                    {howItWorks.map((paragraph) => (
-                        <p className="model-detail__text" key={paragraph}>{paragraph}</p>
-                    ))}
-
-                    {flowSteps.length > 1 && (
-                        <>
-                            <FlowDiagram steps={flowSteps} />
-
-                            <Note>Schéma vychází z dokumentace modelu.</Note>
-                        </>
-                    )}
-                </Section>
             )}
 
             {technical.length > 0 && (

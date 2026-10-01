@@ -14,7 +14,7 @@ export interface AIModel {
     tags: string[];
     trendingScore?: number | null;
     createdAt?: string | null;
-    // Krátký český popis modelu pro kartu (doplňuje ho skript generateDescriptions na serveru)
+    // Delší český popis modelu (2-3 odstavce) - na kartě se ukazuje jen úryvek, celý je v detailu
     description?: string | null;
     license: string | null;
     library: string | null;
@@ -56,12 +56,8 @@ export interface ModelInsightTable {
 }
 /** České přehledy vytvořené z dokumentace modelu na Hugging Face. */
 export interface ModelInsights {
-    // Co model dělá, k čemu se používá a čím je zajímavý (2–4 věty)
-    overview?: string | null;
     // Konkrétní vlastnosti, kterými se model odlišuje
     highlights?: string[];
-    // Jak model funguje, vysvětlené běžným jazykem
-    howItWorks?: string | null;
     bestFor?: string[];
     // Konkrétní scénáře použití z dokumentace
     useCases?: string[];

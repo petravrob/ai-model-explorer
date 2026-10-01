@@ -13,7 +13,7 @@ const {
     getAuthorAvatarUrl,
 } = require("../services/huggingFaceService");
 const { isValidModel, mapModelData, mapRawModels } = require("../services/modelMapper");
-const { generateDescriptions } = require("../services/descriptionService");
+const { DESCRIPTION_VERSION, generateDescriptions } = require("../services/descriptionService");
 const { generateInsights } = require("../services/insightsService");
 const ModelDescription = require("../models/ModelDescription");
 
@@ -101,8 +101,14 @@ const attachStoredDescriptions = async (models) => {
         return models;
     }
 
-    const stored = await ModelDescription.find({ modelId: { $in: modelIds } }, { modelId: 1, description: 1 });
-    const descriptions = new Map(stored.map((item) => [item.modelId, item.description]));
+    const stored = await ModelDescription.find({ modelId: { $in: modelIds } }, { modelId: 1, description: 1, version: 1 });
+
+    // Popisky ze starší verze zadání se nepřikládají, aby se vygenerovaly znovu
+    const descriptions = new Map(
+        stored
+            .filter((item) => item.version === DESCRIPTION_VERSION)
+            .map((item) => [item.modelId, item.description])
+    );
 
     return models.map((model) => ({ ...model, description: descriptions.get(model.modelId) ?? null }));
 };
