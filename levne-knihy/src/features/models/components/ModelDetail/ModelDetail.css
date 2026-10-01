@@ -150,6 +150,29 @@
     font-weight: 400;
 }
 
+/* Způsoby nasazení v bočním panelu: název nástroje, vysvětlení se zobrazí po najetí myší */
+.model-detail__deployments {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.model-detail__deployment {
+    padding: .5rem 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: .95rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.model-detail__deployment:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
 /* Úvodní text a vysvětlení principu přes celou šířku hlavičky pod štítky */
 .model-detail__about {
     grid-column: 1 / -1;
@@ -185,6 +208,13 @@
     display: flex;
     flex-direction: column;
     gap: .9rem;
+}
+
+/* Výsledky benchmarků bez nadpisu sekce - nadpisy tvoří názvy jednotlivých kategorií */
+.model-detail__benchmark-section {
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
 }
 
 .model-detail__benchmark-group {
