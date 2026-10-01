@@ -15,7 +15,6 @@ import {
     FieldGroup,
     FlowDiagram,
     LIKE_ICON,
-    MetricGrid,
     ModalityBadges,
     Note,
     PageTitle,
@@ -118,13 +117,11 @@ function ModelDetail({ model, insights }: {
 }) {
     const tags = getModelTagList(model);
 
-    // Popis modelu: první odstavec je úvod pod hlavičkou,
-    // zbylé odstavce vysvětlují, jak model funguje
+    // Souvislý popis modelu v hlavičce: přednost má český text, jinak popisek modelu
     const description = (model.description?.trim() || getModelSummary(model))
         .split(/\n{2,}/)
         .map((paragraph) => paragraph.trim())
         .filter(Boolean);
-    const [lead, ...howItWorks] = description;
 
     // Oblasti použití: přednost má dokumentace, jinak se použijí štítky modelu
     const documentedAreas = [...new Set([
@@ -164,18 +161,18 @@ function ModelDetail({ model, insights }: {
     // Druhy vstupů a výstupů modelu jako odznaky s ikonou
     const modalityBadges = insights?.modalities ?? [];
 
-    // Stručný profil hned pod hlavičkou – jen údaje, které model skutečně má
-    const capabilityItems = [
-        { label: "Úloha", value: tags.primary ?? null },
-        { label: "Parametry", value: totalParameters ?? (insights?.activeParameters ? `${insights.activeParameters} aktivně` : null) },
-        { label: "Kontext", value: insights?.contextLength ?? null },
-        { label: "Architektura", value: insights?.architecture ?? null },
-        { label: "Knihovna", value: model.library },
-        { label: "Licence", value: model.license ? getModelLicense(model.license) : null },
-    ].filter((item): item is MetricItem => Boolean(item.value));
+    // Schéma zapojení se kreslí jen tehdy, když dokumentace architekturu uvádí
+    const flowSteps = insights?.architecture
+        ? [
+            insights.modalities?.length ? `Vstup: ${insights.modalities.join(", ")}` : null,
+            insights.architecture,
+            tags.primary ? `Výstup: ${tags.primary}` : null,
+        ].filter((step): step is string => Boolean(step))
+        : [];
 
-    // Technické údaje se vypíšou jen tehdy, když je model skutečně má
+    // Technické údaje na začátku bočního panelu – jen ty, které model skutečně má
     const technical = [
+        { label: "Úloha", value: tags.primary ?? null },
         {
             label: "Parametry",
             value: totalParameters ?? (insights?.activeParameters ? `${insights.activeParameters} aktivně` : null),
@@ -190,15 +187,7 @@ function ModelDetail({ model, insights }: {
         { label: "Aktualizace", value: model.lastModified ? formatDate(model.lastModified) : null },
     ].filter((item): item is MetricItem => Boolean(item.value));
 
-    // Schéma zapojení se kreslí jen tehdy, když dokumentace architekturu uvádí
-    const flowSteps = insights?.architecture
-        ? [
-            insights.modalities?.length ? `Vstup: ${insights.modalities.join(", ")}` : null,
-            insights.architecture,
-            tags.primary ? `Výstup: ${tags.primary}` : null,
-        ].filter((step): step is string => Boolean(step))
-        : [];
-    // Nasazení: doložené nástroje pro inference
+    // Skládanka nasazení: doložené nástroje pro inference
     const deploymentSteps = deployment.slice(0, 4);
 
     // Obrázky, videa a tabulky se berou přímo z dokumentace modelu
@@ -225,11 +214,12 @@ function ModelDetail({ model, insights }: {
     );
 
     // Boční panel se vykreslí jen tehdy, když je co ukázat
+    const showTechnical = technical.length > 0;
     const showDeployment = deployment.length > 0 || settings.length > 0;
     const showPerformance = performanceBenchmarks.length > 0;
     const showOtherBenchmarks = otherBenchmarks.length > 0;
     const showEfficiency = efficiencyBenchmarks.length > 0 || quantization.length > 0 || hardware.length > 0;
-    const hasSidebar = showDeployment || showPerformance || showOtherBenchmarks || showEfficiency;
+    const hasSidebar = showTechnical || showDeployment || showPerformance || showOtherBenchmarks || showEfficiency;
 
     // Štítky v hlavičce: hlavní úloha a doplňkové štítky modelu
     const headerTags = [tags.primary, ...tags.secondary]
@@ -237,7 +227,7 @@ function ModelDetail({ model, insights }: {
         .slice(0, MAX_HEADER_TAGS) as string[];
 
     return (
-        <article className={hasSidebar ? "model-detail" : "model-detail model-detail--main-only"}>
+        <article className="model-detail">
             <div className="model-detail__main">
                 <header className="model-detail__hero">
                     <div className="model-detail__hero-side">
@@ -247,10 +237,6 @@ function ModelDetail({ model, insights }: {
                             author={model.author}
                             avatarUrl={model.avatarUrl}
                         />
-
-                        <a className="model-detail__hero-link" href={model.url} target="_blank" rel="noreferrer">
-                            Hugging Face ↗
-                        </a>
                     </div>
 
                     <div className="model-detail__identity">
@@ -277,19 +263,17 @@ function ModelDetail({ model, insights }: {
                         </div>
                     </div>
 
-                    {lead && (
+                    <a className="model-detail__hero-link" href={model.url} target="_blank" rel="noreferrer">
+                        Hugging Face ↗
+                    </a>
+
+                    {description.length > 0 && (
                         <div className="model-detail__about">
-                            <p className="model-detail__lead">{lead}</p>
+                            {description.map((paragraph) => (
+                                <p key={paragraph}>{paragraph}</p>
+                            ))}
 
-                            {howItWorks.length > 0 && (
-                                <div className="model-detail__how-it-works">
-                                    <SectionTitle>Jak model funguje</SectionTitle>
-
-                                    {howItWorks.map((paragraph) => (
-                                        <p key={paragraph}>{paragraph}</p>
-                                    ))}
-                                </div>
-                            )}
+                            {flowSteps.length > 1 && <FlowDiagram steps={flowSteps} />}
                         </div>
                     )}
                 </header>
@@ -325,12 +309,6 @@ function ModelDetail({ model, insights }: {
                                 ? "Vychází z dokumentace modelu na Hugging Face."
                                 : "Vychází z úlohy a štítků modelu na Hugging Face."}
                         </Note>
-                    </Section>
-                )}
-
-                {technical.length > 0 && (
-                    <Section title="Technické informace">
-                        <MetricGrid items={technical} />
                     </Section>
                 )}
 
@@ -408,6 +386,24 @@ function ModelDetail({ model, insights }: {
 
             {hasSidebar && (
                 <aside className="model-detail__sidebar">
+                    {showTechnical && (
+                        <dl className="model-detail__facts">
+                            {technical.map((item) => (
+                                <div className="model-detail__fact" key={item.label}>
+                                    <dt className="model-detail__fact-label">{item.label}</dt>
+
+                                    <dd className="model-detail__fact-value">
+                                        {item.value}
+
+                                        {item.note && (
+                                            <span className="model-detail__fact-note">{item.note}</span>
+                                        )}
+                                    </dd>
+                                </div>
+                            ))}
+                        </dl>
+                    )}
+
                     {showDeployment && (
                         <Section title="Nasazení a použití">
                             {deploymentSteps.length > 1

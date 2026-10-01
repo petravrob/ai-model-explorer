@@ -7,11 +7,6 @@
     margin-top: 1.5rem;
 }
 
-/* Když není co ukázat v bočním panelu, hlavní panel zabere celou šířku */
-.model-detail--main-only {
-    grid-template-columns: minmax(0, 1fr);
-}
-
 .model-detail__main {
     display: flex;
     min-width: 0;
@@ -19,20 +14,20 @@
     gap: 1.75rem;
 }
 
-/* Boční panel s nasazením a výsledky měření zůstává při posunu stránky vidět */
+/* Boční panel s nasazením a výsledky měření se roluje spolu s hlavním obsahem;
+   když je prázdný, jeho sloupec zůstává vyhrazený, aby se hlavní panel neroztáhl */
 .model-detail__sidebar {
-    position: sticky;
-    top: calc(var(--header-height) + 1rem);
     display: flex;
     min-width: 0;
     flex-direction: column;
     gap: 1.75rem;
 }
 
-/* Hlavička s logem, názvem, štítky a úvodním textem */
+/* Hlavička s logem, názvem, štítky a úvodním textem;
+   třetí sloupec drží odkaz na Hugging Face v pravém horním rohu */
 .model-detail__hero {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: start;
     gap: 1.25rem 1.5rem;
     padding: 1.5rem;
@@ -44,12 +39,28 @@
         0 10px 24px rgba(15, 23, 42, .05);
 }
 
-/* Levý sloupec hlavičky: logo a pod ním odkaz na Hugging Face */
+/* Levý sloupec hlavičky s logem modelu */
 .model-detail__hero-side {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: .6rem;
+}
+
+/* Odkaz na Hugging Face je drobný a sedí v pravém horním rohu hlavičky */
+.model-detail__hero-link {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    color: var(--primary);
+    font-size: .82rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.model-detail__hero-link:hover {
+    text-decoration: underline;
 }
 
 /* Logo modelu v hlavičce je větší než na kartě */
@@ -90,17 +101,53 @@
     border-top: 1px solid var(--border);
 }
 
-/* Odkaz na Hugging Face patří pod logo, proto je drobný */
-.model-detail__hero-link {
-    color: var(--primary);
-    font-size: .82rem;
-    font-weight: 600;
-    text-decoration: none;
-    white-space: nowrap;
+/* Technické údaje v bočním panelu: název a hodnota vždy pod sebou */
+.model-detail__facts {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
 }
 
-.model-detail__hero-link:hover {
-    text-decoration: underline;
+.model-detail__fact {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: .1rem;
+    padding: .5rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.model-detail__fact:first-child {
+    padding-top: 0;
+}
+
+.model-detail__fact:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.model-detail__fact-label {
+    color: var(--text-faint);
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.model-detail__fact-value {
+    margin: 0;
+    color: var(--text);
+    font-size: .95rem;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.model-detail__fact-note {
+    display: block;
+    color: var(--text-subtle);
+    font-size: .78rem;
+    font-weight: 400;
 }
 
 /* Úvodní text a vysvětlení principu přes celou šířku hlavičky pod štítky */
@@ -116,16 +163,6 @@
 }
 
 .model-detail__about p {
-    margin: 0;
-}
-
-.model-detail__how-it-works {
-    display: flex;
-    flex-direction: column;
-    gap: .55rem;
-}
-
-.model-detail__how-it-works .section-title {
     margin: 0;
 }
 
@@ -220,13 +257,8 @@
 
 /* Na užší obrazovce se boční panel přesune pod hlavní obsah */
 @media (max-width: 1080px) {
-    .model-detail,
-    .model-detail--main-only {
+    .model-detail {
         grid-template-columns: minmax(0, 1fr);
-    }
-
-    .model-detail__sidebar {
-        position: static;
     }
 }
 
@@ -250,6 +282,12 @@
     .model-detail__identity .chip-list,
     .model-detail__stats {
         justify-content: center;
+    }
+
+    .model-detail__hero-link {
+        grid-column: 1;
+        grid-row: auto;
+        justify-self: center;
     }
 
     /* Delší text se na telefonu čte lépe zarovnaný vlevo */
