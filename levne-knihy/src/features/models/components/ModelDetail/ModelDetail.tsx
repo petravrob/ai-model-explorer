@@ -15,7 +15,6 @@ import {
     FieldGroup,
     FlowDiagram,
     LIKE_ICON,
-    LinkButton,
     MetricGrid,
     ModalityBadges,
     Note,
@@ -36,11 +35,81 @@ const MAX_BEST_FOR = 8;
 // Kolik štítků se vejde do hlavičky
 const MAX_HEADER_TAGS = 5;
 
+// Metriky, které popisují latenci, rychlost nebo efektivitu provozu modelu
+const EFFICIENCY_METRIC = /(latenc|rychl|efektiv|throughput|tokens?\s*\/\s*s|odezv)/i;
+
+/** Rozpozná benchmark, který měří latenci, rychlost nebo efektivitu. */
+const isEfficiencyBenchmark = (benchmark: ModelBenchmark): boolean =>
+    EFFICIENCY_METRIC.test(
+        [benchmark.name, benchmark.metric, benchmark.category, benchmark.context]
+            .filter(Boolean)
+            .join(" ")
+    );
+
+/** Benchmarky seskupené podle oblasti, pokud ji dokumentace uvádí. */
+interface BenchmarkGroup {
+    category: string | null;
+    items: ModelBenchmark[];
+}
+
+/** Seskupí benchmarky podle oblasti, pokud ji dokumentace uvádí. */
+const groupBenchmarks = (benchmarks: ModelBenchmark[]): BenchmarkGroup[] =>
+    benchmarks.reduce<BenchmarkGroup[]>(
+        (groups, benchmark) => {
+            const category = benchmark.category ?? null;
+            const group = groups.find((item) => item.category === category);
+
+            if (group) {
+                group.items.push(benchmark);
+            } else {
+                groups.push({ category, items: [benchmark] });
+            }
+
+            return groups;
+        },
+        []
+    );
+
+/** Skupiny benchmarků z dokumentace: nadpis oblasti a řádky s výsledky. */
+function BenchmarkGroups({ groups }: { groups: BenchmarkGroup[] }) {
+    return (
+        <div className="model-detail__benchmarks">
+            {groups.map((group) => (
+                <div className="model-detail__benchmark-group" key={group.category ?? "bez kategorie"}>
+                    {group.category && <SectionTitle>{group.category}</SectionTitle>}
+
+                    {group.items.map((benchmark) => {
+                        const percent = getBenchmarkPercent(benchmark);
+
+                        return (
+                            <p className="model-detail__benchmark" key={`${benchmark.name}-${benchmark.score}`}>
+                                <span className="model-detail__benchmark-name">{benchmark.name}</span>
+                                <strong className="model-detail__benchmark-score">{benchmark.score}</strong>
+
+                                {percent !== null && (
+                                    <ScoreBar percent={percent} className="model-detail__benchmark-bar" />
+                                )}
+
+                                {(benchmark.metric || benchmark.context) && (
+                                    <span className="model-detail__benchmark-meta">
+                                        {[benchmark.metric, benchmark.context].filter(Boolean).join(" · ")}
+                                    </span>
+                                )}
+                            </p>
+                        );
+                    })}
+                </div>
+            ))}
+        </div>
+    );
+}
+
 /**
  * Detail modelu - souhrn toho, co model umí, na co se hodí, jak se nasazuje
  * a na co si dát pozor.
  *
  * Stránka je záměrně souhrn (není chtěné pouze vytvořit překlad README z Hugging Face).
+ * Hlavní sloupec popisuje model, boční panel shrnuje nasazení a výsledky měření.
  */
 function ModelDetail({ model, insights }: {
     model: AIModel;
@@ -49,12 +118,13 @@ function ModelDetail({ model, insights }: {
 }) {
     const tags = getModelTagList(model);
 
-    // Přehled: přednost má český text z dokumentace, jinak popisek modelu
-    const overview = insights?.overview?.trim() || model.description?.trim() || getModelSummary(model);
+    // Popis modelu: první odstavec je úvod pod hlavičkou,
+    // zbylé odstavce vysvětlují, jak model funguje
     const description = (model.description?.trim() || getModelSummary(model))
         .split(/\n{2,}/)
         .map((paragraph) => paragraph.trim())
         .filter(Boolean);
+    const [lead, ...howItWorks] = description;
 
     // Oblasti použití: přednost má dokumentace, jinak se použijí štítky modelu
     const documentedAreas = [...new Set([
@@ -128,9 +198,8 @@ function ModelDetail({ model, insights }: {
             tags.primary ? `Výstup: ${tags.primary}` : null,
         ].filter((step): step is string => Boolean(step))
         : [];
-
-    // Skládanka nasazení: doložené nástroje a nároky na provoz
-    const deploymentSteps = [...deployment.slice(0, 4), ...hardware.slice(0, 2)];
+    // Nasazení: doložené nástroje pro inference
+    const deploymentSteps = deployment.slice(0, 4);
 
     // Obrázky, videa a tabulky se berou přímo z dokumentace modelu
     const images = insights?.images ?? [];
@@ -144,25 +213,23 @@ function ModelDetail({ model, insights }: {
         variants.length > 0 ? `Varianty (${variants.length})` : null,
     ].filter((step): step is string => Boolean(step));
 
-    // Pruhy u benchmarků mají smysl jen u výsledků vyjádřených v procentech
-    const hasBenchmarkBars = (insights?.benchmarks ?? []).some((benchmark) => getBenchmarkPercent(benchmark) !== null);
-
-    // Benchmarky se seskupí podle oblasti, pokud ji dokumentace uvádí
-    const benchmarkGroups = (insights?.benchmarks ?? []).reduce<{ category: string | null; items: ModelBenchmark[] }[]>(
-        (groups, benchmark) => {
-            const category = benchmark.category ?? null;
-            const group = groups.find((item) => item.category === category);
-
-            if (group) {
-                group.items.push(benchmark);
-            } else {
-                groups.push({ category, items: [benchmark] });
-            }
-
-            return groups;
-        },
-        []
+    // Benchmarky se rozdělí: výsledky v procentech s pruhy tvoří „Výkon“,
+    // metriky latence a efektivity mají vlastní sekci a zbytek jsou „Benchmarky“
+    const benchmarks = insights?.benchmarks ?? [];
+    const performanceBenchmarks = benchmarks.filter((benchmark) => getBenchmarkPercent(benchmark) !== null);
+    const efficiencyBenchmarks = benchmarks.filter(
+        (benchmark) => getBenchmarkPercent(benchmark) === null && isEfficiencyBenchmark(benchmark)
     );
+    const otherBenchmarks = benchmarks.filter(
+        (benchmark) => getBenchmarkPercent(benchmark) === null && !isEfficiencyBenchmark(benchmark)
+    );
+
+    // Boční panel se vykreslí jen tehdy, když je co ukázat
+    const showDeployment = deployment.length > 0 || settings.length > 0;
+    const showPerformance = performanceBenchmarks.length > 0;
+    const showOtherBenchmarks = otherBenchmarks.length > 0;
+    const showEfficiency = efficiencyBenchmarks.length > 0 || quantization.length > 0 || hardware.length > 0;
+    const hasSidebar = showDeployment || showPerformance || showOtherBenchmarks || showEfficiency;
 
     // Štítky v hlavičce: hlavní úloha a doplňkové štítky modelu
     const headerTags = [tags.primary, ...tags.secondary]
@@ -170,250 +237,232 @@ function ModelDetail({ model, insights }: {
         .slice(0, MAX_HEADER_TAGS) as string[];
 
     return (
-        <article className="model-detail">
-            <header className="model-detail__hero">
-                <ModelImage
-                    className="model-detail__image"
-                    name={model.name}
-                    author={model.author}
-                    avatarUrl={model.avatarUrl}
-                />
-
-                <div className="model-detail__identity">
-                    <PageTitle>{model.name}</PageTitle>
-
-                    <p className="model-detail__provider">{getModelProvider(model.author)}</p>
-
-                    {headerTags.length > 0 && <ChipList items={headerTags} />}
-
-                    <div className="model-detail__stats">
-                        <Stat
-                            icon={DOWNLOAD_ICON}
-                            value={formatCount(model.downloads)}
-                            label="stažení"
+        <article className={hasSidebar ? "model-detail" : "model-detail model-detail--main-only"}>
+            <div className="model-detail__main">
+                <header className="model-detail__hero">
+                    <div className="model-detail__hero-side">
+                        <ModelImage
+                            className="model-detail__image"
+                            name={model.name}
+                            author={model.author}
+                            avatarUrl={model.avatarUrl}
                         />
 
-                        <Stat
-                            icon={LIKE_ICON}
-                            value={formatCount(model.likes)}
-                            label="oblíbení"
-                        />
+                        <a className="model-detail__hero-link" href={model.url} target="_blank" rel="noreferrer">
+                            Hugging Face ↗
+                        </a>
                     </div>
 
-                    <a className="model-detail__hero-link" href={model.url} target="_blank" rel="noreferrer">
-                        Hugging Face ↗
-                    </a>
-                </div>
-            </header>
+                    <div className="model-detail__identity">
+                        <PageTitle>{model.name}</PageTitle>
 
-            {(modalityBadges.length > 0 || capabilityItems.length > 0) && (
-                <div className="model-detail__profile">
-                    {modalityBadges.length > 0 && <ModalityBadges items={modalityBadges} />}
+                        <p className="model-detail__provider">{getModelProvider(model.author)}</p>
 
-                    {capabilityItems.length > 0 && <MetricGrid items={capabilityItems} />}
-                </div>
-            )}
+                        {headerTags.length > 0 && <ChipList items={headerTags} />}
 
-            {description.length > 0 && (
-                <Section title="Přehled">
-                    <div className="model-detail__summary">
-                        {description.map((paragraph) => (
-                            <p key={paragraph}>{paragraph}</p>
-                        ))}
+                        {modalityBadges.length > 0 && <ModalityBadges items={modalityBadges} />}
+
+                        <div className="model-detail__stats">
+                            <Stat
+                                icon={DOWNLOAD_ICON}
+                                value={formatCount(model.downloads)}
+                                label="stažení"
+                            />
+
+                            <Stat
+                                icon={LIKE_ICON}
+                                value={formatCount(model.likes)}
+                                label="oblíbení"
+                            />
+                        </div>
                     </div>
-                </Section>
-            )}
 
-            {(highlights.length > 0 || bestFor.length > 0) && (
-                <div className="model-detail__split">
-                    {highlights.length > 0 && (
-                        <Section title="Proč tento model?">
-                            <BulletList variant="check" items={highlights} />
-                        </Section>
+                    {lead && (
+                        <div className="model-detail__about">
+                            <p className="model-detail__lead">{lead}</p>
+
+                            {howItWorks.length > 0 && (
+                                <div className="model-detail__how-it-works">
+                                    <SectionTitle>Jak model funguje</SectionTitle>
+
+                                    {howItWorks.map((paragraph) => (
+                                        <p key={paragraph}>{paragraph}</p>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     )}
+                </header>
 
-                    {bestFor.length > 0 && (
-                        <Section title="Nejvhodnější pro">
-                            <TileGrid items={bestFor} />
+                {(highlights.length > 0 || limitations.length > 0) && (
+                    <div className="model-detail__split">
+                        {highlights.length > 0 && (
+                            <Section title="Proč tento model?">
+                                <BulletList variant="check" items={highlights} />
+                            </Section>
+                        )}
 
-                            <Note>
-                                {documentedAreas.length > 0
-                                    ? "Vychází z dokumentace modelu na Hugging Face."
-                                    : "Vychází z úlohy a štítků modelu na Hugging Face."}
-                            </Note>
-                        </Section>
-                    )}
-                </div>
-            )}
+                        {limitations.length > 0 && (
+                            <Section title="Omezení">
+                                <div className="model-detail__panel">
+                                    <ul className="model-detail__limitations">
+                                        {limitations.map((item) => (
+                                            <li key={item}>{item}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </Section>
+                        )}
+                    </div>
+                )}
 
-            {technical.length > 0 && (
-                <Section title="Technické informace">
-                    <MetricGrid items={technical} />
-                </Section>
-            )}
+                {bestFor.length > 0 && (
+                    <Section title="Nejvhodnější pro">
+                        <TileGrid items={bestFor} />
 
-            {(deployment.length > 0 || settings.length > 0) && (
-                <Section title="Nasazení a použití">
-                    {deploymentSteps.length > 1
-                        ? <FlowDiagram steps={deploymentSteps} />
-                        : deployment.length > 0 && <ChipList items={deployment} />}
+                        <Note>
+                            {documentedAreas.length > 0
+                                ? "Vychází z dokumentace modelu na Hugging Face."
+                                : "Vychází z úlohy a štítků modelu na Hugging Face."}
+                        </Note>
+                    </Section>
+                )}
 
-                    {settings.length > 0 && (
-                        <FieldGroup label="Doporučené nastavení">
-                            <BulletList items={settings} />
-                        </FieldGroup>
-                    )}
+                {technical.length > 0 && (
+                    <Section title="Technické informace">
+                        <MetricGrid items={technical} />
+                    </Section>
+                )}
 
-                    {hardware.length > 0 && (
-                        <FieldGroup label="Nároky na hardware">
-                            <BulletList items={hardware} />
-                        </FieldGroup>
-                    )}
-
-                    {quantization.length > 0 && (
-                        <FieldGroup label="Kvantizace a formáty">
-                            <BulletList items={quantization} />
-                        </FieldGroup>
-                    )}
-
-                    <Note>Uvedeno v dokumentaci modelu.</Note>
-                </Section>
-            )}
-
-            {benchmarkGroups.length > 0 && (
-                <Section title="Výkon">
-                    <div className="model-detail__benchmarks">
-                        {benchmarkGroups.map((group) => (
-                            <div className="model-detail__benchmark-group" key={group.category ?? "bez kategorie"}>
-                                {group.category && <SectionTitle>{group.category}</SectionTitle>}
-
-                                {group.items.map((benchmark) => {
-                                    const percent = getBenchmarkPercent(benchmark);
-
-                                    return (
-                                        <p className="model-detail__benchmark" key={`${benchmark.name}-${benchmark.score}`}>
-                                            <span className="model-detail__benchmark-name">{benchmark.name}</span>
-                                            <strong className="model-detail__benchmark-score">{benchmark.score}</strong>
-
-                                            {percent !== null && (
-                                                <ScoreBar percent={percent} className="model-detail__benchmark-bar" />
-                                            )}
-
-                                            {(benchmark.metric || benchmark.context) && (
-                                                <span className="model-detail__benchmark-meta">
-                                                    {[benchmark.metric, benchmark.context].filter(Boolean).join(" · ")}
-                                                </span>
-                                            )}
-                                        </p>
-                                    );
-                                })}
+                {(videos.length > 0 || images.length > 0) && (
+                    <Section title="Vizuální ukázky">
+                        {videos.length > 0 && (
+                            <div className="model-detail__images">
+                                {videos.map((video) => (
+                                    <DocumentVideo
+                                        url={video.url}
+                                        title={video.title}
+                                        thumbnail={video.thumbnail}
+                                        key={video.url}
+                                    />
+                                ))}
                             </div>
+                        )}
+
+                        {images.length > 0 && (
+                            <div className="model-detail__images">
+                                {images.map((image) => (
+                                    <DocumentImage
+                                        src={image.url}
+                                        alt={image.alt}
+                                        caption={image.caption}
+                                        key={image.url}
+                                    />
+                                ))}
+                            </div>
+                        )}
+
+                        <Note>Převzato z dokumentace modelu na Hugging Face.</Note>
+                    </Section>
+                )}
+
+                {tables.length > 0 && (
+                    <Section title="Přehled a výsledky">
+                        {tables.map((table, index) => (
+                            <FieldGroup
+                                label={table.title || "Tabulka z dokumentace"}
+                                key={`${table.title}-${index}`}
+                            >
+                                <DataTable headers={table.headers} rows={table.rows} />
+                            </FieldGroup>
                         ))}
-                    </div>
 
-                    <Note>
-                        {hasBenchmarkBars
-                            ? "Uvedeno autory modelu. Délka pruhu odpovídá uvedenému výsledku."
-                            : "Uvedeno autory modelu."}
-                    </Note>
-                </Section>
-            )}
+                        <Note>Převzato z dokumentace modelu na Hugging Face.</Note>
+                    </Section>
+                )}
 
-            {tables.length > 0 && (
-                <Section title="Přehled a výsledky">
-                    {tables.map((table, index) => (
-                        <FieldGroup
-                            label={table.title || "Tabulka z dokumentace"}
-                            key={`${table.title}-${index}`}
-                        >
-                            <DataTable headers={table.headers} rows={table.rows} />
-                        </FieldGroup>
-                    ))}
+                {(variants.length > 0 || insights?.baseModel || notes.length > 0) && (
+                    <Section title="Důležité informace">
+                        {familySteps.length > 1 && <FlowDiagram steps={familySteps} />}
 
-                    <Note>Převzato z dokumentace modelu na Hugging Face.</Note>
-                </Section>
-            )}
+                        {variants.length > 0 && (
+                            <FieldGroup label="Varianty">
+                                <ChipList items={variants} />
+                            </FieldGroup>
+                        )}
 
-            {limitations.length > 0 && (
-                <Section title="Omezení">
-                    <div className="model-detail__panel">
-                        <ul className="model-detail__limitations">
-                            {limitations.map((item) => (
-                                <li key={item}>{item}</li>
-                            ))}
-                        </ul>
-                    </div>
-                </Section>
-            )}
+                        {compatibility.length > 0 && (
+                            <FieldGroup label="Kompatibilita">
+                                <BulletList items={compatibility} />
+                            </FieldGroup>
+                        )}
 
-            {(variants.length > 0 || insights?.baseModel || notes.length > 0) && (
-                <Section title="Důležité informace">
-                    {familySteps.length > 1 && <FlowDiagram steps={familySteps} />}
+                        {notes.length > 0 && (
+                            <FieldGroup label="Poznámky">
+                                <BulletList items={notes} />
+                            </FieldGroup>
+                        )}
+                    </Section>
+                )}
+            </div>
 
-                    {variants.length > 0 && (
-                        <FieldGroup label="Varianty">
-                            <ChipList items={variants} />
-                        </FieldGroup>
+            {hasSidebar && (
+                <aside className="model-detail__sidebar">
+                    {showDeployment && (
+                        <Section title="Nasazení a použití">
+                            {deploymentSteps.length > 1
+                                ? <FlowDiagram steps={deploymentSteps} />
+                                : deployment.length > 0 && <ChipList items={deployment} />}
+
+                            {settings.length > 0 && (
+                                <FieldGroup label="Doporučené nastavení">
+                                    <BulletList items={settings} />
+                                </FieldGroup>
+                            )}
+
+                            <Note>Uvedeno v dokumentaci modelu.</Note>
+                        </Section>
                     )}
 
-                    {compatibility.length > 0 && (
-                        <FieldGroup label="Kompatibilita">
-                            <BulletList items={compatibility} />
-                        </FieldGroup>
+                    {showPerformance && (
+                        <Section title="Výkon">
+                            <BenchmarkGroups groups={groupBenchmarks(performanceBenchmarks)} />
+
+                            <Note>Uvedeno autory modelu. Délka pruhu odpovídá uvedenému výsledku.</Note>
+                        </Section>
                     )}
 
-                    {notes.length > 0 && (
-                        <FieldGroup label="Poznámky">
-                            <BulletList items={notes} />
-                        </FieldGroup>
+                    {showOtherBenchmarks && (
+                        <Section title="Benchmarky">
+                            <BenchmarkGroups groups={groupBenchmarks(otherBenchmarks)} />
+
+                            <Note>Uvedeno autory modelu.</Note>
+                        </Section>
                     )}
-                </Section>
+
+                    {showEfficiency && (
+                        <Section title="Latence a efektivita">
+                            {efficiencyBenchmarks.length > 0 && (
+                                <BenchmarkGroups groups={groupBenchmarks(efficiencyBenchmarks)} />
+                            )}
+
+                            {quantization.length > 0 && (
+                                <FieldGroup label="Kvantizace a formáty">
+                                    <BulletList items={quantization} />
+                                </FieldGroup>
+                            )}
+
+                            {hardware.length > 0 && (
+                                <FieldGroup label="Nároky na hardware">
+                                    <BulletList items={hardware} />
+                                </FieldGroup>
+                            )}
+
+                            <Note>Uvedeno v dokumentaci modelu.</Note>
+                        </Section>
+                    )}
+                </aside>
             )}
-
-            {(videos.length > 0 || images.length > 0) && (
-                <Section title="Vizuální ukázky">
-                    {videos.length > 0 && (
-                        <div className="model-detail__images">
-                            {videos.map((video) => (
-                                <DocumentVideo
-                                    url={video.url}
-                                    title={video.title}
-                                    thumbnail={video.thumbnail}
-                                    key={video.url}
-                                />
-                            ))}
-                        </div>
-                    )}
-
-                    {images.length > 0 && (
-                        <div className="model-detail__images">
-                            {images.map((image) => (
-                                <DocumentImage
-                                    src={image.url}
-                                    alt={image.alt}
-                                    caption={image.caption}
-                                    key={image.url}
-                                />
-                            ))}
-                        </div>
-                    )}
-
-                    <Note>Převzato z dokumentace modelu na Hugging Face.</Note>
-                </Section>
-            )}
-
-            <Section title="Dokumentace">
-                <div className="model-detail__documentation">
-                    <p>
-                        Celý text model card najdeš na Hugging Face. Tahle stránka z něj přebírá
-                        jen strukturované údaje výše.
-                    </p>
-
-                    <LinkButton href={model.url} variant="outline">
-                        Otevřít dokumentaci na Hugging Face
-                    </LinkButton>
-                </div>
-            </Section>
         </article>
     );
 }
