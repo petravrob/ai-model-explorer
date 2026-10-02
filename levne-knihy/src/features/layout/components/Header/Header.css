@@ -46,13 +46,17 @@
     box-shadow: 0 .05em .14em rgba(15, 23, 42, .18);
 }
 
-/* Na hover se spustí animace */
-.header__brand:hover .logo-badge,
-.header__brand:focus-visible .logo-badge {
-    transform: translateY(-3px);
-    --logo-badge-breathe-animation: logo-badge-breathe;
-    --logo-badge-spin-animation: logo-badge-spin;
-    --logo-badge-spark-opacity: 1;
+/*
+ * Na hover se spustí animace (na telefonu nic).
+ */
+@media (hover: hover) {
+    .header__brand:hover .logo-badge,
+    .header__brand:focus-visible .logo-badge {
+        transform: translateY(-3px);
+        --logo-badge-breathe-animation: logo-badge-breathe;
+        --logo-badge-spin-animation: logo-badge-spin;
+        --logo-badge-spark-opacity: 1;
+    }
 }
 
 .header__brand-text {

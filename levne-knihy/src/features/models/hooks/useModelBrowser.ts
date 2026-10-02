@@ -90,8 +90,15 @@ function useModelBrowser() {
         );
     };
 
-    const setTab = (nextTab: ModelTabKey): void =>
+    const setTab = (nextTab: ModelTabKey): void => {
+
+        // Změna štítku - nové výsledky se ukážou od začátku stránky
+        if (nextTab !== tab) {
+            window.scrollTo({ top: 0, left: 0 });
+        }
+
         updateListParams((params) => writeTabToParams(params, nextTab));
+    };
 
     const setSort = (nextSort: ModelSortKey): void =>
         updateListParams((params) => writeSortToParams(params, nextSort));

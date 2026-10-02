@@ -1,6 +1,6 @@
 import "./ModelBrowser.css";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import useModelBrowser from "../../hooks/useModelBrowser";
 import useScrollRestoration from "../../hooks/useScrollRestoration";
@@ -54,6 +54,21 @@ function ModelBrowser() {
     // Na telefonu se lišta se štítky při scrollu dolů schová a při scrollu nahoru zase ukáže
     const [isTagsHidden, setIsTagsHidden] = useState(false);
 
+    // Na telefonu otevřené filtry nebo řazení skryjí výpis, stránka se zkrátí a scroll se srovná.
+    // Pozice a parametry URL se proto zapamatují ještě před otevřením - po zavření se podle nich
+    // pozná, jestli zůstaly stejné výsledky (vrátí se původní pozice) nebo se výpis změnil (začíná odshora).
+    const panelScrollRef = useRef<number | null>(null);
+    const panelParamsRef = useRef<string | null>(null);
+    const isPanelOpenRef = useRef(false);
+
+    /** Zapamatuje pozici scrollu a parametry těsně před otevřením panelu (při zavření se nepřepisují). */
+    const rememberPanelPosition = (): void => {
+        if (isPanelOpenRef.current) return;
+
+        panelScrollRef.current = window.scrollY;
+        panelParamsRef.current = window.location.search;
+    };
+
     // Stav pro ikony v hlavičce (jen na telefonu): rozbalené filtry / aktivní filtry / otevřené řazení
     useEffect(() => {
         if (hasLoaded) {
@@ -65,10 +80,14 @@ function ModelBrowser() {
     // Filtry, řazení a vyhledávání se navzájem vylučují - otevřením jednoho se ostatní zavřou.
     useEffect(() => {
         const handleToggleFilters = (): void => {
+            rememberPanelPosition();
+
             setIsSortOpen(false);
             setIsFilterOpen((open) => !open);
         };
         const handleToggleSort = (): void => {
+            rememberPanelPosition();
+
             setIsFilterOpen(false);
             setIsSortOpen((open) => !open);
         };
@@ -90,14 +109,38 @@ function ModelBrowser() {
 
     // Na telefonu jsou filtry a řazení samostatné stránky, proto se při jejich otevření
     // obsah posune nahoru - uživatel tak nezačíná na konci seznamu, který se právě schoval.
+    // Zavřením se pozice obnoví, jen pokudse parametry nezměnily (filtry, řazení, štítek i hledání)
     useEffect(() => {
-        if (!isFilterOpen && !isSortOpen) return;
+        const isPanelOpen = isFilterOpen || isSortOpen;
 
-        setIsTagsHidden(false);
+        isPanelOpenRef.current = isPanelOpen;
 
+        if (isPanelOpen) {
+            setIsTagsHidden(false);
+
+            if (window.matchMedia("(max-width: 900px)").matches) {
+                window.scrollTo({ top: 0, left: 0 });
+            }
+
+            return;
+        }
+
+        const savedScroll = panelScrollRef.current;
+        const savedParams = panelParamsRef.current;
+
+        // Bez zapamatované pozice (otevření mimo ikony v hlavičce) se nic neobnovuje
+        if (savedScroll === null || savedParams === null) return;
+
+        panelScrollRef.current = null;
+        panelParamsRef.current = null;
+
+        // Na počítači se výpis při otevření panelu neschovává, scroll se nemění
         if (!window.matchMedia("(max-width: 900px)").matches) return;
 
-        window.scrollTo({ top: 0, left: 0 });
+        window.scrollTo({
+            top: savedParams === window.location.search ? savedScroll : 0,
+            left: 0,
+        });
     }, [isFilterOpen, isSortOpen]);
 
     // Na telefonu se lišta se štítky při scrollu dolů schová, při scrollu nahoru zase ukáže.
