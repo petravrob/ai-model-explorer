@@ -1,11 +1,9 @@
 import "./ModelDetail.css";
 
-import { AIModel, ModelBenchmark, ModelInsights } from "../../types";
+import { AIModel, ModelInsights } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
 import { getModelLicense, getModelProvider, getModelSummary, getModelTagList, isModelItself } from "../../utils/modelCard";
 import { getModelHighlights } from "../../utils/modelHighlights";
-import { getBenchmarkPercent } from "../../utils/benchmarkScores";
-import { getBenchmarkCategoryLabel, getBenchmarkNameLabel } from "../../utils/benchmarkLabels";
 import { getDeploymentDescription } from "../../utils/deploymentLabels";
 import {
     BulletList,
@@ -18,9 +16,7 @@ import {
     LIKE_ICON,
     ModalityBadges,
     PageTitle,
-    ScoreBar,
     Section,
-    SectionTitle,
     Stat,
 } from "@/ui";
 
@@ -37,70 +33,12 @@ const MAX_HEADER_TAGS = 5;
 const nonEmpty = (items: string[] | undefined): string[] =>
     (items ?? []).map((item) => item.trim()).filter(Boolean);
 
-/** Benchmarky seskupené podle oblasti, pokud ji dokumentace uvádí. */
-interface BenchmarkGroup {
-    category: string | null;
-    items: ModelBenchmark[];
-}
-
-/** Seskupí benchmarky podle oblasti, pokud ji dokumentace uvádí. */
-const groupBenchmarks = (benchmarks: ModelBenchmark[]): BenchmarkGroup[] =>
-    benchmarks.reduce<BenchmarkGroup[]>(
-        (groups, benchmark) => {
-            const category = benchmark.category ?? null;
-            const group = groups.find((item) => item.category === category);
-
-            if (group) {
-                group.items.push(benchmark);
-            } else {
-                groups.push({ category, items: [benchmark] });
-            }
-
-            return groups;
-        },
-        []
-    );
-
-/** Skupiny benchmarků z dokumentace: nadpis oblasti a řádky s výsledky. */
-function BenchmarkGroups({ groups }: { groups: BenchmarkGroup[] }) {
-    return (
-        <div className="model-detail__benchmarks">
-            {groups.map((group) => (
-                <div className="model-detail__benchmark-group" key={group.category ?? "bez kategorie"}>
-                    {group.category && <SectionTitle>{getBenchmarkCategoryLabel(group.category)}</SectionTitle>}
-
-                    {group.items.map((benchmark) => {
-                        const percent = getBenchmarkPercent(benchmark);
-
-                        return (
-                            <p className="model-detail__benchmark" key={`${benchmark.name}-${benchmark.score}`}>
-                                <span className="model-detail__benchmark-name">{getBenchmarkNameLabel(benchmark.name)}</span>
-                                <strong className="model-detail__benchmark-score">{benchmark.score}</strong>
-
-                                {percent !== null && (
-                                    <ScoreBar percent={percent} className="model-detail__benchmark-bar" />
-                                )}
-
-                                {benchmark.context && (
-                                    <span className="model-detail__benchmark-meta">
-                                        {benchmark.context}
-                                    </span>
-                                )}
-                            </p>
-                        );
-                    })}
-                </div>
-            ))}
-        </div>
-    );
-}
-
 /**
  * Detail modelu - souhrn toho, co model umí, na co se hodí, jak se nasazuje
  * a na co si dát pozor.
  *
  * Stránka je záměrně souhrn (není chtěné pouze vytvořit překlad README z Hugging Face).
- * Hlavní sloupec popisuje model, boční panel shrnuje nasazení a výsledky měření.
+ * Hlavní sloupec popisuje model, boční panel shrnuje technické údaje a nasazení.
  */
 function ModelDetail({ model, insights }: {
     model: AIModel;
@@ -231,36 +169,32 @@ function ModelDetail({ model, insights }: {
         variants.length > 0 ? `Varianty: ${variants.join(", ")}` : null,
     ].filter((step): step is string => Boolean(step));
 
-    // Benchmarky se rozdělí: výsledky v procentech s pruhy tvoří „Výkon“,
-    // zbytek metrik bez procent jsou „Benchmarky“
-    const benchmarks = insights?.benchmarks ?? [];
-    const performanceBenchmarks = benchmarks.filter((benchmark) => getBenchmarkPercent(benchmark) !== null);
-    const otherBenchmarks = benchmarks.filter((benchmark) => getBenchmarkPercent(benchmark) === null);
-
     // Boční panel se vykreslí jen tehdy, když je co ukázat
     const showTechnical = technical.length > 0;
     const showFlow = flowSteps.length > 1;
     const showBestFor = bestFor.length > 0;
     const showFamily = familySteps.length > 1;
     const showDeployment = deployment.length > 0 || settings.length > 0;
-    const showPerformance = performanceBenchmarks.length > 0;
-    const showOtherBenchmarks = otherBenchmarks.length > 0;
     const showHardware = hardware.length > 0;
     const showQuantization = quantization.length > 0;
+    const showCompatibility = compatibility.length > 0;
     const hasSidebar =
         showTechnical ||
         showFlow ||
         showFamily ||
         showHardware ||
         showDeployment ||
-        showPerformance ||
-        showOtherBenchmarks ||
-        showQuantization;
+        showQuantization ||
+        showCompatibility;
 
     // Štítky v hlavičce: hlavní úloha a doplňkové štítky modelu
     const headerTags = [tags.primary, ...tags.secondary]
         .filter(Boolean)
         .slice(0, MAX_HEADER_TAGS) as string[];
+
+    // Druhy vstupůy výstupů a štítky modelu
+    // (sloučení přes Set zabrání duplicitním klíčům)
+    const headerBadges = [...new Set([...modalityBadges, ...headerTags])];
 
     return (
         <article className="model-detail">
@@ -296,11 +230,9 @@ function ModelDetail({ model, insights }: {
                             </div>
                         </div>
 
-                        {(headerTags.length > 0 || modalityBadges.length > 0) && (
+                        {headerBadges.length > 0 && (
                             <div className="model-detail__tags">
-                                {modalityBadges.length > 0 && <ModalityBadges items={modalityBadges} />}
-
-                                {headerTags.length > 0 && <ChipList items={headerTags} />}
+                                <ModalityBadges items={headerBadges} />
                             </div>
                         )}
                     </div>
@@ -342,7 +274,7 @@ function ModelDetail({ model, insights }: {
                 )}
 
                 {(videos.length > 0 || images.length > 0) && (
-                    <Section title="Obrázky z Hugging Face">
+                    <Section title="Obrázky z Hugging Face" className="model-detail__gallery">
                         {videos.length > 0 && (
                             <div className="model-detail__images">
                                 {videos.map((video) => (
@@ -372,11 +304,6 @@ function ModelDetail({ model, insights }: {
                     </Section>
                 )}
 
-                {compatibility.length > 0 && (
-                    <Section title="Kompatibilita">
-                        <BulletList items={compatibility} />
-                    </Section>
-                )}
             </div>
 
             {hasSidebar && (
@@ -391,18 +318,6 @@ function ModelDetail({ model, insights }: {
                     )}
 
                     {showTechnical && <ModelFacts items={technical} />}
-
-                    {showPerformance && (
-                        <div className="model-detail__benchmark-section">
-                            <BenchmarkGroups groups={groupBenchmarks(performanceBenchmarks)} />
-                        </div>
-                    )}
-
-                    {showOtherBenchmarks && (
-                        <Section title="Benchmarky">
-                            <BenchmarkGroups groups={groupBenchmarks(otherBenchmarks)} />
-                        </Section>
-                    )}
 
                     {showFamily && (
                         <Section title="Původ a varianty modelu">
@@ -435,6 +350,12 @@ function ModelDetail({ model, insights }: {
                                     <BulletList items={settings} />
                                 </FieldGroup>
                             )}
+                        </Section>
+                    )}
+
+                    {showCompatibility && (
+                        <Section title="Kompatibilita">
+                            <BulletList items={compatibility} />
                         </Section>
                     )}
 

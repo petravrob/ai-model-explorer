@@ -27,8 +27,7 @@
     gap: 1.5rem 2rem;
 }
 
-/* Boční panel s nasazením a výsledky měření se roluje spolu s hlavním obsahem;
-   když je prázdný, jeho sloupec zůstává vyhrazený, aby se hlavní panel neroztáhl */
+/* Boční panel s technickými údaji */
 .model-detail__sidebar {
     display: flex;
     min-width: 0;
@@ -194,67 +193,6 @@
     gap: 1rem;
 }
 
-/* Výsledky benchmarků z dokumentace modelu */
-.model-detail__benchmarks {
-    display: flex;
-    flex-direction: column;
-    gap: .9rem;
-}
-
-/* Výsledky benchmarků bez nadpisu sekce - nadpisy tvoří názvy jednotlivých kategorií */
-.model-detail__benchmark-section {
-    display: flex;
-    flex-direction: column;
-    gap: .8rem;
-}
-
-.model-detail__benchmark-group {
-    display: flex;
-    flex-direction: column;
-    gap: .35rem;
-}
-
-/* Jeden řádek: název benchmarku a jeho výsledek */
-.model-detail__benchmark {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: baseline;
-    gap: .15rem .8rem;
-    margin: 0;
-    padding-bottom: .35rem;
-    font-size: .85rem;
-}
-
-.model-detail__benchmark:last-child {
-    padding-bottom: 0;
-    border-bottom: 0;
-}
-
-.model-detail__benchmark-name {
-    color: var(--text);
-    font-weight: 600;
-    font-size: .8rem;
-    overflow-wrap: anywhere;
-}
-
-.model-detail__benchmark-score {
-    color: var(--primary);
-    white-space: nowrap;
-}
-
-/* Metrika a způsob měření patří pod název benchmarku */
-.model-detail__benchmark-meta {
-    grid-column: 1 / -1;
-    color: var(--text-subtle);
-    font-size: .78rem;
-}
-
-/* Pruh výsledku je pod názvem a zabírá celou šířku řádku */
-.model-detail__benchmark-bar {
-    grid-column: 1 / -1;
-    margin-top: .1rem;
-}
-
 /* Omezení jsou záměrně odlišená, ale zůstávají v barvách aplikace */
 .model-detail__panel {
     padding: .9rem 1.1rem;
@@ -283,6 +221,22 @@
     }
 }
 
+/* Na telefonu je sekce s obrázky úplně dole. */
+@media (max-width: 900px) {
+    .model-detail__main {
+        display: contents;
+    }
+
+    /* Sekce hlavního panelu nesmí být širší než sloupec */
+    .model-detail__main > * {
+        min-width: 0;
+    }
+
+    .model-detail__gallery {
+        order: 1;
+    }
+}
+
 @media (max-width: 700px) {
     .model-detail {
         margin-top: 1rem;
@@ -300,9 +254,10 @@
         align-items: center;
     }
 
-    .model-detail__identity .chip-list,
+    /* Štítky - seznam, který se na telefonu zarovná na střed */
     .model-detail__meta,
     .model-detail__tags,
+    .model-detail__tags .modality-badges,
     .model-detail__stats {
         justify-content: center;
     }

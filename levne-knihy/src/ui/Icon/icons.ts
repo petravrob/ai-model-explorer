@@ -30,3 +30,6 @@ export const MAGNIFIER_ICON = "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14M21 21l-4.5-4.
 
 // Přihlášený uživatel
 export const USER_ICON = "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";
+
+// Zavřít (křížek)
+export const CLOSE_ICON = "M6 6l12 12M18 6L6 18";

@@ -3,6 +3,9 @@ import "./DocumentImage.css";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
+import Icon from "../Icon/Icon";
+import { CLOSE_ICON } from "../Icon/icons";
+
 interface DocumentImageProps {
     src: string;
     alt: string;
@@ -82,7 +85,7 @@ function DocumentImage({ src, alt, caption }: DocumentImageProps) {
                         aria-label="Zavřít zvětšený obrázek"
                         autoFocus
                     >
-                        ×
+                        <Icon path={CLOSE_ICON} />
                     </button>
                 </div>,
                 document.body
