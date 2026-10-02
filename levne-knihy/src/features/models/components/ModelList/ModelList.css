@@ -98,7 +98,7 @@
     white-space: nowrap;
 }
 
-   Prostor pro popis je vyhrazený už při vytvoření karty, aby se karta
+/* Prostor pro popis je vyhrazený už při vytvoření karty, aby se karta
    po vygenerování textu nemusela zvětšovat a výpis modelů neposkakoval. */
 .model-list__summary {
     display: -webkit-box;

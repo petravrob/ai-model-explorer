@@ -1,7 +1,7 @@
 .section {
     display: flex;
     flex-direction: column;
-    gap: .8rem;
+    gap: .4rem;
 }
 
 /* Nadpis má v rozvržení sekce mezeru jen z rozestupu sekce */

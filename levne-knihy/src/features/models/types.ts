@@ -47,13 +47,6 @@ export interface ModelInsightVideo {
     // Náhledový obrázek videa, pokud ho zdroj poskytuje
     thumbnail: string;
 }
-/** Tabulka převzatá z dokumentace modelu. */
-export interface ModelInsightTable {
-    // Nadpis, pod kterým tabulka v dokumentaci stojí
-    title: string;
-    headers: string[];
-    rows: string[][];
-}
 /** České přehledy vytvořené z dokumentace modelu na Hugging Face. */
 export interface ModelInsights {
     // Konkrétní vlastnosti, kterými se model odlišuje
@@ -80,15 +73,12 @@ export interface ModelInsights {
     hardwareRequirements?: string[];
     quantization?: string[];
     compatibility?: string[];
-    notes?: string[];
     limitations?: string[];
     benchmarks?: ModelBenchmark[];
     // Obrázky z dokumentace modelu (diagramy, ukázky výsledků)
     images?: ModelInsightImage[];
     // Videa z dokumentace modelu (mp4, YouTube)
     videos?: ModelInsightVideo[];
-    // Tabulky z dokumentace modelu (přehledy, parametry, varianty)
-    tables?: ModelInsightTable[];
 }
 export interface ModelListProps {
     models: AIModel[];

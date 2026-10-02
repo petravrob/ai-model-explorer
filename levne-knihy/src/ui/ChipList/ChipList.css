@@ -10,21 +10,11 @@
 .chip {
     max-width: 100%;
     padding: .18rem .6rem;
+    border: 1px solid rgb(79 70 229 / 22%);
     border-radius: var(--radius-pill);
     background: var(--primary-light);
     color: var(--primary);
     font-size: .72rem;
     font-weight: 600;
     overflow-wrap: anywhere;
-}
-
-/* Menší a neutrálnější varianta (např. štítky na kartách modelů) */
-.chip-list--muted .chip {
-    align-self: flex-start;
-    padding: .15rem .5rem;
-    border-radius: var(--radius-sm);
-    background: var(--surface-muted);
-    color: var(--text-muted);
-    font-size: .7rem;
-    line-height: 1.35;
 }

@@ -4,6 +4,8 @@ type ChipListVariant = "primary" | "muted";
 
 interface ChipListProps {
     items: string[];
+    // Vysvětlení jednotlivých štítků (zobrazí se po najetí myší)
+    itemTitles?: Record<string, string>;
     // Kolik dalších položek se do seznamu nevešlo (vypíše se jako "+3")
     remaining?: number;
     remainingTitle?: string;
@@ -14,6 +16,7 @@ interface ChipListProps {
 /** Seznam krátkých štítků (chips) pro snadné prohlédnutí. */
 function ChipList({
     items,
+    itemTitles,
     remaining = 0,
     remainingTitle,
     variant = "primary",
@@ -28,7 +31,7 @@ function ChipList({
     return (
         <ul className={classes}>
             {items.map((item) => (
-                <li className="chip" key={item}>
+                <li className="chip" key={item} title={itemTitles?.[item]}>
                     {item}
                 </li>
             ))}

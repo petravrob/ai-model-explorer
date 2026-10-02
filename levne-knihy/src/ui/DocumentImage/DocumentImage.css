@@ -5,6 +5,21 @@
     margin: 0;
 }
 
+/* Náhled obrázku je tlačítko, aby šel obrázek zvětšit */
+.document-image__trigger {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+}
+
+.document-image__trigger:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
 .document-image__img {
     display: block;
     width: 100%;
@@ -13,6 +28,72 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     background: var(--surface);
+}
+
+/* Zvětšený obrázek přes celou obrazovku */
+.document-image__lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+    background: rgba(15, 23, 42, .82);
+    cursor: zoom-out;
+    animation: document-image-in .15s ease;
+}
+
+/* Obrázek ve zvětšené formě */
+.document-image__lightbox-img {
+    max-width: 90vw;
+    max-height: 80vh;
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, .45);
+}
+
+/* Na telefonu obrázek využije celou obrazovku, omezovat ho není potřeba */
+@media (max-width: 900px) {
+    .document-image__lightbox-img {
+        max-width: 100%;
+        max-height: 100%;
+    }
+}
+
+/* Tlačítko pro zavření obrázku*/
+.document-image__lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, .16);
+    color: #fff;
+}
+
+.document-image__lightbox-close .icon {
+    width: 1.15rem;
+    height: 1.15rem;
+}
+
+.document-image__lightbox-close:hover,
+.document-image__lightbox-close:focus-visible {
+    background: rgba(255, 255, 255, .3);
+}
+
+@keyframes document-image-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .document-image__caption {
