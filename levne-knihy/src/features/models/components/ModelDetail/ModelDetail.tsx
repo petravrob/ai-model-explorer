@@ -10,7 +10,6 @@ import { getDeploymentDescription } from "../../utils/deploymentLabels";
 import {
     BulletList,
     ChipList,
-    DataTable,
     DocumentImage,
     DocumentVideo,
     DOWNLOAD_ICON,
@@ -18,7 +17,6 @@ import {
     FlowDiagram,
     LIKE_ICON,
     ModalityBadges,
-    Note,
     PageTitle,
     ScoreBar,
     Section,
@@ -35,20 +33,9 @@ const MAX_BEST_FOR = 8;
 // Kolik štítků se vejde do hlavičky
 const MAX_HEADER_TAGS = 5;
 
-// Metriky, které popisují latenci, rychlost nebo efektivitu provozu modelu
-const EFFICIENCY_METRIC = /(latenc|rychl|efektiv|throughput|tokens?\s*\/\s*s|odezv)/i;
-
 /** Odfiltruje prázdné položky - sekce bez hodnot se pak vůbec nezobrazí. */
 const nonEmpty = (items: string[] | undefined): string[] =>
     (items ?? []).map((item) => item.trim()).filter(Boolean);
-
-/** Rozpozná benchmark, který měří latenci, rychlost nebo efektivitu. */
-const isEfficiencyBenchmark = (benchmark: ModelBenchmark): boolean =>
-    EFFICIENCY_METRIC.test(
-        [benchmark.name, benchmark.metric, benchmark.category, benchmark.context]
-            .filter(Boolean)
-            .join(" ")
-    );
 
 /** Benchmarky seskupené podle oblasti, pokud ji dokumentace uvádí. */
 interface BenchmarkGroup {
@@ -153,7 +140,6 @@ function ModelDetail({ model, insights }: {
     const hardware = nonEmpty(insights?.hardwareRequirements);
     const quantization = nonEmpty(insights?.quantization);
     const compatibility = nonEmpty(insights?.compatibility);
-    const notes = nonEmpty(insights?.notes);
 
     // Varianta se stejným názvem, jako má model sám, se neuvádí
     const variants = nonEmpty(insights?.variants).filter((variant) => !isModelItself(model, variant));
@@ -236,25 +222,20 @@ function ModelDetail({ model, insights }: {
     // Obrázky, videa a tabulky se berou přímo z dokumentace modelu
     const images = insights?.images ?? [];
     const videos = insights?.videos ?? [];
-    const tables = insights?.tables ?? [];
 
-    // Původ a varianty modelu: jen vztahy, které dokumentace nebo data skutečně uvádějí
+    // Původ a varianty modelu: jen vztahy, které dokumentace nebo data skutečně uvádějí;
+    // varianty se vypíšou přímo jako součást posledního kroku (oddělené čárkou)
     const familySteps = [
         insights?.baseModel ? `Vychází z: ${insights.baseModel}` : null,
         model.name,
-        variants.length > 0 ? `Varianty (${variants.length})` : null,
+        variants.length > 0 ? `Varianty: ${variants.join(", ")}` : null,
     ].filter((step): step is string => Boolean(step));
 
     // Benchmarky se rozdělí: výsledky v procentech s pruhy tvoří „Výkon“,
-    // metriky latence a efektivity mají vlastní sekci a zbytek jsou „Benchmarky“
+    // zbytek metrik bez procent jsou „Benchmarky“
     const benchmarks = insights?.benchmarks ?? [];
     const performanceBenchmarks = benchmarks.filter((benchmark) => getBenchmarkPercent(benchmark) !== null);
-    const efficiencyBenchmarks = benchmarks.filter(
-        (benchmark) => getBenchmarkPercent(benchmark) === null && isEfficiencyBenchmark(benchmark)
-    );
-    const otherBenchmarks = benchmarks.filter(
-        (benchmark) => getBenchmarkPercent(benchmark) === null && !isEfficiencyBenchmark(benchmark)
-    );
+    const otherBenchmarks = benchmarks.filter((benchmark) => getBenchmarkPercent(benchmark) === null);
 
     // Boční panel se vykreslí jen tehdy, když je co ukázat
     const showTechnical = technical.length > 0;
@@ -264,15 +245,17 @@ function ModelDetail({ model, insights }: {
     const showDeployment = deployment.length > 0 || settings.length > 0;
     const showPerformance = performanceBenchmarks.length > 0;
     const showOtherBenchmarks = otherBenchmarks.length > 0;
-    const showEfficiency = efficiencyBenchmarks.length > 0 || quantization.length > 0 || hardware.length > 0;
+    const showHardware = hardware.length > 0;
+    const showQuantization = quantization.length > 0;
     const hasSidebar =
         showTechnical ||
         showFlow ||
         showFamily ||
+        showHardware ||
         showDeployment ||
         showPerformance ||
         showOtherBenchmarks ||
-        showEfficiency;
+        showQuantization;
 
     // Štítky v hlavičce: hlavní úloha a doplňkové štítky modelu
     const headerTags = [tags.primary, ...tags.secondary]
@@ -295,25 +278,31 @@ function ModelDetail({ model, insights }: {
                     <div className="model-detail__identity">
                         <PageTitle>{model.name}</PageTitle>
 
-                        <p className="model-detail__provider">{getModelProvider(model.author)}</p>
+                        <div className="model-detail__meta">
+                            <p className="model-detail__provider">{getModelProvider(model.author)}</p>
 
-                        {headerTags.length > 0 && <ChipList items={headerTags} />}
+                            <div className="model-detail__stats">
+                                <Stat
+                                    icon={DOWNLOAD_ICON}
+                                    value={formatCount(model.downloads)}
+                                    label="stažení"
+                                />
 
-                        {modalityBadges.length > 0 && <ModalityBadges items={modalityBadges} />}
-
-                        <div className="model-detail__stats">
-                            <Stat
-                                icon={DOWNLOAD_ICON}
-                                value={formatCount(model.downloads)}
-                                label="stažení"
-                            />
-
-                            <Stat
-                                icon={LIKE_ICON}
-                                value={formatCount(model.likes)}
-                                label="oblíbení"
-                            />
+                                <Stat
+                                    icon={LIKE_ICON}
+                                    value={formatCount(model.likes)}
+                                    label="oblíbení"
+                                />
+                            </div>
                         </div>
+
+                        {(headerTags.length > 0 || modalityBadges.length > 0) && (
+                            <div className="model-detail__tags">
+                                {modalityBadges.length > 0 && <ModalityBadges items={modalityBadges} />}
+
+                                {headerTags.length > 0 && <ChipList items={headerTags} />}
+                            </div>
+                        )}
                     </div>
 
                     <a className="model-detail__hero-link" href={model.url} target="_blank" rel="noreferrer">
@@ -346,20 +335,14 @@ function ModelDetail({ model, insights }: {
 
                         {limitations.length > 0 && (
                             <Section title="Omezení">
-                                <div className="model-detail__panel">
-                                    <ul className="model-detail__limitations">
-                                        {limitations.map((item) => (
-                                            <li key={item}>{item}</li>
-                                        ))}
-                                    </ul>
-                                </div>
+                                <BulletList items={limitations} />
                             </Section>
                         )}
                     </div>
                 )}
 
                 {(videos.length > 0 || images.length > 0) && (
-                    <Section title="Vizuální ukázky">
+                    <Section title="Obrázky z Hugging Face">
                         {videos.length > 0 && (
                             <div className="model-detail__images">
                                 {videos.map((video) => (
@@ -389,39 +372,9 @@ function ModelDetail({ model, insights }: {
                     </Section>
                 )}
 
-                {tables.length > 0 && (
-                    <Section title="Přehled a výsledky">
-                        {tables.map((table, index) => (
-                            <FieldGroup
-                                label={table.title || "Tabulka z dokumentace"}
-                                key={`${table.title}-${index}`}
-                            >
-                                <DataTable headers={table.headers} rows={table.rows} />
-                            </FieldGroup>
-                        ))}
-
-                    </Section>
-                )}
-
-                {(variants.length > 0 || compatibility.length > 0 || notes.length > 0) && (
-                    <Section title="Důležité informace">
-                        {variants.length > 0 && (
-                            <FieldGroup label="Varianty">
-                                <ChipList items={variants} />
-                            </FieldGroup>
-                        )}
-
-                        {compatibility.length > 0 && (
-                            <FieldGroup label="Kompatibilita">
-                                <BulletList items={compatibility} />
-                            </FieldGroup>
-                        )}
-
-                        {notes.length > 0 && (
-                            <FieldGroup label="Poznámky">
-                                <BulletList items={notes} />
-                            </FieldGroup>
-                        )}
+                {compatibility.length > 0 && (
+                    <Section title="Kompatibilita">
+                        <BulletList items={compatibility} />
                     </Section>
                 )}
             </div>
@@ -439,15 +392,6 @@ function ModelDetail({ model, insights }: {
 
                     {showTechnical && <ModelFacts items={technical} />}
 
-                    {showFamily && (
-                        <Section title="Původ a varianty modelu">
-                            <FlowDiagram
-                                steps={familySteps}
-                                description="Schéma znázorňuje původ modelu: ze kterého modelu vychází a jaké má odvozené varianty."
-                            />
-                        </Section>
-                    )}
-
                     {showPerformance && (
                         <div className="model-detail__benchmark-section">
                             <BenchmarkGroups groups={groupBenchmarks(performanceBenchmarks)} />
@@ -460,20 +404,30 @@ function ModelDetail({ model, insights }: {
                         </Section>
                     )}
 
+                    {showFamily && (
+                        <Section title="Původ a varianty modelu">
+                            <FlowDiagram
+                                steps={familySteps}
+                                description="Schéma znázorňuje původ modelu: ze kterého modelu vychází a jaké má odvozené varianty."
+                            />
+                        </Section>
+                    )}
+
+                    {showHardware && (
+                        <Section title="Nároky na hardware">
+                            <BulletList items={hardware} />
+                        </Section>
+                    )}
+
                     {showDeployment && (
                         <Section title="Nasazení a použití">
                             {deployment.length > 0 && (
-                                <ul className="model-detail__deployments">
-                                    {deployment.map((name) => (
-                                        <li
-                                            className="model-detail__deployment"
-                                            key={name}
-                                            title={getDeploymentDescription(name)}
-                                        >
-                                            {name}
-                                        </li>
-                                    ))}
-                                </ul>
+                                <ChipList
+                                    items={deployment}
+                                    itemTitles={Object.fromEntries(
+                                        deployment.map((name) => [name, getDeploymentDescription(name)])
+                                    )}
+                                />
                             )}
 
                             {settings.length > 0 && (
@@ -481,28 +435,12 @@ function ModelDetail({ model, insights }: {
                                     <BulletList items={settings} />
                                 </FieldGroup>
                             )}
-
                         </Section>
                     )}
 
-                    {showEfficiency && (
-                        <Section title="Latence a efektivita">
-                            {efficiencyBenchmarks.length > 0 && (
-                                <BenchmarkGroups groups={groupBenchmarks(efficiencyBenchmarks)} />
-                            )}
-
-                            {quantization.length > 0 && (
-                                <FieldGroup label="Kvantizace a formáty">
-                                    <BulletList items={quantization} />
-                                </FieldGroup>
-                            )}
-
-                            {hardware.length > 0 && (
-                                <FieldGroup label="Nároky na hardware">
-                                    <BulletList items={hardware} />
-                                </FieldGroup>
-                            )}
-
+                    {showQuantization && (
+                        <Section title="Kvantizace a formáty">
+                            <BulletList items={quantization} />
                         </Section>
                     )}
                 </aside>

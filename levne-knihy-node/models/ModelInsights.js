@@ -76,27 +76,6 @@ const videoSchema = new mongoose.Schema(
     }
 );
 
-// Tabulka převzatá z dokumentace modelu
-const tableSchema = new mongoose.Schema(
-    {
-        title: {
-            type: String,
-            trim: true,
-        },
-        headers: {
-            type: [String],
-            default: [],
-        },
-        rows: {
-            type: [[String]],
-            default: [],
-        },
-    },
-    {
-        _id: false,
-    }
-);
-
 // České přehledy z dokumentace se ukládají zvlášť, aby se dokumentace nezpracovávala víckrát
 const modelInsightsSchema = new mongoose.Schema(
     {
@@ -196,11 +175,6 @@ const modelInsightsSchema = new mongoose.Schema(
             type: [String],
             default: [],
         },
-        // Další praktické poznámky, které se nevejdou do ostatních polí
-        notes: {
-            type: [String],
-            default: [],
-        },
         // Výsledky benchmarků, které dokumentace modelu uvádí
         benchmarks: {
             type: [benchmarkSchema],
@@ -214,11 +188,6 @@ const modelInsightsSchema = new mongoose.Schema(
         // Videa z dokumentace modelu (mp4, YouTube)
         videos: {
             type: [videoSchema],
-            default: [],
-        },
-        // Tabulky z dokumentace modelu (přehledy, parametry, varianty)
-        tables: {
-            type: [tableSchema],
             default: [],
         },
     },

@@ -37,9 +37,6 @@ const MAX_BENCHMARKS = 24;
 // Nejvýš tolik obrázků, videí a tabulek se z dokumentace použije
 const MAX_IMAGES = 6;
 const MAX_VIDEOS = 2;
-const MAX_TABLES = 3;
-const MAX_TABLE_ROWS = 14;
-const MAX_TABLE_COLUMNS = 8;
 
 // Adresy videí, která se dají přehrát přímo v prohlížeči
 const VIDEO_EXTENSION = /\.(mp4|webm|mov|m4v|ogv)($|\?)/i;
@@ -95,7 +92,6 @@ function buildPrompt(excerpt) {
         '  "hardwareRequirements": ["nároky na provoz modelu, které dokumentace uvádí (např. 24 GB VRAM, CUDA) – ne hardware použitý při tréninku"],',
         '  "quantization": ["kvantizace nebo formáty, které dokumentace uvádí (např. fp16, int8, GGUF, safetensors)"],',
         '  "compatibility": ["s čím je model kompatibilní nebo co vyžaduje (verze knihoven, operační systémy, související modely)"],',
-        '  "notes": ["důležité poznámky autorů a praktické informace, které se nevejdou do ostatních polí"],',
         '  "limitations": ["všechna významná omezení, výhrady a upozornění z dokumentace"],',
         '  "benchmarks": [',
         "    {",
@@ -121,10 +117,9 @@ function buildPrompt(excerpt) {
         "- useCases odvozuj z dokumentace (např. „asistent pro psaní kódu“, „dávkový přepis porad“); co v dokumentaci není, nedopisuj",
         "- z příkladů použití vytáhni jen podstatnou informaci (např. doporučené hodnoty), kód nikdy nekopíruj",
         "- neuváděj citace, odkazy na komunitu, instalační návody ani marketingové slogany",
-        "- pokud dokumentace uvádí zajímavou vlastnost, která se nehodí do žádného pole, dej ji do notes",
         "- projdi oddíly Limitations, Caveats, Known issues, Out of scope a licenční podmínky a vezmi z nich všechna významná omezení",
         "- neuváděj jako omezení to, že něco v dokumentaci chybí (např. chybějící licence nebo testy)",
-        "- licence a její praktická omezení patří do limitations, ne do notes",
+        "- licence a její praktická omezení patří do limitations",
         "- version, baseModel, quantization a compatibility vyplň jen tehdy, když dokumentace uvádí konkrétní informaci",
         "- u benchmarků uváděj jen výsledky, které dokumentace výslovně zmiňuje; jinak nech seznam prázdný",
         "- výsledky ber i z tabulek: pokud má tabulka víc modelů, použij sloupec tohoto modelu",
@@ -139,7 +134,6 @@ function buildPrompt(excerpt) {
         "- variants a recommendedSettings jen když dokumentace uvádí konkrétní varianty nebo doporučené hodnoty",
         "- activeParameters vyplň jen u modelů typu MoE a jen tehdy, když dokumentace aktivní parametry uvádí; jinak nech null",
         "- do limitations patří všechna významná omezení, která dokumentace výslovně uvádí (i prakticky důležité omezení licence)",
-        "- do notes patří jen to, co se nevejde do ostatních polí (kompatibilita, zvláštnosti, praktické poznámky)",
         "- do hardwareRequirements patří jen nároky na provoz modelu, ne hardware použitý při tréninku",
         "",
         "DOKUMENTACE MODELU:",
@@ -279,87 +273,6 @@ function extractVideos(documentation, modelId) {
     }
 
     return videos;
-}
-
-/** Odstraní z buňky tabulky markdown, který se v tabulce nevykresluje. */
-function cleanCell(cell) {
-    return cell
-        .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-        .replace(/[*`_]/g, "")
-        .replace(/<[^>]+>/g, "")
-        .trim()
-        .slice(0, 80);
-}
-
-/** Rozdělí řádek tabulky na jednotlivé buňky. */
-function splitTableRow(line) {
-    return line
-        .replace(/^\s*\|/, "")
-        .replace(/\|\s*$/, "")
-        .split("|")
-        .map(cleanCell);
-}
-
-/** Pozná řádek, který v tabulce odděluje hlavičku (|---|---|). */
-function isTableDivider(line) {
-    return /^[\s:|-]+$/.test(line) && line.includes("-");
-}
-
-/**
- * Vytáhne z dokumentace menší tabulky, které neřeší výsledky měření
- * (ty zpracovává AI jako benchmarky zvlášť).
- */
-function extractTables(documentation) {
-    const tables = [];
-    const lines = documentation.split("\n");
-
-    let heading = "";
-    let index = 0;
-
-    while (index < lines.length && tables.length < MAX_TABLES) {
-        const title = lines[index].match(/^#{1,4}\s+(.*)$/);
-
-        if (title) {
-            heading = title[1].trim().replace(/\s+/g, " ").slice(0, 120);
-            index++;
-            continue;
-        }
-
-        // Tabulka začíná řádkem s buňkami a za ním následuje oddělovač
-        if (!lines[index].includes("|") || !isTableDivider(lines[index + 1] ?? "")) {
-            index++;
-            continue;
-        }
-
-        const headers = splitTableRow(lines[index]);
-
-        if (BENCHMARK_SECTION.test(heading)) {
-            index += 2;
-            continue;
-        }
-
-        const rows = [];
-        let cursor = index + 2;
-
-        while (cursor < lines.length && lines[cursor].includes("|") && !isTableDivider(lines[cursor])) {
-            rows.push(splitTableRow(lines[cursor]));
-            cursor++;
-        }
-
-        const fits = headers.length >= 2
-            && headers.length <= MAX_TABLE_COLUMNS
-            && rows.length > 0
-            && rows.length <= MAX_TABLE_ROWS
-            && rows.every((row) => row.length === headers.length);
-
-        if (fits && !tables.some((table) => table.title === heading)) {
-            tables.push({ title: heading, headers, rows });
-        }
-
-        index = cursor;
-    }
-
-    return tables;
 }
 
 /**
@@ -547,7 +460,6 @@ function parseInsights(raw) {
             hardwareRequirements: toList(parsed.hardwareRequirements),
             quantization: toList(parsed.quantization),
             compatibility: toList(parsed.compatibility),
-            notes: toList(parsed.notes),
             limitations: toList(parsed.limitations, MAX_LIMITATIONS),
             benchmarks: toBenchmarks(parsed.benchmarks),
         };
@@ -581,7 +493,6 @@ function toInsights(doc) {
         hardwareRequirements: doc.hardwareRequirements ?? [],
         quantization: doc.quantization ?? [],
         compatibility: doc.compatibility ?? [],
-        notes: doc.notes ?? [],
         limitations: doc.limitations ?? [],
         benchmarks: (doc.benchmarks ?? []).map((item) => ({
             name: item.name,
@@ -600,20 +511,15 @@ function toInsights(doc) {
             title: item.title ?? "",
             thumbnail: item.thumbnail ?? "",
         })),
-        tables: (doc.tables ?? []).map((table) => ({
-            title: table.title ?? "",
-            headers: table.headers ?? [],
-            rows: (table.rows ?? []).map((row) => row ?? []),
-        })),
     };
 }
 
 /**
- * Uloží aspoň obrázky a tabulky z dokumentace, když se texty od AI nepodaří vytvořit.
+ * Uloží aspoň obrázky z dokumentace, když se texty od AI nepodaří vytvořit.
  * Otisk se záměrně neukládá, aby se texty zkusily znovu, až bude služba dostupná.
  */
 async function saveVisualOnly(modelId, visual, stored) {
-    const isEmpty = visual.images.length === 0 && visual.videos.length === 0 && visual.tables.length === 0;
+    const isEmpty = visual.images.length === 0 && visual.videos.length === 0;
 
     if (isEmpty) {
         return stored ? toInsights(stored) : null;
@@ -659,12 +565,11 @@ async function generateInsights(modelId) {
 
     pendingInsights.add(modelId);
 
-    // Obrázky a tabulky se berou přímo z dokumentace a AI je nevymýšlí,
+    // Obrázky se berou přímo z dokumentace a AI je nevymýšlí,
     // takže se dají uložit i tehdy, když se texty od AI nepodaří vytvořit.
     const visual = {
         images: extractImages(documentation, modelId),
         videos: extractVideos(documentation, modelId),
-        tables: extractTables(documentation),
     };
 
     try {
