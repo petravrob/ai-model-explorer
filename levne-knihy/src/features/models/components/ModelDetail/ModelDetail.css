@@ -219,6 +219,14 @@
     .model-detail {
         grid-template-columns: minmax(0, 1fr);
     }
+
+    /*
+     * Boční panel leží pod hlavním obsahem, proto drží stejné odsazení textu
+     * jako sekce hlavního panelu - zarovnání textu je pak všude stejné.
+     */
+    .model-detail__sidebar {
+        padding-inline: 1.5rem;
+    }
 }
 
 /* Na telefonu je sekce s obrázky úplně dole. */
@@ -277,6 +285,11 @@
     /* Sekce hlavního panelu drží na telefonu */
     .model-detail__main > .section,
     .model-detail__main > .model-detail__split {
+        padding-inline: 1rem;
+    }
+
+    /* Boční panel na telefonu má odsazení stejné jako hlavní panel */
+    .model-detail__sidebar {
         padding-inline: 1rem;
     }
 
