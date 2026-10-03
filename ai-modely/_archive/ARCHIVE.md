@@ -22,7 +22,7 @@ Poslední commit, ve kterém byla autentizace ještě plně zapojená, je `39354
 5. `src/routes/AppRoutes.tsx`: vraťte importy `LogIn`, `SignUp`, `User`, `RequireAuth`, `RequireGuest` a obě skupiny rout (pro nepřihlášené přihlášení a registrace, pro přihlášené profil).
 6. `src/features/layout/components/Header/Header.tsx`: vraťte import `UserDropdown, useCurrentUser, useLogout` z `@/features/user`, tlačítka „Přihlásit se“ a „Registrovat se“ a větev s `UserDropdown`.
 7. `src/features/layout/components/Header/Header.css`: vraťte odstraněné styly (`.header__auth` včetně varianty `.btn`, `.header__login` a `.header__login-icon`, přepisy avataru v `.user-dropdown__trigger` a `.header__auth` v media query pro šířku 820 px).
-8. Backend: viz `levne-knihy-node/_archive/ARCHIVE.md` (napojení rout v `app.js`).
+8. Backend: viz `ai-modely-node/_archive/ARCHIVE.md` (napojení rout v `app.js`).
 
 ## Co zůstalo nedotčené
 

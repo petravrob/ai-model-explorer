@@ -111,7 +111,7 @@ async function callProvider(provider, { system, prompt, temperature, maxTokens }
  */
 async function requestCompletion({ system, prompt, temperature = 0.8, maxTokens = 1000 }) {
     if (SUMMARY_PROVIDERS.length === 0) {
-        throw new Error("Chybí SUMMARY_API_KEY nebo GROQ_API_KEY v souboru levne-knihy-node/.env.");
+        throw new Error("Chybí SUMMARY_API_KEY nebo GROQ_API_KEY v souboru ai-modely-node/.env.");
     }
 
     // Aby se v hlášení neopakoval stejný poskytovatel víckrát, drží se jen poslední chyba.
