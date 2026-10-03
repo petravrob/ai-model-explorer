@@ -63,7 +63,8 @@ function mapModelData(rawModel = {}) {
         likes: rawModel.likes ?? 0,
         // Hodnoty pro řazení sloučených výpisů (trendingScore není vždy k dispozici)
         trendingScore: rawModel.trendingScore ?? null,
-        createdAt: rawModel.createdAt ? new Date(rawModel.createdAt) : null,
+        // Čas vzniku modelu na Hugging Face (odlišuje se od createdAt, což je čas uložení v databázi)
+        publishedAt: rawModel.createdAt ? new Date(rawModel.createdAt) : null,
         tags: rawModel.tags ?? [],
         license: extractLicense(rawModel),
         library: rawModel.library_name ?? null,

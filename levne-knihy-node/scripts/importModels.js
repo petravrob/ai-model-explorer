@@ -117,8 +117,11 @@ async function importModels() {
 
         let withAvatarCount = 0;
 
+        const importedAt = new Date();
+
         for (const model of models) {
             model.avatarUrl = avatars.get(model.author) ?? null;
+            model.statsUpdatedAt = importedAt;
 
             if (model.avatarUrl) {
                 withAvatarCount++;
@@ -127,26 +130,21 @@ async function importModels() {
 
         console.log(`\nAvatary nalezeny pro ${withAvatarCount} z ${models.length} modelů.\n`);
 
-        let createdCount = 0;
-        let updatedCount = 0;
+        // Vygenerovaný obsah (popis a přehledy) se nepřepisuje, ukládají se jen data modelu
+        const result = await AIModel.bulkWrite(
+            models.map((model) => ({
+                updateOne: {
+                    filter: { modelId: model.modelId },
+                    update: { $set: model },
+                    upsert: true,
+                },
+            })),
+            { ordered: false }
+        );
 
-        for (const [index, model] of models.entries()) {
-            const result = await AIModel.updateOne(
-                { modelId: model.modelId },
-                { $set: model },
-                { upsert: true }
-            );
+        const createdCount = result.upsertedCount;
+        const updatedCount = models.length - createdCount;
 
-            if (result.upsertedCount > 0) {
-                createdCount++;
-            } else {
-                updatedCount++;
-            }
-
-            console.log(`[${index + 1}/${models.length}] ${model.modelId}`);
-        }
-
-        console.log("");
         console.log(`Import hotový. Nové modely: ${createdCount}, aktualizované modely: ${updatedCount}.`);
     } finally {
         await mongoose.connection.close();

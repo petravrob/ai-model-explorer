@@ -11,7 +11,7 @@
 
 const crypto = require("node:crypto");
 
-const ModelInsights = require("../models/ModelInsights");
+const AIModel = require("../models/AIModel");
 const { getModelCard } = require("./huggingFaceService");
 const { requestCompletion } = require("./aiCompletion");
 
@@ -525,7 +525,10 @@ async function saveVisualOnly(modelId, visual, stored) {
         return stored ? toInsights(stored) : null;
     }
 
-    await ModelInsights.updateOne({ modelId }, { $set: visual }, { upsert: true });
+    await AIModel.updateOne(
+        { modelId },
+        { $set: { "insights.images": visual.images, "insights.videos": visual.videos } }
+    );
 
     return { ...toInsights(stored ?? {}), ...visual };
 }
@@ -545,7 +548,8 @@ async function generateInsights(modelId) {
     }
 
     const sourceFingerprint = createFingerprint(documentation);
-    const stored = await ModelInsights.findOne({ modelId });
+    const storedModel = await AIModel.findOne({ modelId }, { insights: 1 }).lean();
+    const stored = storedModel?.insights ?? null;
 
     // Přehledy z tohoto vstupu už máme
     if (stored && stored.sourceFingerprint === sourceFingerprint) {
@@ -588,10 +592,19 @@ async function generateInsights(modelId) {
             return saveVisualOnly(modelId, visual, stored);
         }
 
-        await ModelInsights.updateOne(
+        await AIModel.updateOne(
             { modelId },
-            { $set: { ...insights, ...visual, sourceFingerprint } },
-            { upsert: true }
+            {
+                $set: {
+                    insights: {
+                        ...insights,
+                        ...visual,
+                        sourceFingerprint,
+                        status: "ok",
+                        generatedAt: new Date(),
+                    },
+                },
+            }
         );
 
         return { ...insights, ...visual };
