@@ -9,14 +9,20 @@ const numberFromName = (name) => {
   return match ? parseInt(match[1], 10) : null;
 };
 
-const runGit = (command) =>
-  execSync(command, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+const tryGit = (command) => {
+  try {
+    return execSync(command, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    // Git není k dispozici nebo příkaz selhal (například build bez repozitáře).
+    return "???";
+  }
+};
 
 // Nejvyšší číslo pull requestu ze zpráv commitů (např. "Merge pull request #42 ...").
 // Funguje i na Netlify, kde repozitář nemá větve (build z odpojené hlavy),
 // protože zprávy commitů v historii zůstávají.
 function numberFromHistory() {
-  const subjects = runGit("git log -50 --format=%s");
+  const subjects = tryGit("git log -50 \"--format=%s\"");
   const numbers = [...subjects.matchAll(/(?:pull request #|\(#)(\d+)\)?/g)].map((match) =>
     parseInt(match[1], 10)
   );
@@ -29,33 +35,36 @@ function numberFromHistory() {
 // 3. nejvyšší číslo mezi lokálními větvemi,
 // 4. nejvyšší číslo pull requestu z historie commitů (produkční build z main na Netlify),
 // 5. nouzově "???".
+// Nalezená verze a její zdroj se vypíší do výstupu buildu (viditelné v logu Netlify).
 function resolveAppVersion() {
+  const found = (value, source) => {
+    console.info(`[ai-modely] Verze aplikace: ${value} (zdroj: ${source})`);
+    return String(value);
+  };
+
   const reviewId = numberFromName(process.env.REVIEW_ID);
-  if (reviewId !== null) return String(reviewId);
+  if (reviewId !== null) return found(reviewId, "REVIEW_ID z Netlify");
 
   const envBranch = numberFromName(process.env.BRANCH);
-  if (envBranch !== null) return String(envBranch);
+  if (envBranch !== null) return found(envBranch, "BRANCH z Netlify");
 
-  try {
-    const current = numberFromName(runGit("git branch --show-current"));
-    if (current !== null) return String(current);
+  const current = numberFromName(tryGit("git branch --show-current"));
+  if (current !== null) return found(current, "aktuální větev");
 
-    // Při odpojené hlavě (Netlify) vypisuje git branch řádek "(HEAD detached at ...)" - ten přeskočíme,
-    // aby se číslice z hashe commitu nepletla do verze.
-    const branches = runGit("git branch --format=%(refname:short)");
-    const numbers = branches
-      .split(/\r?\n/)
-      .filter((name) => !name.startsWith("("))
-      .map(numberFromName)
-      .filter((value) => value !== null);
-    if (numbers.length > 0) return String(Math.max(...numbers));
+  // Při odpojené hlavě (Netlify) vypisuje git branch řádek "(HEAD detached at ...)" - ten se přeskočí,
+  // aby se čísla z hashe commitu nepletlo do verze.
+  const branches = tryGit("git branch \"--format=%(refname:short)\"");
+  const numbers = branches
+    .split(/\r?\n/)
+    .filter((name) => !name.startsWith("("))
+    .map(numberFromName)
+    .filter((value) => value !== null);
+  if (numbers.length > 0) return found(Math.max(...numbers), "lokální větve");
 
-    const history = numberFromHistory();
-    if (history !== null) return String(history);
-  } catch {
-    // Git není k dispozici (například build bez repozitáře).
-  }
+  const history = numberFromHistory();
+  if (history !== null) return found(history, "historie commitů");
 
+  console.warn("[ai-modely] Verzi aplikace se nepodařilo zjistit.");
   return "???";
 }
 
