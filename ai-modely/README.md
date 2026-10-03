@@ -4,9 +4,9 @@ Webová aplikace pro prohlížení AI modelů z Hugging Face.
 
 ## Technologie
 
-**Frontend** (`levne-knihy`): React 18, TypeScript, Vite, React Router v6, react-toastify, Fuse.js
+**Frontend** (`ai-modely`): React 18, TypeScript, Vite, React Router v6, react-toastify, Fuse.js
 
-**Backend** (`levne-knihy-node`): Node.js, Express, MongoDB (Mongoose)
+**Backend** (`ai-modely-node`): Node.js, Express, MongoDB (Mongoose)
 
 ## Struktura frontendu
 
@@ -41,17 +41,17 @@ Ostatní adresy zobrazí stránku „Stránka nebyla nalezena“.
 
 Přihlašování, registrace a profil uživatele jsou z aplikace dočasně vyřazené, ale kód zůstává v repozitáři ve složkách `_archive/`. Ty leží mimo `src`, a proto se nebuildí a nekontrolují TypeScriptem.
 
-- `levne-knihy/_archive/` - frontendová část (feature `user` a strážci přístupu)
-- `levne-knihy-node/_archive/` - backendová část (auth a user endpointy, middleware, model User, seed)
+- `ai-modely/_archive/` - frontendová část (feature `user` a strážci přístupu)
+- `ai-modely-node/_archive/` - backendová část (auth a user endpointy, middleware, model User, seed)
 
 Proměnná `JWT_SECRET` v `.env` a závislosti `jsonwebtoken` a `bcryptjs` v backendu zůstávají, protože je používá právě vyřazená autentizace.
 
-Postup obnovení je popsaný v `levne-knihy/_archive/ARCHIVE.md` a v `levne-knihy-node/_archive/ARCHIVE.md`.
+Postup obnovení je popsaný v `ai-modely/_archive/ARCHIVE.md` a v `ai-modely-node/_archive/ARCHIVE.md`.
 
 ## Struktura backendu
 
 ```
-levne-knihy-node/
+ai-modely-node/
 ├── _archive/            # vyřazená autentizace (mimo běžící aplikaci)
 ├── config/              # připojení k databázi a proměnné prostředí
 ├── controllers/         # logika endpointů (model)
@@ -68,7 +68,7 @@ levne-knihy-node/
 ### Backend
 
 ```bash
-cd levne-knihy-node
+cd ai-modely-node
 npm install
 npm run dev        # vývoj (nodemon), nebo npm start
 ```
@@ -103,7 +103,7 @@ Význam polí kolekce `models`:
 ### Frontend
 
 ```bash
-cd levne-knihy
+cd ai-modely
 npm install
 npm run dev        # vývojový server (Vite)
 ```
@@ -113,7 +113,7 @@ Přes `.env` lze nastavit `VITE_API_URL=development` pro komunikaci s lokálním
 ### Produkční build
 
 ```bash
-cd levne-knihy
+cd ai-modely
 npm run build      # výstup do složky dist/
 npm run preview    # lokální náhled produkčního buildu
 ```

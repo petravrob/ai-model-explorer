@@ -30,7 +30,7 @@ Poslední commit, ve kterém byla autentizace ještě plně zapojená, je `39354
 2. `app.js`: vraťte `const authRoutes = require("./routes/authRoutes");`, `const userRoutes = require("./routes/userRoutes");` a napojení `app.use("/", authRoutes);` a `app.use("/", userRoutes);`.
 3. Ověřte, že `.env` obsahuje `JWT_SECRET`, který vyžaduje `config/env.js`.
 4. Testovací uživatele vytvoří `node seed.js` (přihlášení: uživatel `petra`, heslo `test123`).
-5. Frontend: viz `levne-knihy/_archive/ARCHIVE.md`.
+5. Frontend: viz `ai-modely/_archive/ARCHIVE.md`.
 
 ## Co zůstalo nedotčené
 
