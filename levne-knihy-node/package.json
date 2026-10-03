@@ -6,7 +6,8 @@
     "scripts": {
         "start": "node server.js",
         "dev": "nodemon server.js",
-        "import:models": "node scripts/importModels.js"
+        "import:models": "node scripts/importModels.js",
+        "create:indexes": "node scripts/createIndexes.js"
     },
     "author": "Petra Vrobelová",
     "license": "ISC",

@@ -7,7 +7,7 @@
  */
 
 const { SUMMARY_ENABLED } = require("../config/env");
-const ModelDescription = require("../models/ModelDescription");
+const AIModel = require("../models/AIModel");
 const { requestCompletion } = require("./aiCompletion");
 
 // Delší text se do karty nevejde, proto se ořezává
@@ -210,12 +210,12 @@ async function generateDescriptions(models) {
     // Uložený popisek se do AI neposílá znovu - klient o něm ještě nemusí vědět.
     // Popisek ze starší verze zadání se ale vygeneruje znovu.
     const storedDescriptions = new Map(
-        (await ModelDescription.find(
+        (await AIModel.find(
             { modelId: { $in: wanted.map((model) => model.modelId) } },
-            { modelId: 1, description: 1, version: 1 }
-        ))
-            .filter((item) => item.version === DESCRIPTION_VERSION)
-            .map((item) => [item.modelId, item.description])
+            { modelId: 1, description: 1 }
+        ).lean())
+            .filter((item) => item.description?.version === DESCRIPTION_VERSION && item.description?.text)
+            .map((item) => [item.modelId, item.description.text])
     );
 
     const generated = await Promise.all(wanted.map(async (model) => {
@@ -230,10 +230,19 @@ async function generateDescriptions(models) {
         try {
             const { description } = await generateDescription(model);
 
-            await ModelDescription.updateOne(
+            // Popis je vložený přímo v dokumentu modelu, takže se čte jedním dotazem s modelem
+            await AIModel.updateOne(
                 { modelId: model.modelId },
-                { $set: { description, version: DESCRIPTION_VERSION } },
-                { upsert: true }
+                {
+                    $set: {
+                        description: {
+                            text: description,
+                            version: DESCRIPTION_VERSION,
+                            status: "ok",
+                            generatedAt: new Date(),
+                        },
+                    },
+                }
             );
 
             return { modelId: model.modelId, description };

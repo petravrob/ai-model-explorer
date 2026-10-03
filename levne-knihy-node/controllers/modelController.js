@@ -13,9 +13,9 @@ const {
     getAuthorAvatarUrl,
 } = require("../services/huggingFaceService");
 const { isValidModel, mapModelData, mapRawModels } = require("../services/modelMapper");
-const { DESCRIPTION_VERSION, generateDescriptions } = require("../services/descriptionService");
+const { generateDescriptions } = require("../services/descriptionService");
 const { generateInsights } = require("../services/insightsService");
-const ModelDescription = require("../models/ModelDescription");
+const { ensureModelsStored, saveAuthorAvatar } = require("../services/modelStore");
 
 // Kolik modelů se načte z Hugging Face pro filtrování na serveru (větší objem zbytečně prodlužoval načtení)
 const FILTERED_MODELS_LIMIT = 100;
@@ -32,7 +32,7 @@ const SORT_COMPARATORS = {
     popularity: (a, b) => (b.trendingScore ?? b.downloads) - (a.trendingScore ?? a.downloads),
     downloads: (a, b) => b.downloads - a.downloads,
     likes: (a, b) => b.likes - a.likes,
-    created: (a, b) => new Date(b.createdAt ?? 0) - new Date(a.createdAt ?? 0),
+    created: (a, b) => new Date(b.publishedAt ?? 0) - new Date(a.publishedAt ?? 0),
 };
 
 /** Seřadí sloučené modely podle zvoleného klíče (neznámý klíč = podle počtu stažení). */
@@ -93,25 +93,12 @@ const getHuggingFaceModel = async (modelId) => {
     }
 };
 
-/** Doplní k modelům popisky uložené v databázi (výpisy z Hugging Face je nemají). */
-const attachStoredDescriptions = async (models) => {
-    const modelIds = models.map((model) => model.modelId).filter(Boolean);
-
-    if (modelIds.length === 0) {
-        return models;
-    }
-
-    const stored = await ModelDescription.find({ modelId: { $in: modelIds } }, { modelId: 1, description: 1, version: 1 });
-
-    // Popisky ze starší verze zadání se nepřikládají, aby se vygenerovaly znovu
-    const descriptions = new Map(
-        stored
-            .filter((item) => item.version === DESCRIPTION_VERSION)
-            .map((item) => [item.modelId, item.description])
-    );
-
-    return models.map((model) => ({ ...model, description: descriptions.get(model.modelId) ?? null }));
-};
+/** Převod modelu na správný tvar pro renderování. */
+const toApiModel = (model) => ({
+    ...model,
+    createdAt: model.publishedAt ?? null,
+    description: model.description?.text ?? null,
+});
 
 const getModels = async (req, res) => {
     try {
@@ -164,12 +151,13 @@ const getModels = async (req, res) => {
             }
 
             // Avatary se k výpisu nedotahují - klient si je načte zvlášť na pozadí,
-            // aby stahování stránek autorů nezdržovalo zobrazení modelů
-            const modelsWithDescriptions = await attachStoredDescriptions(models);
+            // aby stahování stránek autorů nezdržovalo zobrazení modelů.
+            // Ukládání modelů.
+            await ensureModelsStored(models);
 
             return res.status(200).json({
                 status: "ok",
-                data: modelsWithDescriptions.map((model) => ({ ...model, _id: model.modelId, avatarUrl: null })),
+                data: models.map((model) => toApiModel({ ...model, _id: model.modelId, avatarUrl: null })),
             });
         }
 
@@ -177,12 +165,17 @@ const getModels = async (req, res) => {
         const fromDatabase = tasks.length === 0 && languages.length === 0;
 
         const models = fromDatabase
-            ? await AIModel.find().sort({ downloads: -1 }).lean()
+            ? await AIModel.find({}, { insights: 0 }).sort({ downloads: -1 }).lean()
             : await getFilteredModelsFromHuggingFace(tasks, languages);
 
-        // Popisky se k modelům doplňují z vlastní kolekce
-        const responseModels = (await attachStoredDescriptions(models))
-            .map((model) => (fromDatabase ? model : { ...model, avatarUrl: null }));
+        if (!fromDatabase) {
+            // Ukládání modelů
+            await ensureModelsStored(models);
+        }
+
+        const responseModels = models.map((model) =>
+            fromDatabase ? toApiModel(model) : toApiModel({ ...model, avatarUrl: null })
+        );
 
         return res.status(200).json({
             status: "ok",
@@ -207,11 +200,16 @@ const getModel = async (req, res) => {
             ? { _id: modelId }
             : { modelId };
 
-        let model = await AIModel.findOne(query).lean();
+        let model = await AIModel.findOne(query, { insights: 0 }).lean();
 
         // Model, který dosud není v databázi, se zkusí načíst živě z Hugging Face
         if (!model && !mongoose.Types.ObjectId.isValid(modelId)) {
             model = await getHuggingFaceModel(modelId);
+
+            if (model) {
+                // Uloží se, aby k němu šly doplnit popisky a přehledy
+                await ensureModelsStored([model]);
+            }
         }
 
         if (!model) {
@@ -221,12 +219,9 @@ const getModel = async (req, res) => {
             });
         }
 
-        // Popisek se doplní z vlastní kolekce (u živých modelů a u novějších popisků)
-        const [modelWithDescription] = await attachStoredDescriptions([model]);
-
         return res.status(200).json({
             status: "ok",
-            data: modelWithDescription,
+            data: toApiModel(model),
         });
     } catch (error) {
         console.error("Fetching model failed:", error);
@@ -250,6 +245,9 @@ const getAvatar = async (req, res) => {
         }
 
         const avatarUrl = await getAuthorAvatarUrl(author);
+
+        // Adresa se uloží k modelům autora, aby se příště nemusela dotahovat
+        await saveAuthorAvatar(author, avatarUrl);
 
         return res.status(200).json({
             status: "ok",
@@ -325,7 +323,12 @@ const createInsights = async (req, res) => {
             });
         }
 
-        const insights = await generateInsights(modelId);
+        // Adresa může obsahovat databázové id i identifikátor modelu na Hugging Face,
+        // dokumentaci je ale vždy potřeba hledat podle identifikátoru z Hugging Face
+        const query = mongoose.Types.ObjectId.isValid(modelId) ? { _id: modelId } : { modelId };
+        const stored = await AIModel.findOne(query, { modelId: 1 }).lean();
+
+        const insights = await generateInsights(stored?.modelId ?? modelId);
 
         return res.status(200).json({
             status: "ok",

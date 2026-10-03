@@ -124,7 +124,7 @@ const AVATAR_CDN_HOST = "cdn-avatars.huggingface.co";
  * Načte avatar autora přes vyhrazený avatar endpoint (302 přesměrování na CDN).
  * Vrátí adresu nahraného avataru, nebo null když autor modelu žádný nemá.
  */
-async function getAuthorAvatarUrl(author) {
+async function fetchAuthorAvatarUrl(author) {
     try {
         const response = await fetch(
             `${HF_AVATAR_API_URL}/${encodeURIComponent(author)}`,
@@ -148,6 +148,39 @@ async function getAuthorAvatarUrl(author) {
 
         return null;
     }
+}
+
+// Avataři jsou cachovány, aby se nezjišťovaly při každém zobrazení modelů.
+const AVATAR_CACHE_LIMIT = 500;
+
+// Pokud je avatar platný, tak se o něj požádá za delší dobu (7 dní)
+const AVATAR_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+// Pokud avatar byl nedostupný, tak se o něj požádá dříve (1 den), 
+const AVATAR_MISS_TTL_MS = 24 * 60 * 60 * 1000;
+
+const avatarCache = new Map();
+
+/** Vrátí adresu avataru autora (z paměti, jinak ji zjistí na Hugging Face). */
+async function getAuthorAvatarUrl(author) {
+    const cached = avatarCache.get(author);
+
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.avatarUrl;
+    }
+
+    const avatarUrl = await fetchAuthorAvatarUrl(author);
+
+    // Aby paměť nebyla přetížená, tak se cache vyprázdní
+    if (avatarCache.size >= AVATAR_CACHE_LIMIT) {
+        avatarCache.clear();
+    }
+
+    avatarCache.set(author, {
+        avatarUrl,
+        expiresAt: Date.now() + (avatarUrl ? AVATAR_TTL_MS : AVATAR_MISS_TTL_MS),
+    });
+
+    return avatarUrl;
 }
 
 /** Sestaví adresu výpisu nejpopulárnějších modelů pro danou úlohu. */
