@@ -26,6 +26,11 @@ app.use(
 
 // Routes
 
+// Kořenová adresa přesměruje na výpis modelů."
+app.get("/", (req, res) => {
+    res.redirect("/api/models");
+});
+
 app.use("/api/models", modelRoutes);
 
 
