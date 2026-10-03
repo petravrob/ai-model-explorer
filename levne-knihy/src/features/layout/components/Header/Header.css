@@ -75,6 +75,28 @@
     letter-spacing: -.01em;
 }
 
+/* Název aplikace s verzí */
+.header__title-row {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-width: 0;
+}
+
+/* Verze aplikace */
+.header__version {
+    flex-shrink: 0;
+    padding: .1rem .45rem;
+    border: 1px solid rgb(255 255 255 / 30%);
+    border-radius: var(--radius-pill);
+    background: rgb(255 255 255 / 14%);
+    color: var(--on-primary);
+    font-size: .7rem;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
 /* Podtitulek */
 .header__subtitle {
     color: rgb(255 255 255 / 80%);
@@ -286,6 +308,11 @@
 
     .header__title {
         font-size: 1.1rem;
+    }
+
+    /* Verze se na telefonu zmenší, aby se tam vešla */
+    .header__version {
+        font-size: .62rem;
     }
 
     /* Podtitulek se na telefonu skryje, aby lišta nezabírala tolik místa */

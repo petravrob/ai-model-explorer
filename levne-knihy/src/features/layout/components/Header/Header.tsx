@@ -3,6 +3,7 @@ import "./Header.css";
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 
+import { APP_VERSION } from "@/config";
 import { ROUTE_PATHS, isSearchablePath } from "@/routes/paths";
 import {
     FILTER_ICON,
@@ -131,7 +132,11 @@ function Header() {
                     <LogoBadge />
 
                     <span className="header__brand-text">
-                        <span className="header__title">AI Modely</span>
+                        <span className="header__title-row">
+                            <span className="header__title">AI Modely</span>
+
+                            <span className="header__version">Verze: {APP_VERSION}</span>
+                        </span>
 
                         <span className="header__subtitle">
                             Prohlížení AI modelů z Hugging Face

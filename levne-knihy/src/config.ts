@@ -4,3 +4,6 @@ export const API_URL =
         ? "http://localhost:5000"
         : "https://levne-knihy.onrender.com";
 
+// Verze aplikace odvozená při buildu z čísla větve (číslo pull requestu)
+export const APP_VERSION = __APP_VERSION__;
+
