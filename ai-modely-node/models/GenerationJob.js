@@ -35,6 +35,12 @@ const generationJobSchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
         },
+        // Priorita zpracování - čerstvě požadované úkoly (modely, které si uživatel
+        // právě prohlíží) mají vyšší hodnotu a předběhnou starší čekající požadavky
+        priority: {
+            type: Number,
+            default: 0,
+        },
         // Kdy úkol převzal zpracovatel - podle něj se pozná úkol uvízlý po pádu procesu
         processingStartedAt: {
             type: Date,
@@ -56,7 +62,7 @@ const generationJobSchema = new mongoose.Schema(
 // i napříč instancemi serveru a po restartu (na rozdíl od Setu v paměti procesu)
 generationJobSchema.index({ type: 1, modelId: 1 }, { unique: true });
 
-// Podle stavu a termínu se hledá další úkol ke zpracování
-generationJobSchema.index({ status: 1, runAt: 1 });
+// Podle stavu, priority a termínu se hledá další úkol ke zpracování
+generationJobSchema.index({ status: 1, priority: -1, runAt: 1 });
 
 module.exports = mongoose.model("GenerationJob", generationJobSchema);

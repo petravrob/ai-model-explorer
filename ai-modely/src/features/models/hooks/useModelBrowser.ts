@@ -40,15 +40,15 @@ const FILTERS_FETCH_DELAY_MS = 400;
 // Kolik modelů se zobrazí na jedno načtení (menší množství znamená méně generovaných popisků)
 const MODELS_PER_LOADING = 24;
 
-// Kolik popisků se vyžádá najednou (server je jen zařadí do fronty, takže dávka zůstává malá)
-const DESCRIPTIONS_PER_LOAD = 3;
+// Kolik popisků se vyžádá najednou (server je jen přečte a chybějící zařadí do fronty)
+const DESCRIPTIONS_PER_LOAD = 8;
 
 // Popisky se na serveru generují na pozadí, takže první odpověď bývá prázdná.
 // Než karta místo kostry ukáže zástupný text, zkusí se popisek ještě tolikrát znovu.
-const MAX_DESCRIPTION_ATTEMPTS = 6;
+const MAX_DESCRIPTION_ATTEMPTS = 12;
 
 // Pauza před dalším pokusem o popisky (generování na serveru chvíli trvá)
-const DESCRIPTION_RETRY_DELAY_MS = 10000;
+const DESCRIPTION_RETRY_DELAY_MS = 5000;
 
 /** Obstarává logiku zobrazení seznamu modelů a přechodu na jejich detail */
 function useModelBrowser() {
@@ -291,7 +291,7 @@ function useModelBrowser() {
         }
     }, []);
 
-    // Popisky se doplňují postupně po třech. Server odpovídá hned - vrátí hotové popisky
+    // Popisky se doplňují postupně po menších dávkách. Server odpovídá hned - vrátí hotové popisky
     // a chybějící si zařadí ke generování na pozadí, takže se o ně po pauze zkusí znovu.
     useEffect(() => {
 

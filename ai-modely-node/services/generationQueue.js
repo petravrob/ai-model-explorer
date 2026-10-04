@@ -20,10 +20,10 @@ const { generateInsights } = require("./insightsService");
 const configuredConcurrency = Number(process.env.GENERATION_CONCURRENCY);
 const MAX_CONCURRENT_JOBS = Number.isInteger(configuredConcurrency) && configuredConcurrency > 0
     ? configuredConcurrency
-    : 2;
+    : 4;
 
 // Jak často zpracovatel hledá nové úkoly
-const POLL_INTERVAL_MS = 3000;
+const POLL_INTERVAL_MS = 1000;
 
 // Kolikrát se úkol zkusí znovu, než se označí jako nezdařený
 const MAX_JOB_ATTEMPTS = 3;
@@ -68,6 +68,16 @@ async function enqueueJobs(type, modelIds) {
         return 0;
     }
 
+    // Čerstvě požadované úkoly dostanou nejvyšší prioritu, aby se popisky právě
+    // zobrazených modelů vygenerovaly před staršími požadavky z dřívějšího prohlížení
+    const priority = Date.now();
+
+    // Čekajícím úkolům se priorita zvedne hned - při opakovaném dotazu klienta
+    await GenerationJob.updateMany(
+        { type, modelId: { $in: ids }, status: "pending" },
+        { $set: { priority } }
+    );
+
     try {
         const result = await GenerationJob.bulkWrite(
             ids.map((modelId) => ({
@@ -81,6 +91,7 @@ async function enqueueJobs(type, modelIds) {
                             runAt: new Date(),
                             processingStartedAt: null,
                             lastError: null,
+                            priority,
                         },
                     },
                     upsert: true,
@@ -103,12 +114,12 @@ async function enqueueJobs(type, modelIds) {
     }
 }
 
-/** Označí nejstarší zpracovaný požadavek (aby se nezpracovával znovu). */
+/** Označí další požadavek ke zpracování - nejdřív podle priority, při shodě nejstarší. */
 async function claimNextJob() {
     return GenerationJob.findOneAndUpdate(
         { status: "pending", runAt: { $lte: new Date() } },
         { $set: { status: "processing", processingStartedAt: new Date() } },
-        { sort: { runAt: 1, createdAt: 1 }, new: true }
+        { sort: { priority: -1, runAt: 1, createdAt: 1 }, new: true }
     );
 }
 
