@@ -40,8 +40,15 @@ const FILTERS_FETCH_DELAY_MS = 400;
 // Kolik modelů se zobrazí na jedno načtení (menší množství znamená méně generovaných popisků)
 const MODELS_PER_LOADING = 24;
 
-// Kolik popisků se vyžádá najednou (stejný počet jich na jedno vyžádání vygeneruje i server)
+// Kolik popisků se vyžádá najednou (server je jen zařadí do fronty, takže dávka zůstává malá)
 const DESCRIPTIONS_PER_LOAD = 3;
+
+// Popisky se na serveru generují na pozadí, takže první odpověď bývá prázdná.
+// Než karta místo kostry ukáže zástupný text, zkusí se popisek ještě tolikrát znovu.
+const MAX_DESCRIPTION_ATTEMPTS = 6;
+
+// Pauza před dalším pokusem o popisky (generování na serveru chvíli trvá)
+const DESCRIPTION_RETRY_DELAY_MS = 10000;
 
 /** Obstarává logiku zobrazení seznamu modelů a přechodu na jejich detail */
 function useModelBrowser() {
@@ -252,22 +259,42 @@ function useModelBrowser() {
     // Popisky, které se právě doplňují, aby se stejný popisek nežádal víckrát
     const requestedDescriptionIdsRef = useRef(new Set<string>());
 
-    // Popisky se doplňují postupně po třech, aby se negenerovalo všechno najednou.
-    // Hotové se uloží a příště se jen zobrazí, takže se každý model generuje jen jednou.
+    // Popisky čekající na dogenerování na serveru - po pauze se o ně zkusí znovu
+    const descriptionCooldownIdsRef = useRef(new Set<string>());
+
+    // Počty pokusů o popisek pro jednotlivé modely (po vyčerpání se ukáže zástupný text)
+    const descriptionAttemptsRef = useRef(new Map<string, number>());
+
+    // Odložený pokus o popisky po pauze a přepínač, který efekt po pauze spustí znovu
+    const descriptionRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [descriptionRetryToken, setDescriptionRetryToken] = useState(0);
+
+    // Při odchodu ze stránky se odložený pokus zruší
+    useEffect(() => () => {
+        if (descriptionRetryTimerRef.current) {
+            clearTimeout(descriptionRetryTimerRef.current);
+        }
+    }, []);
+
+    // Popisky se doplňují postupně po třech. Server odpovídá hned - vrátí hotové popisky
+    // a chybějící si zařadí ke generování na pozadí, takže se o ně po pauze zkusí znovu.
     useEffect(() => {
 
         // Vyžádaná dávka popisků se eviduje, aby se stejný popisek nežádal víckrát
         const requestedIds = requestedDescriptionIdsRef.current;
 
-        // Další dávka se vyžádá, až když předchozí dorazí (server jich víc najednou negeneruje)
+        // Další dávka se vyžádá, až když předchozí dorazí
         if (requestedIds.size > 0) {
             return;
         }
 
+        const cooldownIds = descriptionCooldownIdsRef.current;
+
         const missing = visibleModels
             .filter((model) =>
                 !model.description?.trim() &&
-                !finishedDescriptionIds.includes(model.modelId)
+                !finishedDescriptionIds.includes(model.modelId) &&
+                !cooldownIds.has(model.modelId)
             )
             .slice(0, DESCRIPTIONS_PER_LOAD);
 
@@ -281,9 +308,13 @@ function useModelBrowser() {
 
         void (async () => {
 
+            let receivedIds = new Set<string>();
+
             try {
 
                 const generated = await createDescriptions(missing);
+
+                receivedIds = new Set(generated.map((item) => item.modelId));
 
                 if (generated.length > 0) {
                     setAllModels((current) =>
@@ -303,15 +334,50 @@ function useModelBrowser() {
 
                 missingIds.forEach((modelId) => requestedIds.delete(modelId));
 
-                // Vyřízená dávka se ohlásí: karty, které popisek nedostaly, už na něj nečekají
-                // (místo kostry se u nich zobrazí zástupný text) a vyžádá se další dávka
-                setFinishedDescriptionIds((current) => [...new Set([...current, ...missingIds])]);
+                // Hotové popisky příště netřeba řešit
+                receivedIds.forEach((modelId) => descriptionAttemptsRef.current.delete(modelId));
+
+                const exhaustedIds: string[] = [];
+                const retryIds: string[] = [];
+
+                // Prázdná odpověď znamená, že se popisek teprve generuje na pozadí
+                for (const modelId of missingIds.filter((id) => !receivedIds.has(id))) {
+                    const attempt = (descriptionAttemptsRef.current.get(modelId) ?? 0) + 1;
+
+                    descriptionAttemptsRef.current.set(modelId, attempt);
+
+                    if (attempt >= MAX_DESCRIPTION_ATTEMPTS) {
+                        exhaustedIds.push(modelId);
+                    } else {
+                        retryIds.push(modelId);
+                        cooldownIds.add(modelId);
+                    }
+                }
+
+                // Karty, které pokusy vyčerpaly, už na popisek nečekají
+                // (místo kostry se u nich zobrazí zástupný text)
+                if (exhaustedIds.length > 0) {
+                    setFinishedDescriptionIds((current) => [...new Set([...current, ...exhaustedIds])]);
+                }
+
+                // Odložený pokus se plánuje jen jeden - až doběhne, uvolní z pauzy všechny
+                // čekající popisky a efekt se spustí znovu
+                if (retryIds.length > 0 && !descriptionRetryTimerRef.current) {
+                    descriptionRetryTimerRef.current = setTimeout(() => {
+                        descriptionRetryTimerRef.current = null;
+                        descriptionCooldownIdsRef.current.clear();
+                        setDescriptionRetryToken((current) => current + 1);
+                    }, DESCRIPTION_RETRY_DELAY_MS);
+                }
+
+                // Dokud jsou další chybějící popisky mimo pauzu, vyžádá se hned další dávka
+                setDescriptionRetryToken((current) => current + 1);
 
             }
 
         })();
 
-    }, [visibleModels, finishedDescriptionIds]);
+    }, [visibleModels, finishedDescriptionIds, descriptionRetryToken]);
 
     // Modely, kterým se popisek teprve generuje: karta za ně drží stejně velký prostor, jako
     // zabere hotový text, takže se výpis při doplňování popisků nepřeskupuje

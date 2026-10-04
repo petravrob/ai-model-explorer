@@ -6,7 +6,6 @@
  * Hotové popisy se ukládají do databáze, takže se stejná verze zadání nezpracovává víckrát.
  */
 
-const { SUMMARY_ENABLED } = require("../config/env");
 const AIModel = require("../models/AIModel");
 const { requestCompletion } = require("./aiCompletion");
 
@@ -182,84 +181,30 @@ async function generateDescription(model) {
     };
 }
 
-// Kolik popisků se vygeneruje na jedno vyžádání aplikace (zbytek se doplní postupně)
-const MAX_DESCRIPTIONS_PER_REQUEST = 3;
-
-// Modely, u kterých právě běží generování, aby se stejný popisek negeneroval víckrát
-const pendingGenerations = new Set();
-
 /**
- * Vygeneruje popisky pro modely, které aplikace právě zobrazuje.
+ * Přečte hotové popisky z databáze (bez volání AI).
  *
- * Aplikace si o popisky říká postupně, takže se generují jen viditelné modely.
- * Hotové popisky se ukládají do databáze. Bez nastaveného klíče se nic neposílá.
+ * Vrací jen popisky z aktuální verze zadání; chybějící si požadavek
+ * zařadí do fronty na pozadí (services/generationQueue).
  */
-async function generateDescriptions(models) {
-    if (!SUMMARY_ENABLED) {
+async function getStoredDescriptions(modelIds) {
+    const ids = [...new Set((modelIds ?? []).filter((id) => typeof id === "string" && id.trim().length > 0))];
+
+    if (ids.length === 0) {
         return [];
     }
 
-    const wanted = (models ?? [])
-        .filter((model) => model?.modelId && !model.description?.trim() && !pendingGenerations.has(model.modelId))
-        .slice(0, MAX_DESCRIPTIONS_PER_REQUEST);
-
-    if (wanted.length === 0) {
-        return [];
-    }
-
-    // Uložený popisek se do AI neposílá znovu - klient o něm ještě nemusí vědět.
-    // Popisek ze starší verze zadání se ale vygeneruje znovu.
-    const storedDescriptions = new Map(
-        (await AIModel.find(
-            { modelId: { $in: wanted.map((model) => model.modelId) } },
-            { modelId: 1, description: 1 }
-        ).lean())
-            .filter((item) => item.description?.version === DESCRIPTION_VERSION && item.description?.text)
-            .map((item) => [item.modelId, item.description.text])
-    );
-
-    const generated = await Promise.all(wanted.map(async (model) => {
-        const storedDescription = storedDescriptions.get(model.modelId);
-
-        if (storedDescription) {
-            return { modelId: model.modelId, description: storedDescription };
-        }
-
-        pendingGenerations.add(model.modelId);
-
-        try {
-            const { description } = await generateDescription(model);
-
-            // Popis je vložený přímo v dokumentu modelu, takže se čte jedním dotazem s modelem
-            await AIModel.updateOne(
-                { modelId: model.modelId },
-                {
-                    $set: {
-                        description: {
-                            text: description,
-                            version: DESCRIPTION_VERSION,
-                            status: "ok",
-                            generatedAt: new Date(),
-                        },
-                    },
-                }
-            );
-
-            return { modelId: model.modelId, description };
-        } catch (error) {
-            console.error(`Popisek modelu „${model.modelId}“ se nepodařilo vygenerovat: ${error.message}`);
-
-            return null;
-        } finally {
-            pendingGenerations.delete(model.modelId);
-        }
-    }));
-
-    return generated.filter(Boolean);
+    // Popisek ze starší verze zadání se klientovi neposílá - vygeneruje se znovu na pozadí
+    return (await AIModel.find(
+        { modelId: { $in: ids } },
+        { modelId: 1, description: 1 }
+    ).lean())
+        .filter((item) => item.description?.version === DESCRIPTION_VERSION && item.description?.text?.trim())
+        .map((item) => ({ modelId: item.modelId, description: item.description.text }));
 }
 
 module.exports = {
     DESCRIPTION_VERSION,
     generateDescription,
-    generateDescriptions,
+    getStoredDescriptions,
 };

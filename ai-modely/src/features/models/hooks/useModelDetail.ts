@@ -78,32 +78,65 @@ function useModelDetail(modelId: string | undefined) {
 
     }, [modelId]);
 
-    // Přehledy z dokumentace se připravují zvlášť, až pro otevřený model
+    // Přehledy z dokumentace se připravují zvlášť, až pro otevřený model.
+    // Server odpovídá hned - hotové přehledy vrátí, chybějící si zařadí ke zpracování
+    // na pozadí, takže se o ně po pauze zkusí znovu.
     useEffect(() => {
         if (!modelId) {
             return;
         }
 
+        // Při prvním otevření detailu přehledy typicky ještě nejsou hotové
+        const MAX_INSIGHTS_ATTEMPTS = 4;
+        const INSIGHTS_RETRY_DELAY_MS = 15000;
+
         let cancelled = false;
+        let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
         setInsights(null);
         setInsightsLoading(true);
 
-        getModelInsights(modelId)
-            .then((data) => {
-                if (!cancelled) {
-                    setInsights(data);
+        const loadInsights = async (attempt: number): Promise<void> => {
+
+            try {
+
+                const data = await getModelInsights(modelId);
+
+                if (cancelled) {
+                    return;
                 }
-            })
-            .catch((error) => console.error("Přehledy z dokumentace se nepodařilo připravit:", error))
-            .finally(() => {
-                if (!cancelled) {
-                    setInsightsLoading(false);
+
+                // Přehledy se připravují na pozadí - prázdná odpověď se po pauze zkusí znovu
+                if (data === null && attempt < MAX_INSIGHTS_ATTEMPTS) {
+                    retryTimer = setTimeout(() => {
+                        void loadInsights(attempt + 1);
+                    }, INSIGHTS_RETRY_DELAY_MS);
+
+                    return;
                 }
-            });
+
+                setInsights(data);
+
+            } catch (error) {
+
+                console.error("Přehledy z dokumentace se nepodařilo připravit:", error);
+
+            }
+
+            if (!cancelled) {
+                setInsightsLoading(false);
+            }
+
+        };
+
+        void loadInsights(1);
 
         return () => {
             cancelled = true;
+
+            if (retryTimer) {
+                clearTimeout(retryTimer);
+            }
         };
     }, [modelId]);
 

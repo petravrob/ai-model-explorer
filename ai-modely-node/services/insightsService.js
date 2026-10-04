@@ -533,12 +533,20 @@ async function saveVisualOnly(modelId, visual, stored) {
     return { ...toInsights(stored ?? {}), ...visual };
 }
 
-// Modely, u kterých právě běží zpracování dokumentace
-const pendingInsights = new Set();
+/**
+ * Přečte uložené přehledy z databáze (bez volání AI a bez stahování dokumentace).
+ * Chybějící přehledy si požadavek zařadí do fronty na pozadí (services/generationQueue).
+ */
+async function getStoredInsights(modelId) {
+    const stored = await AIModel.findOne({ modelId }, { insights: 1 }).lean();
+
+    return stored?.insights ? toInsights(stored.insights) : null;
+}
 
 /**
- * Vrátí české přehledy k modelu - z databáze, nebo je nechá připravit z dokumentace.
+ * Připraví české přehledy k modelu z dokumentace a uloží je do databáze.
  * Stejný vstup (verze zadání + dokumentace) se zpracovává jen jednou.
+ * Spouští se na pozadí z fronty úkolů, ne v požadavku klienta.
  */
 async function generateInsights(modelId) {
     const documentation = await getModelCard(modelId);
@@ -561,13 +569,6 @@ async function generateInsights(modelId) {
     if (excerpt.length < MIN_DOCUMENTATION_LENGTH) {
         return stored ? toInsights(stored) : null;
     }
-
-    // Stejný model se nezpracovává víckrát, dokud nedoběhne předchozí pokus
-    if (pendingInsights.has(modelId)) {
-        return stored ? toInsights(stored) : null;
-    }
-
-    pendingInsights.add(modelId);
 
     // Obrázky se berou přímo z dokumentace a AI je nevymýšlí,
     // takže se dají uložit i tehdy, když se texty od AI nepodaří vytvořit.
@@ -611,12 +612,15 @@ async function generateInsights(modelId) {
     } catch (error) {
         console.error(`Přehledy modelu „${modelId}“ se nepodařilo vytvořit: ${error.message}`);
 
-        return saveVisualOnly(modelId, visual, stored);
-    } finally {
-        pendingInsights.delete(modelId);
+        // Obrázky se uloží i tak, ale chyba se hlásí dál, aby fronta úkol odložila
+        // na později (u vyčerpaného limitu poskytovatelů se fronta pozastaví)
+        await saveVisualOnly(modelId, visual, stored);
+
+        throw error;
     }
 }
 
 module.exports = {
     generateInsights,
+    getStoredInsights,
 };

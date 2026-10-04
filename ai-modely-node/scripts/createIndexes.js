@@ -10,6 +10,7 @@ const mongoose = require("mongoose");
 
 const connectDatabase = require("../config/database");
 const AIModel = require("../models/AIModel");
+const GenerationJob = require("../models/GenerationJob");
 
 async function createIndexes() {
     await connectDatabase();
@@ -17,9 +18,13 @@ async function createIndexes() {
     try {
         // Počty se berou ze schématu, samotné vytvoření indexů obstará createIndexes()
         const modelIndexes = AIModel.schema.indexes();
+        const jobIndexes = GenerationJob.schema.indexes();
 
         await AIModel.createIndexes();
         console.log(`Indexy kolekce models: ${modelIndexes.length}`);
+
+        await GenerationJob.createIndexes();
+        console.log(`Indexy kolekce generationjobs: ${jobIndexes.length}`);
 
         console.log("Indexy jsou hotové.");
     } finally {
