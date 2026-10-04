@@ -160,7 +160,22 @@ function useModelBrowser() {
                     return;
                 }
 
-                setAllModels(data);
+                // Popisky, které se doplňovaly za běhu, se zobrazí ve výsledcích
+                setAllModels((current) => {
+                    const knownDescriptions = new Map<string, string>();
+
+                    current.forEach((model) => {
+                        if (model.description?.trim()) {
+                            knownDescriptions.set(model.modelId, model.description);
+                        }
+                    });
+
+                    return data.map((model) =>
+                        !model.description?.trim() && knownDescriptions.has(model.modelId)
+                            ? { ...model, description: knownDescriptions.get(model.modelId) ?? null }
+                            : model
+                    );
+                });
                 setHasLoaded(true);
 
                 // Nový výpis začíná prvními načtenými modely - kromě úvodního načtení,

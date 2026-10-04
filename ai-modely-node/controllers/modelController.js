@@ -101,6 +101,23 @@ const toApiModel = (model) => ({
     description: model.description?.text ?? null,
 });
 
+/**
+ * Doplní k modelům právě načteným z Hugging Face popisky uložené v databázi.
+ * Popisky, které v databázi ještě nejsou, si klient vyžádá zvlášť a server je dogeneruje na pozadí.
+ */
+const withStoredDescriptions = async (models) => {
+    const stored = new Map(
+        (await getStoredDescriptions(models.map((model) => model.modelId)))
+            .map((item) => [item.modelId, item.description])
+    );
+
+    return models.map((model) =>
+        stored.has(model.modelId)
+            ? { ...model, description: { text: stored.get(model.modelId) } }
+            : model
+    );
+};
+
 const getModels = async (req, res) => {
     try {
         const { sort, tab } = req.query;
@@ -156,9 +173,12 @@ const getModels = async (req, res) => {
             // Ukládání modelů.
             await ensureModelsStored(models);
 
+            // Uložené popisky se přidají rovnou k výpisu, aby se nežádaly znovu
+            const modelsWithDescriptions = await withStoredDescriptions(models);
+
             return res.status(200).json({
                 status: "ok",
-                data: models.map((model) => toApiModel({ ...model, _id: model.modelId, avatarUrl: null })),
+                data: modelsWithDescriptions.map((model) => toApiModel({ ...model, _id: model.modelId, avatarUrl: null })),
             });
         }
 
@@ -167,7 +187,7 @@ const getModels = async (req, res) => {
 
         const models = fromDatabase
             ? await AIModel.find({}, { insights: 0 }).sort({ downloads: -1 }).lean()
-            : await getFilteredModelsFromHuggingFace(tasks, languages);
+            : await withStoredDescriptions(await getFilteredModelsFromHuggingFace(tasks, languages));
 
         if (!fromDatabase) {
             // Ukládání modelů
