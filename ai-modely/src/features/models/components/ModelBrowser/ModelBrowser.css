@@ -204,9 +204,11 @@
      */
     .model-browser-layout--filter-open .model-browser__tab-note,
     .model-browser-layout--filter-open .model-browser .page-message,
+    .model-browser-layout--filter-open .model-browser__initial-loading,
     .model-browser-layout--filter-open .model-browser__results,
     .model-browser-layout--sort-open .model-browser__tab-note,
     .model-browser-layout--sort-open .model-browser .page-message,
+    .model-browser-layout--sort-open .model-browser__initial-loading,
     .model-browser-layout--sort-open .model-browser__results {
         display: none;
     }
@@ -246,6 +248,7 @@
     /* Poznámka a výpis modelů */
     .model-browser__tab-note,
     .model-browser .page-message,
+    .model-browser__initial-loading,
     .model-browser__results {
         order: 3;
     }

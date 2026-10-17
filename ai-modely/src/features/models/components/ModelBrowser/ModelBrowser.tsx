@@ -281,6 +281,10 @@ function ModelBrowser() {
                 ? `Pro štítek „${activeTab.label}“ nebyly nalezeny žádné modely.`
                 : "Nebyly nalezeny žádné modely.";
 
+    // Dokud obnova výsledků běží, prázdný seznam ještě není konečný (data teprve dorazí),
+    // takže se zobrazí načítací animace
+    const isWaitingForModels = models.length === 0 && loading;
+
     return (
         <div className={layoutClassName}>
 
@@ -325,6 +329,10 @@ function ModelBrowser() {
 
                     {error ? (
                         <PageMessage>{error}</PageMessage>
+                    ) : isWaitingForModels ? (
+                        <div className="model-browser__initial-loading">
+                            <LogoLoader label="Načítání modelů" />
+                        </div>
                     ) : models.length === 0 ? (
                         <PageMessage>{emptyMessage}</PageMessage>
                     ) : (

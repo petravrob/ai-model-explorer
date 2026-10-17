@@ -94,7 +94,7 @@ function useModelBrowser() {
     const isSilentRefreshRef = useRef(initialCachedModels !== null);
 
     // Naposledy zobrazené modely se drží i v referenci, aby k nim šly při obnově
-    // přidat už doplněné popisky (stav v uzávěru efektu se mezitím neaktualizuje)
+    // přidat už doplněné popisky
     const shownModelsRef = useRef<AIModel[]>(allModels);
 
     useEffect(() => {
