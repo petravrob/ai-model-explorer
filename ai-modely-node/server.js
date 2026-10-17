@@ -2,6 +2,7 @@ const app = require("./app");
 const connectDatabase = require("./config/database");
 const { PORT, SUMMARY_ENABLED, SUMMARY_PROVIDERS } = require("./config/env");
 const { startGenerationWorker } = require("./services/generationQueue");
+const { getSortedModels } = require("./services/huggingFaceService");
 
 const startServer = async () => {
     try {
@@ -9,6 +10,12 @@ const startServer = async () => {
 
         // Generování popisků a přehledů běží na pozadí mimo požadavky klientů
         startGenerationWorker();
+
+        // Nejoblíbenější výpis se začne načítat už při startu serveru, aby první otevření
+        // aplikace nečekalo na Hugging Face. Požadavek klienta se na stejná data napojí.
+        getSortedModels("popularity").catch((error) => {
+            console.error("Prewarming model list failed:", error.message);
+        });
 
         app.listen(PORT, "0.0.0.0", () => {
             console.log(`Server started on port ${PORT}`);

@@ -106,6 +106,53 @@ async function fetchText(url) {
     return response.text();
 }
 
+// Výpisy modelů se drží v paměti, aby se stejný seznam nestahoval při každém otevření
+// stránky (návrat z detailu i obnovení stránky pak odpovídají hned)
+const LIST_CACHE_TTL_MS = 15 * 60 * 1000;
+
+// Aby paměť nerostla, při přeplnění se cache vyprázdní
+const LIST_CACHE_LIMIT = 40;
+
+const listCache = new Map();
+
+// Probíhající stahování - souběžné požadavky na stejný výpis čekají na jeden požadavek
+const pendingListRequests = new Map();
+
+/** Načte seznam modelů z Hugging Face s krátkou pamětí (stejná adresa se nestahuje opakovaně). */
+async function fetchListJson(url) {
+    const cached = listCache.get(url);
+
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.data;
+    }
+
+    const pending = pendingListRequests.get(url);
+
+    if (pending) {
+        return pending;
+    }
+
+    const request = (async () => {
+        try {
+            const data = await fetchJson(url);
+
+            if (listCache.size >= LIST_CACHE_LIMIT && !listCache.has(url)) {
+                listCache.clear();
+            }
+
+            listCache.set(url, { data, expiresAt: Date.now() + LIST_CACHE_TTL_MS });
+
+            return data;
+        } finally {
+            pendingListRequests.delete(url);
+        }
+    })();
+
+    pendingListRequests.set(url, request);
+
+    return request;
+}
+
 /** Načte HTML stránku autora na Hugging Face (kvůli avataru). */
 async function getAuthorPageHtml(author) {
     return fetchText(`${HF_BASE_URL}/${author}`);
@@ -224,7 +271,7 @@ function buildSortedListUrl(sortParam, limit, task) {
 async function getModels({ tasks = DEFAULT_TASKS, limitPerTask = DEFAULT_MODELS_PER_TASK } = {}) {
     // Úlohy se stahují souběžně, pořadí výsledků odpovídá pořadí úloh
     const taskResults = await Promise.all(
-        tasks.map((task) => fetchJson(buildListUrl(task, limitPerTask)))
+        tasks.map((task) => fetchListJson(buildListUrl(task, limitPerTask)))
     );
 
     return taskResults.flat();
@@ -232,12 +279,12 @@ async function getModels({ tasks = DEFAULT_TASKS, limitPerTask = DEFAULT_MODELS_
 
 /** Načte kompletní seznam modelů z Hugging Face s live daty pro lokální filtraci na serveru. */
 async function getAllModels(limit = DEFAULT_SORT_LIMIT) {
-    return fetchJson(buildSortedListUrl(SORT_PARAMS.downloads, limit));
+    return fetchListJson(buildSortedListUrl(SORT_PARAMS.downloads, limit));
 }
 
 /** Načte modely z Hugging Face seřazené podle klíče z API (např. popularity), volitelně zúžené na jednu úlohu. */
 async function getSortedModels(sort, limit = DEFAULT_SORT_LIMIT, task) {
-    return fetchJson(buildSortedListUrl(SORT_PARAMS[sort], limit, task));
+    return fetchListJson(buildSortedListUrl(SORT_PARAMS[sort], limit, task));
 }
 
 /** Načte surová data jednoho konkrétního modelu z Hugging Face podle jeho identifikátoru. */
