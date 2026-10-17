@@ -247,7 +247,6 @@ function parseBatchResponse(content) {
     const closing = body[0] === "[" ? "]" : "}";
 
     // Od konce se odpověď zkracuje na poslední uzavřenou položku, dokud JSON neprojde
-    // (napřed se zkusí text jak je, pak s dolepeným uzavřením pro uříznutou odpověď)
     for (let cut = body.length; cut > 1;) {
         const closeIndex = body.lastIndexOf("}", cut - 1);
 
@@ -276,7 +275,7 @@ async function generateDescriptions(models) {
     const data = await requestCompletion({
         system: SYSTEM_PROMPT,
         prompt: buildBatchPrompt(models),
-        // Delší odpověď musí pokrýt všechny popisky z dávky; rezervované tokeny se ale počítají
+        // Delší odpověď musí pokrýt všechny popisky z dávky, rezervované tokeny se ale počítají
         // do minutového limitu poskytovatele, proto se drží co nejníž
         maxTokens: Math.min(1100 * models.length, 6400),
     });

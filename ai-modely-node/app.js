@@ -26,6 +26,11 @@ app.use(
 
 // Routes
 
+// Rychlá kontrola, že server Renderu běží.
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "ok" });
+});
+
 // Kořenová adresa přesměruje na výpis modelů."
 app.get("/", (req, res) => {
     res.redirect("/api/models");

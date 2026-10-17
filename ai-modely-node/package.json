@@ -8,7 +8,8 @@
         "dev": "nodemon server.js",
         "import:models": "node scripts/importModels.js",
         "create:indexes": "node scripts/createIndexes.js",
-        "generate:content": "node scripts/generateContent.js"
+        "generate:content": "node scripts/generateContent.js",
+        "prewarm:descriptions": "node scripts/prewarmDescriptions.js"
     },
     "author": "Petra Vrobelová",
     "license": "ISC",

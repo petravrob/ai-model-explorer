@@ -127,9 +127,9 @@ async function enqueueJobs(type, modelIds) {
 }
 
 /** Označí další požadavek ke zpracování - nejdřív podle priority, při shodě nejstarší. */
-async function claimNextJob() {
+async function claimNextJob(filter = {}) {
     return GenerationJob.findOneAndUpdate(
-        { status: "pending", runAt: { $lte: new Date() } },
+        { ...filter, status: "pending", runAt: { $lte: new Date() } },
         { $set: { status: "processing", processingStartedAt: new Date() } },
         { sort: { priority: -1, runAt: 1, createdAt: 1 }, new: true }
     );
@@ -278,6 +278,18 @@ const PROCESSORS = {
 let runningJobs = 0;
 let quotaCooldownUntil = 0;
 
+// Typy úkolů, které má tento worker zpracovávat, null znamená všechny
+let workerTypes = null;
+
+// Stav workeru - při zastavení se už nesmí přebírat nové úkoly
+let workerStopped = false;
+let tickInProgress = false;
+
+/** Smí worker zpracovat úkol tohoto typu? */
+function isTypeAllowed(type) {
+    return !workerTypes || workerTypes.has(type);
+}
+
 // Krátká pauza při přechodném omezení rychlosti (429) - jiné než denní vyčerpání kvóty
 let rateCooldownUntil = 0;
 
@@ -392,7 +404,7 @@ let lastReclaimAt = 0;
 
 /** Jeden krok zpracovatele: uklidí zaseknuté požadavky a obsadí volná místa novými. */
 async function tick() {
-    if (!SUMMARY_ENABLED || Date.now() < quotaCooldownUntil || Date.now() < rateCooldownUntil) {
+    if (workerStopped || !SUMMARY_ENABLED || Date.now() < quotaCooldownUntil || Date.now() < rateCooldownUntil) {
         return;
     }
 
@@ -401,15 +413,19 @@ async function tick() {
         await reclaimStaleJobs();
     }
 
-    while (runningJobs < MAX_CONCURRENT_JOBS) {
+    while (!workerStopped && runningJobs < MAX_CONCURRENT_JOBS) {
         // Popisky se zpracovávají po dávkách v jednom volání AI - jedno volné místo
-        // tak obslouží několik modelů najednou. Právě prohlížené modely (čerstvá
-        // priorita) jedou po malých dávkách, aby se první popisky ukázaly co nejdřív;
+        // tak obslouží několik modelů najednou. Právě prohlížené modely (vyšší
+        // priorita) jedou po malých dávkách, aby se první popisky ukázaly co nejdřív,
         // starší požadavky z pozadí po velkých dávkách, které šetří limity poskytovatelů
-        let batch = await claimNextJobs("description", DESCRIPTION_HOT_BATCH_SIZE, Date.now() - HOT_JOB_MAX_AGE_MS);
+        let batch = [];
 
-        if (batch.length === 0) {
-            batch = await claimNextJobs("description", DESCRIPTION_BATCH_SIZE);
+        if (isTypeAllowed("description")) {
+            batch = await claimNextJobs("description", DESCRIPTION_HOT_BATCH_SIZE, Date.now() - HOT_JOB_MAX_AGE_MS);
+
+            if (batch.length === 0) {
+                batch = await claimNextJobs("description", DESCRIPTION_BATCH_SIZE);
+            }
         }
 
         if (batch.length > 1) {
@@ -418,7 +434,9 @@ async function tick() {
             continue;
         }
 
-        const job = batch[0] ?? (await claimNextJob());
+        // Když worker zpracovává jen některé typy, nesmí převzít jiný úkol
+        const typeFilter = workerTypes ? { type: { $in: [...workerTypes] } } : {};
+        const job = batch[0] ?? (await claimNextJob(typeFilter));
 
         if (!job) {
             break;
@@ -431,28 +449,65 @@ async function tick() {
 
 let workerTimer = null;
 
+/** Spustí jeden krok workeru, ale nikdy ne souběžně dva. */
+function runTick() {
+    if (tickInProgress) {
+        return;
+    }
+
+    tickInProgress = true;
+
+    tick()
+        .catch((error) => console.error("Zpracovatel fronty generování selhal:", error))
+        .finally(() => {
+            tickInProgress = false;
+        });
+}
+
 /**
  * Spustí zpracovatele fronty na pozadí. Bez nastaveného poskytovatele se nespustí.
  * Proces (např. skript) skončí, když dodělá svou práci.
+ *
+ * Volitelně lze omezit typy úkolů, např. { types: ["description"] }.
  */
-function startGenerationWorker() {
+function startGenerationWorker({ types } = {}) {
     if (!SUMMARY_ENABLED || workerTimer) {
         return;
     }
 
-    workerTimer = setInterval(() => {
-        tick().catch((error) => console.error("Zpracovatel fronty generování selhal:", error));
-    }, POLL_INTERVAL_MS);
+    workerTypes = Array.isArray(types) && types.length > 0 ? new Set(types) : null;
+    workerStopped = false;
 
+    workerTimer = setInterval(runTick, POLL_INTERVAL_MS);
     workerTimer.unref();
 
     console.log(`Fronta generování běží (souběžně nejvýš ${MAX_CONCURRENT_JOBS} požadavků).`);
 
-    void tick().catch((error) => console.error("Zpracovatel fronty generování selhal:", error));
+    runTick();
+}
+
+/**
+ * Zastaví zpracovatele a počká, až doběhnou právě zpracovávané úkoly.
+ * Používá se ve skriptech před uzavřením databáze.
+ */
+async function stopGenerationWorker() {
+    workerStopped = true;
+
+    if (workerTimer) {
+        clearInterval(workerTimer);
+        workerTimer = null;
+    }
+
+    while (tickInProgress || runningJobs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    workerTypes = null;
 }
 
 module.exports = {
     enqueueJobs,
     startGenerationWorker,
+    stopGenerationWorker,
 };
 
