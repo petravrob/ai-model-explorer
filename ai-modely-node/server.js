@@ -1,10 +1,14 @@
 const app = require("./app");
 const connectDatabase = require("./config/database");
 const { PORT, SUMMARY_ENABLED, SUMMARY_PROVIDERS } = require("./config/env");
+const { startGenerationWorker } = require("./services/generationQueue");
 
 const startServer = async () => {
     try {
         await connectDatabase();
+
+        // Generování popisků a přehledů běží na pozadí mimo požadavky klientů
+        startGenerationWorker();
 
         app.listen(PORT, "0.0.0.0", () => {
             console.log(`Server started on port ${PORT}`);

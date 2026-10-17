@@ -13,8 +13,9 @@ const {
     getAuthorAvatarUrl,
 } = require("../services/huggingFaceService");
 const { isValidModel, mapModelData, mapRawModels } = require("../services/modelMapper");
-const { generateDescriptions } = require("../services/descriptionService");
-const { generateInsights } = require("../services/insightsService");
+const { getStoredDescriptions } = require("../services/descriptionService");
+const { getStoredInsights } = require("../services/insightsService");
+const { enqueueJobs } = require("../services/generationQueue");
 const { ensureModelsStored, saveAuthorAvatar } = require("../services/modelStore");
 
 // Kolik modelů se načte z Hugging Face pro filtrování na serveru (větší objem zbytečně prodlužoval načtení)
@@ -100,6 +101,23 @@ const toApiModel = (model) => ({
     description: model.description?.text ?? null,
 });
 
+/**
+ * Doplní k modelům právě načteným z Hugging Face popisky uložené v databázi.
+ * Popisky, které v databázi ještě nejsou, si klient vyžádá zvlášť a server je dogeneruje na pozadí.
+ */
+const withStoredDescriptions = async (models) => {
+    const stored = new Map(
+        (await getStoredDescriptions(models.map((model) => model.modelId)))
+            .map((item) => [item.modelId, item.description])
+    );
+
+    return models.map((model) =>
+        stored.has(model.modelId)
+            ? { ...model, description: { text: stored.get(model.modelId) } }
+            : model
+    );
+};
+
 const getModels = async (req, res) => {
     try {
         const { sort, tab } = req.query;
@@ -155,9 +173,12 @@ const getModels = async (req, res) => {
             // Ukládání modelů.
             await ensureModelsStored(models);
 
+            // Uložené popisky se přidají rovnou k výpisu, aby se nežádaly znovu
+            const modelsWithDescriptions = await withStoredDescriptions(models);
+
             return res.status(200).json({
                 status: "ok",
-                data: models.map((model) => toApiModel({ ...model, _id: model.modelId, avatarUrl: null })),
+                data: modelsWithDescriptions.map((model) => toApiModel({ ...model, _id: model.modelId, avatarUrl: null })),
             });
         }
 
@@ -166,7 +187,7 @@ const getModels = async (req, res) => {
 
         const models = fromDatabase
             ? await AIModel.find({}, { insights: 0 }).sort({ downloads: -1 }).lean()
-            : await getFilteredModelsFromHuggingFace(tasks, languages);
+            : await withStoredDescriptions(await getFilteredModelsFromHuggingFace(tasks, languages));
 
         if (!fromDatabase) {
             // Ukládání modelů
@@ -263,22 +284,32 @@ const getAvatar = async (req, res) => {
     }
 };
 
-/** Vygeneruje popisky pro modely, které aplikace právě zobrazuje. */
+/**
+ * Vrátí hotové popisky k modelům, které aplikace právě zobrazuje.
+ * Samotné generování běží na pozadí ve frontě - požadavek jen přečte,
+ * co už je v databázi, chybějící popisky zařadí ke zpracování a hned odpoví.
+ */
 const createDescriptions = async (req, res) => {
     try {
         const models = Array.isArray(req.body?.models) ? req.body.models : [];
-        const descriptions = await generateDescriptions(models);
+        const modelIds = models.map((model) => model?.modelId).filter(Boolean);
+
+        const descriptions = await getStoredDescriptions(modelIds);
+        const readyIds = new Set(descriptions.map((item) => item.modelId));
+
+        // Chybějící popisky se doplní na pozadí - klient je uvidí při dalším načtení
+        await enqueueJobs("description", modelIds.filter((modelId) => !readyIds.has(modelId)));
 
         return res.status(200).json({
             status: "ok",
             data: descriptions,
         });
     } catch (error) {
-        console.error("Generating descriptions failed:", error);
+        console.error("Reading descriptions failed:", error);
 
         return res.status(500).json({
             status: "error",
-            error: "Generating descriptions failed.",
+            error: "Reading descriptions failed.",
         });
     }
 };
@@ -311,7 +342,12 @@ const getModelCard = async (req, res) => {
     }
 };
 
-/** Připraví české přehledy z dokumentace modelu na Hugging Face. */
+/**
+ * Vrátí hotové přehledy z dokumentace modelu.
+ * Samotná příprava běží na pozadí ve frontě - požadavek jen přečte, co už je
+ * v databázi, chybějící přehledy zařadí ke zpracování a hned odpoví
+ * (bez přehledů stránka funguje dál se základními údaji).
+ */
 const createInsights = async (req, res) => {
     try {
         const { modelId } = req.params;
@@ -324,22 +360,28 @@ const createInsights = async (req, res) => {
         }
 
         // Adresa může obsahovat databázové id i identifikátor modelu na Hugging Face,
-        // dokumentaci je ale vždy potřeba hledat podle identifikátoru z Hugging Face
+        // dokumentace se ale hledá podle identifikátoru z Hugging Face
         const query = mongoose.Types.ObjectId.isValid(modelId) ? { _id: modelId } : { modelId };
         const stored = await AIModel.findOne(query, { modelId: 1 }).lean();
 
-        const insights = await generateInsights(stored?.modelId ?? modelId);
+        const resolvedModelId = stored?.modelId ?? modelId;
+        const insights = await getStoredInsights(resolvedModelId);
+
+        if (!insights) {
+            // Přehledy se připraví na pozadí - klient je uvidí při dalším otevření detailu
+            await enqueueJobs("insights", [resolvedModelId]);
+        }
 
         return res.status(200).json({
             status: "ok",
             data: { modelId, insights },
         });
     } catch (error) {
-        console.error("Generating insights failed:", error);
+        console.error("Reading insights failed:", error);
 
         return res.status(500).json({
             status: "error",
-            error: "Generating insights failed.",
+            error: "Reading insights failed.",
         });
     }
 };

@@ -89,6 +89,24 @@ npm run import:models -- --per-task=100   # volitelně větší počet modelů n
 
 Indexy se záměrně nevytvářejí při startu serveru (`autoIndex: false`), aby se nestavěly při každém spuštění. Vygenerované české texty zůstávají při dalším importu zachované, protože import zapisuje data modelu.
 
+### Předgenerování popisků (rychlé první načtení)
+
+Popisky se generují na pozadí a ukládají do databáze. Aby aplikace při otevření nic negenerovala, lze je připravit předem:
+
+```bash
+npm run prewarm:descriptions -- --limit=100
+npm run prewarm:descriptions -- --from-api=https://ai-modely-api.onrender.com --limit=100
+npm run prewarm:descriptions -- --sort=created --limit=100
+npm run prewarm:descriptions -- --all
+```
+
+Skript vybírá modely bez aktuálního popisku, přednostně ty nejsledovanější. `--from-api` omezí výběr na modely, které právě vrací běžící aplikace, `--sort` určí pořadí výběru (`downloads`, `likes`, `created`, `trending`), `--dry-run` jen vypíše, co by se generovalo, a `--timeout=20` nastaví limit čekání v minutách. Zapisuje do databáze uvedené v `MONGO_URI`, proto před spuštěním proti produkci zkontrolujte, že `.env` míří na správnou databázi.
+
+
+### Probuzení hostingu
+
+Backend na Renderu v tarifu zdarma se po neaktivnosti uspí a první požadavek pak může trvat desítky sekund. Endpoint `GET /health` odpovídá okamžitě a nedělá přitom dotaz do databáze ani na Hugging Face. Probuzení zrealizováno přes cron-job.org s intervalem 10 minut.
+
 Význam polí kolekce `models`:
 
 | Pole | Význam |

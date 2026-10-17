@@ -69,7 +69,7 @@ function ModelList({ models, onModelClick, pendingDescriptionIds = [] }: ModelLi
                             {isSummaryPending ? (
                                 <SummaryPlaceholder />
                             ) : (
-                                <p className="model-list__summary" title={summary}>
+                                <p className="model-list__summary">
                                     {preview}
                                 </p>
                             )}

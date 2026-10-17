@@ -36,6 +36,29 @@ function isQuotaError(detail) {
     return /per day|daily|quota|resource_exhausted|exceeded your current/i.test(detail);
 }
 
+/**
+ * Z chyby poskytovatele vytáhne doporučenou dobu čekání.
+ * Vrací milisekundy, nebo null, když se doba z chyby nepozná.
+ */
+function parseRetryAfterMs(detail) {
+    const match = /try again in\s+((?:\d+(?:\.\d+)?\s*(?:ms|s|m|h))+)/i.exec(detail);
+
+    if (!match) {
+        return null;
+    }
+
+    let total = 0;
+
+    for (const part of match[1].matchAll(/(\d+(?:\.\d+)?)\s*(ms|s|m|h)/gi)) {
+        const value = Number(part[1]);
+        const unit = part[2].toLowerCase();
+
+        total += value * (unit === "h" ? 3600000 : unit === "m" ? 60000 : unit === "s" ? 1000 : 1);
+    }
+
+    return total > 0 ? Math.ceil(total) : null;
+}
+
 /** Převede chybu volání na text do hlášení. */
 function describeFailure(error) {
     if (error.name === "TimeoutError" || error.name === "AbortError") {
@@ -83,15 +106,24 @@ async function callProvider(provider, { system, prompt, temperature, maxTokens }
         return response.json();
     }
 
-    const detail = (await response.text()).slice(0, 200);
+    // Text se drží dost dlouhý, aby se z něj dala přečíst i doporučená doba dalšího pokusu
+    const detail = (await response.text()).slice(0, 500);
 
     // 429 znamená buď omezení rychlosti, nebo vyčerpaný limit
     if (response.status === 429) {
         if (isQuotaError(detail)) {
-            throw providerError(`má vyčerpaný limit: ${detail}`, false);
+            const error = providerError(`má vyčerpaný limit: ${detail}`, false);
+            error.quota = true;
+
+            throw error;
         }
 
-        throw providerError(`omezuje počet požadavků (429): ${detail}`, true);
+        // Přechodné omezení rychlosti - poskytovatel často píše, za jak dlouho to zkusit znovu
+        const error = providerError(`omezuje počet požadavků (429): ${detail}`, true);
+        error.rateLimited = true;
+        error.retryAfterMs = parseRetryAfterMs(detail);
+
+        throw error;
     }
 
     // Přechodné chyby poskytovatele se zkoušejí znovu, chyby v nastavení ne
@@ -117,6 +149,11 @@ async function requestCompletion({ system, prompt, temperature = 0.8, maxTokens 
     // Aby se v hlášení neopakoval stejný poskytovatel víckrát, drží se jen poslední chyba.
     const problems = new Map();
 
+    // Souhrn selhání napříč poskytovateli - podle něj fronta pozná, jak dlouho počkat
+    const quotaProviders = new Set();
+    const rateLimitedProviders = new Set();
+    let retryAfterMs = null;
+
     for (const [index, provider] of SUMMARY_PROVIDERS.entries()) {
         const label = labelOf(provider, index);
 
@@ -125,6 +162,18 @@ async function requestCompletion({ system, prompt, temperature = 0.8, maxTokens 
                 return await callProvider(provider, { system, prompt, temperature, maxTokens });
             } catch (error) {
                 problems.set(label, describeFailure(error));
+
+                if (error.quota) {
+                    quotaProviders.add(label);
+                }
+
+                if (error.rateLimited) {
+                    rateLimitedProviders.add(label);
+
+                    if (error.retryAfterMs) {
+                        retryAfterMs = retryAfterMs === null ? error.retryAfterMs : Math.min(retryAfterMs, error.retryAfterMs);
+                    }
+                }
 
                 // Vyčerpaný limit i chyba v nastavení znamenají, že opakování nemá smysl
                 if (error.retryable === false || attempt === MAX_ATTEMPTS) {
@@ -137,8 +186,18 @@ async function requestCompletion({ system, prompt, temperature = 0.8, maxTokens 
     }
 
     const details = [...problems].map(([label, message]) => `${label} ${message}`).join(" | ");
+    const failure = new Error(`Text se nepodařilo vygenerovat. ${details}`);
 
-    throw new Error(`Text se nepodařilo vygenerovat. ${details}`);
+    // Denní limit u všech poskytovatelů znamená dlouhou pauzu. Když aspoň jeden hlásí jen
+    // přechodné omezení rychlosti, stačí krátce počkat - bez příznaku by sloužená hláška
+    // s jedním vyčerpaným limitem zastavila celou frontu na desítky minut zbytečně
+    if (quotaProviders.size === SUMMARY_PROVIDERS.length) {
+        failure.quotaExhausted = true;
+    } else if (rateLimitedProviders.size > 0) {
+        failure.retryAfterMs = retryAfterMs ?? 20000;
+    }
+
+    throw failure;
 }
 
 module.exports = {

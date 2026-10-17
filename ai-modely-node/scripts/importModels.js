@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 
 const connectDatabase = require("../config/database");
 const AIModel = require("../models/AIModel");
+const { DESCRIPTION_VERSION } = require("../services/descriptionService");
+const { enqueueJobs } = require("../services/generationQueue");
 const { DEFAULT_TASKS, getAuthorPageHtml, getModel, getModels } = require("../services/huggingFaceService");
 const { mapRawModels } = require("../services/modelMapper");
 
@@ -146,6 +148,29 @@ async function importModels() {
         const updatedCount = models.length - createdCount;
 
         console.log(`Import hotový. Nové modely: ${createdCount}, aktualizované modely: ${updatedCount}.`);
+
+        // Popisky a přehledy se předgenerují na pozadí - import je jen zařadí do fronty,
+        // zpracuje je běžící server nebo skript npm run generate:content
+        const storedDocs = await AIModel.find(
+            { modelId: { $in: models.map((model) => model.modelId) } },
+            { modelId: 1, description: 1, insights: 1 }
+        ).lean();
+
+        const missingDescriptions = storedDocs
+            .filter((doc) => !(doc.description?.version === DESCRIPTION_VERSION && doc.description?.text?.trim()))
+            .map((doc) => doc.modelId);
+
+        const missingInsights = storedDocs
+            .filter((doc) => !doc.insights?.sourceFingerprint)
+            .map((doc) => doc.modelId);
+
+        const enqueuedDescriptions = await enqueueJobs("description", missingDescriptions);
+        const enqueuedInsights = await enqueueJobs("insights", missingInsights);
+
+        console.log(
+            `Do fronty generování zařazeno ${enqueuedDescriptions} popisků ` +
+            `a ${enqueuedInsights} přehledů.`
+        );
     } finally {
         await mongoose.connection.close();
         console.log("\nSpojení s databází bylo ukončeno.");
