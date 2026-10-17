@@ -45,7 +45,7 @@ const DESCRIPTIONS_PER_LOAD = 8;
 
 // Popisky se na serveru generují na pozadí, takže první odpověď bývá prázdná.
 // Než karta místo kostry ukáže zástupný text, zkusí se popisek ještě tolikrát znovu.
-const MAX_DESCRIPTION_ATTEMPTS = 12;
+const MAX_DESCRIPTION_ATTEMPTS = 24;
 
 // Pauza před dalším pokusem o popisky (generování na serveru chvíli trvá)
 const DESCRIPTION_RETRY_DELAY_MS = 5000;
