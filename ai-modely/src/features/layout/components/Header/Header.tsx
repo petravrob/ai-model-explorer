@@ -133,7 +133,7 @@ function Header() {
 
                     <span className="header__brand-text">
                         <span className="header__title-row">
-                            <span className="header__title">AI Modely</span>
+                            <span className="header__title">AI model explorer</span>
 
                             <span className="header__version">Verze: {APP_VERSION}</span>
                         </span>
