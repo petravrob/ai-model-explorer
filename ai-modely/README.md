@@ -1,4 +1,4 @@
-# AI Modely
+# AI model explorer
 
 Webová aplikace pro prohlížení AI modelů z Hugging Face.
 
