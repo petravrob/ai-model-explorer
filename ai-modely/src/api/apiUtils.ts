@@ -6,6 +6,11 @@ export default interface ApiResponse<T> {
     status: string;
     data: T;
     token: string;
+    // Doplňující informace k odpovědi (např. jestli server má další stránku výpisu)
+    meta?: {
+        hasMore?: boolean;
+        [key: string]: unknown;
+    };
     errors?: ApiError[];
     error?: string;
 }

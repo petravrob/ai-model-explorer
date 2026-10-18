@@ -1,8 +1,15 @@
 import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
 import { AIModel, ModelFilters, ModelInsights } from "@/features/models";
+import { MODELS_PER_PAGE } from "../modelPagingConfig";
 import type { ModelSortKey } from "../modelSortsConfig";
 import type { ModelTabKey } from "../modelTabsConfig";
+
+/** Jedna stránka výpisu modelů a informace, jestli na serveru existují další. */
+export interface ModelsPage {
+    models: AIModel[];
+    hasMore: boolean;
+}
 
 /** Sestaví dotazovací řetězec ze zvolených filtrů (žádný filtr = bez parametrů). */
 const buildFiltersQuery = (filters: ModelFilters): string => {
@@ -19,13 +26,15 @@ const buildFiltersQuery = (filters: ModelFilters): string => {
     return query ? `?${query}` : "";
 };
 
-/** Načte modely se zvolenými filtry, štítkem a řazením ze serveru. */
+/** Načte jednu stránku modelů se zvolenými filtry, štítkem a řazením ze serveru. */
 export const getModels = async (
     filters?: ModelFilters,
     sort?: ModelSortKey,
     tab?: ModelTabKey,
+    offset = 0,
+    limit = MODELS_PER_PAGE,
     signal?: AbortSignal
-): Promise<AIModel[]> => {
+): Promise<ModelsPage> => {
 
     const params = filters ? new URLSearchParams(buildFiltersQuery(filters).slice(1)) : new URLSearchParams();
 
@@ -37,8 +46,13 @@ export const getModels = async (
         params.set("tab", tab);
     }
 
+    // Server podle těchto parametrů vrátí jen požadovanou část výpisu a přidá informaci,
+    // jestli má další modely (meta.hasMore)
+    params.set("offset", String(offset));
+    params.set("limit", String(limit));
+
     const response = await fetch(
-        `${API_URL}/api/models${params.toString() ? `?${params.toString()}` : ""}`,
+        `${API_URL}/api/models?${params.toString()}`,
         {
             method: "GET",
             signal,
@@ -50,7 +64,10 @@ export const getModels = async (
         "Nepodařilo se načíst modely."
     );
 
-    return data.data as AIModel[];
+    return {
+        models: data.data as AIModel[],
+        hasMore: data.meta?.hasMore === true,
+    };
 };
 
 

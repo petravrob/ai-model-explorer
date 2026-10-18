@@ -94,8 +94,18 @@
 /* Tlačítko "Načíst další modely" */
 .model-browser__more {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
     margin: 1.5rem 0 0;
+}
+
+/* Chyba při načítání dalších modelů (výpis zůstává zobrazený, jde to zkusit znovu) */
+.model-browser__more-error {
+    margin: 0;
+    color: var(--danger);
+    font-size: .875rem;
+    text-align: center;
 }
 
 /*
