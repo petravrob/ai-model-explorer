@@ -6,9 +6,16 @@
  * takže je aplikace při otevření jen přečte a nic negeneruje.
  *
  * Příklady:
+ *   npm run prewarm:recent
  *   npm run prewarm:descriptions -- --limit=100
  *   npm run prewarm:descriptions -- --from-api=https://ai-modely-api.onrender.com --limit=100
  *   npm run prewarm:descriptions -- --all
+ *   npm run prewarm:descriptions -- --updated-days=30 --all
+ *
+ * Opakované spouštění nic nezkazí - popisky, které už aktuální jsou, se přeskočí.
+ *
+ * Přepínače: --limit=N, --all, --sort=downloads|likes|created|trending|updated,
+ * --updated-days=N (jen modely změněné za posledních N dní), --from-api=URL, --dry-run, --timeout=minuty
  *
  * Skript zapisuje do databáze uvedené v MONGO_URI. Před spuštěním proti
  * produkci zkontrolujte, že .env míří na správnou databázi.
@@ -26,6 +33,8 @@ const { enqueueJobs, startGenerationWorker, stopGenerationWorker } = require("..
 // Kolik chybějících popisků se ve výchozím stavu předgeneruje (0 nebo --all = všechny)
 const DEFAULT_LIMIT = 100;
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 // Jak často se hlásí průběh a jak dlouho se čeká na dokončení fronty
 const PROGRESS_INTERVAL_MS = 5000;
 const DEFAULT_TIMEOUT_MINUTES = 30;
@@ -36,6 +45,7 @@ const SORT_COMPARATORS = {
     likes: (a, b) => (b.likes ?? 0) - (a.likes ?? 0),
     created: (a, b) => new Date(b.publishedAt ?? 0) - new Date(a.publishedAt ?? 0),
     trending: (a, b) => (b.trendingScore ?? 0) - (a.trendingScore ?? 0),
+    updated: (a, b) => new Date(b.lastModified ?? 0) - new Date(a.lastModified ?? 0),
 };
 
 /** Načte hodnotu argumentu ve tvaru --název=hodnota. */
@@ -66,7 +76,8 @@ function hasCurrentDescription(model) {
  * Díky tomu se předgenerují přesně ty modely, které návštěvník uvidí první.
  */
 async function getModelIdsFromApi(baseUrl) {
-    const url = `${baseUrl.replace(/\/+$/, "")}/api/models?sort=popularity&tab=all`;
+    // limit=100 je největší stránka, kterou API vrací
+    const url = `${baseUrl.replace(/\/+$/, "")}/api/models?sort=popularity&tab=all&limit=100`;
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -85,7 +96,7 @@ async function getModelIdsFromApi(baseUrl) {
 async function selectModels() {
     const models = await AIModel.find(
         {},
-        { modelId: 1, description: 1, downloads: 1, likes: 1, publishedAt: 1, trendingScore: 1 }
+        { modelId: 1, description: 1, downloads: 1, likes: 1, publishedAt: 1, trendingScore: 1, lastModified: 1 }
     ).lean();
     const missing = models.filter((model) => !hasCurrentDescription(model));
 
@@ -98,6 +109,19 @@ async function selectModels() {
         const apiModelIds = new Set(await getModelIdsFromApi(apiUrl));
 
         selected = selected.filter((model) => apiModelIds.has(model.modelId));
+    }
+
+    // Volitelně jen modely změněné na Hugging Face za posledních N dní
+    const updatedDays = Number(getArg("updated-days"));
+
+    if (Number.isFinite(updatedDays) && updatedDays > 0) {
+        const since = Date.now() - updatedDays * DAY_MS;
+
+        selected = selected.filter((model) => {
+            const lastModified = model.lastModified ? new Date(model.lastModified).getTime() : 0;
+
+            return lastModified >= since;
+        });
     }
 
     // Přednostně se generují modely, které se ve výpisu zobrazují první

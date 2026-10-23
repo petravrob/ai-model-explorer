@@ -4,12 +4,15 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { AIModel } from "../types";
 import { SEARCH_QUERY_PARAM, modelDetailUrl } from "@/routes/paths";
-import { createDescriptions, getModels } from "../api/modelsApi";
+import { createDescriptions, getModels, type ModelsPage } from "../api/modelsApi";
 import useModelFilters from "./useModelFilters";
+import type { ModelFilters } from "../filters";
 import type { ModelSortKey } from "../modelSortsConfig";
 import type { ModelTabKey } from "../modelTabsConfig";
+import { MODELS_MAX_PAGE_SIZE, MODELS_PER_PAGE } from "../modelPagingConfig";
 import { readVisibleCount, saveScrollPosition, saveVisibleCount } from "../utils/browserPageStorage";
-import { readSortFromParams, readTabFromParams, writeSortToParams, writeTabToParams } from "../utils/modelListParams";
+import { buildFiltersParamsKey, readFiltersFromParams, readSortFromParams, readTabFromParams, writeSortToParams, writeTabToParams } from "../utils/modelListParams";
+import { buildModelsCacheKey, readCachedModels, saveCachedModels } from "../utils/modelsCache";
 import { applyTab } from "../utils/modelTabUtils";
 
 /** Převede text na malá písmena bez diakritiky pro nezávislé vyhledávání. */
@@ -37,9 +40,6 @@ const FUSE_OPTIONS: IFuseOptions<AIModel> = {
 // Zpoždění načtení po změně filtrů, aby se rychlé po sobě jdoucí změny sloučily do jednoho požadavku
 const FILTERS_FETCH_DELAY_MS = 400;
 
-// Kolik modelů se zobrazí na jedno načtení (menší množství znamená méně generovaných popisků)
-const MODELS_PER_LOADING = 24;
-
 // Kolik popisků se vyžádá najednou (server je jen přečte a chybějící zařadí do fronty)
 const DESCRIPTIONS_PER_LOAD = 8;
 
@@ -50,19 +50,69 @@ const MAX_DESCRIPTION_ATTEMPTS = 24;
 // Pauza před dalším pokusem o popisky (generování na serveru chvíli trvá)
 const DESCRIPTION_RETRY_DELAY_MS = 5000;
 
+/** Načte stránky, dokud jich není aspoň targetCount (obnova po návratu z detailu). */
+const loadModelsUpTo = async (
+    filters: ModelFilters,
+    sort: ModelSortKey,
+    tab: ModelTabKey,
+    targetCount: number,
+    signal: AbortSignal
+): Promise<ModelsPage & { consumed: number }> => {
+
+    const models: AIModel[] = [];
+    const knownIds = new Set<string>();
+
+    // Kolik modelů už přišlo (i duplicitních) - podle toho se posouvá offset
+    let consumed = 0;
+    let hasMore = false;
+    let cursor: string | null = null;
+
+    while (models.length < targetCount) {
+
+        // Víc než MODELS_MAX_PAGE_SIZE server v jednom požadavku nevrátí
+        const page = await getModels(
+            filters,
+            sort,
+            tab,
+            {
+                offset: consumed,
+                limit: Math.min(MODELS_MAX_PAGE_SIZE, targetCount - models.length),
+                cursor,
+            },
+            signal
+        );
+
+        consumed += page.models.length;
+        cursor = page.nextCursor;
+
+        page.models.forEach((model) => {
+            if (!knownIds.has(model.modelId)) {
+                knownIds.add(model.modelId);
+                models.push(model);
+            }
+        });
+
+        hasMore = page.hasMore;
+
+        // Prázdná stránka znamená, že na serveru už nic dalšího není
+        if (!page.hasMore || page.models.length === 0) {
+            break;
+        }
+    }
+
+    return { models, hasMore, nextCursor: cursor, consumed };
+};
+
+/** Odkud načíst další stránku výpisu - navázáním na kurzor, nebo od zadané pozice. */
+interface NextPage {
+    cursor: string | null;
+    offset: number;
+}
+
 /** Obstarává logiku zobrazení seznamu modelů a přechodu na jejich detail */
 function useModelBrowser() {
 
-    // Uložená plná sada modelů z posledního serverového načtení. Filtry ji jen zúží,
-    // nesmí ji přepsat prázdným seznamem po konkrétním vyfiltrování.
-    const [allModels, setAllModels] = useState<AIModel[]>([]);
-
-    const [loading, setLoading] = useState(true);
-
     const [error, setError] = useState<string | null>(null);
-
-    // Příznak dokončeného úvodního načtení: při obnově kvůli filtrům zůstane na stránce stávající výpis
-    const [hasLoaded, setHasLoaded] = useState(false);
 
     const navigate = useNavigate();
 
@@ -78,6 +128,35 @@ function useModelBrowser() {
     // Zvolený štítek, řazení i filtry se drží v URL, aby zůstaly nastavené i po návratu z detailu modelu
     const tab = readTabFromParams(searchParams);
     const sort = readSortFromParams(searchParams);
+
+    // Klíč výpisu v paměti podle štítku, řazení a filtrů
+    const modelsCacheKey = useMemo(
+        () => buildModelsCacheKey(readFiltersFromParams(searchParams), sort, tab),
+        [buildFiltersParamsKey(searchParams), sort, tab]
+    );
+
+    // Po návratu z detailu se místo načítací animace ukáže poslední výpis z paměti
+    const [initialCachedModels] = useState(() => readCachedModels(modelsCacheKey));
+
+    // Uložená plná sada modelů z posledního serverového načtení. Filtry ji jen zúží,
+    // nesmí ji přepsat prázdným seznamem po konkrétním vyfiltrování.
+    const [allModels, setAllModels] = useState<AIModel[]>(() => initialCachedModels ?? []);
+
+    const [loading, setLoading] = useState(initialCachedModels === null);
+
+    // Příznak dokončeného úvodního načtení: při obnově kvůli filtrům zůstane na stránce stávající výpis
+    const [hasLoaded, setHasLoaded] = useState(initialCachedModels !== null);
+
+    // První obnova z paměti běží na pozadí, bez načítací animace
+    const isSilentRefreshRef = useRef(initialCachedModels !== null);
+
+    // Naposledy zobrazené modely se drží i v referenci, aby k nim šly při obnově
+    // přidat už doplněné popisky
+    const shownModelsRef = useRef<AIModel[]>(allModels);
+
+    useEffect(() => {
+        shownModelsRef.current = allModels;
+    }, [allModels]);
 
     /** Zapíše do URL novou hodnotu štítku nebo řazení a ostatní parametry (filtry, hledání) nechá být. */
     const updateListParams = (
@@ -126,64 +205,118 @@ function useModelBrowser() {
         filteredModels,
     } = useModelFilters(tabModels);
 
-    const [visibleCount, setVisibleCount] = useState(() =>
-        readVisibleCount(location.key, MODELS_PER_LOADING)
+    // Jestli má server další modely, rozhoduje odpověď API - tlačítko se podle toho
+    // zobrazí i potom, co jsou zobrazené všechny dosud načtené modely
+    const [hasMore, setHasMore] = useState(true);
+
+    // Načítání další stránky tlačítkem (výpis zůstává vidět, jen se tlačítko vypne)
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
+    const isLoadingMoreRef = useRef(false);
+
+    // Další stránka začíná tam, kde skončila poslední úspěšně načtená
+    const nextPageRef = useRef<NextPage>({ cursor: null, offset: 0 });
+
+    // Počet načtených modelů se průběžně ukládá, aby se po návratu na stránku obnovil
+    // celý dříve rozbalený výpis
+    useEffect(() => {
+        // Ukládá se až hotový výpis, ne mezistav během načítání (jinak by se mohl
+        // uložit počet modelů z předchozích filtrů)
+        if (loading) {
+            return;
+        }
+
+        saveVisibleCount(location.key, allModels.length);
+    }, [location.key, allModels.length, loading]);
+
+    // Kolik modelů se má načíst při prvním požadavku: výpis z paměti (návrat z detailu)
+    // nebo dříve uložený počet zobrazených modelů
+    const initialPageSizeRef = useRef(
+        Math.max(
+            MODELS_PER_PAGE,
+            initialCachedModels?.length ?? 0,
+            readVisibleCount(location.key, MODELS_PER_PAGE)
+        )
     );
 
-    // Počet zobrazených modelů se průběžně ukládá, aby se dal po návratu na stránku obnovit
-    useEffect(() => {
-        saveVisibleCount(location.key, visibleCount);
-    }, [location.key, visibleCount]);
-
-    // Úvodní načtení po otevření stránky počet zobrazených modelů neresetuje - může jít
-    // o návrat z detailu, kdy se rozbalený výpis obnovuje z uloženého stavu
+    // Úvodní načtení po otevření stránky neresetuje rozbalený výpis - může jít
+    // o návrat z detailu, kdy se obnovuje celý dříve načtený seznam
     const isInitialFetchRef = useRef(true);
+
 
     // Načtení modelů podle zvolených filtrů (s filtry se filtruje přímo na serveru z Hugging Face)
     useEffect(() => {
 
         const requestId = ++latestRequestIdRef.current;
         const controller = new AbortController();
+        const isInitialFetch = isInitialFetchRef.current;
 
-        // Obnova se ohlásí hned (i během čekání na sloučení změn filtrů),
-        // dříve načtené modely přitom zůstanou zobrazené, dokud nedorazí nová data
-        setLoading(true);
+        // Nový výpis (filtry, řazení, štítek) začíná znovu od začátku
+        nextPageRef.current = { cursor: null, offset: 0 };
+        setLoadMoreError(null);
+
+        // Staré modely zůstanou vidět, dokud nedorazí nové (obnova z paměti běží bez animace)
+        if (!isSilentRefreshRef.current) {
+            setLoading(true);
+        }
+
         setError(null);
 
         const loadModels = async (): Promise<void> => {
 
             try {
 
-                const data = await getModels(filters, sort, tab, controller.signal);
+                // Po návratu z detailu se obnoví celý dříve rozbalený výpis, jinak stačí první stránka
+                const targetCount = isInitialFetch
+                    ? Math.max(MODELS_PER_PAGE, initialPageSizeRef.current)
+                    : MODELS_PER_PAGE;
+
+                const page = await loadModelsUpTo(
+                    filters,
+                    sort,
+                    tab,
+                    targetCount,
+                    controller.signal
+                );
 
                 if (controller.signal.aborted || requestId !== latestRequestIdRef.current) {
                     return;
                 }
 
-                // Popisky, které se doplňovaly za běhu, se zobrazí ve výsledcích
-                setAllModels((current) => {
-                    const knownDescriptions = new Map<string, string>();
+                // Popisky doplněné za běhu se přidají do výsledků
+                const knownDescriptions = new Map<string, string>();
 
-                    current.forEach((model) => {
-                        if (model.description?.trim()) {
-                            knownDescriptions.set(model.modelId, model.description);
-                        }
-                    });
-
-                    return data.map((model) =>
-                        !model.description?.trim() && knownDescriptions.has(model.modelId)
-                            ? { ...model, description: knownDescriptions.get(model.modelId) ?? null }
-                            : model
-                    );
+                shownModelsRef.current.forEach((model) => {
+                    if (model.description?.trim()) {
+                        knownDescriptions.set(model.modelId, model.description);
+                    }
                 });
+
+                const mergedModels = page.models.map((model) =>
+                    !model.description?.trim() && knownDescriptions.has(model.modelId)
+                        ? { ...model, description: knownDescriptions.get(model.modelId) ?? null }
+                        : model
+                );
+
+                // Reference hned, aby na ni navázalo i rychlé kliknutí na další stránku
+                shownModelsRef.current = mergedModels;
+
+                setAllModels(mergedModels);
+
+                // Jestli existují další modely, říká server
+                setHasMore(page.hasMore);
+
+                // Další tlačítko naváže tam, kde tato stránka skončila
+                nextPageRef.current = { cursor: page.nextCursor, offset: page.consumed };
+
+                // Uloží se do paměti, ať se po návratu z detailu zobrazí hned
+                saveCachedModels(modelsCacheKey, mergedModels);
+
                 setHasLoaded(true);
 
-                // Nový výpis začíná prvními načtenými modely - kromě úvodního načtení,
-                // kdy se počet obnovuje z uloženého stavu (návrat z detailu modelu)
-                if (isInitialFetchRef.current) {
+                // Úvodní načtení je hotové, další změna filtru začíná zase první stránkou
+                if (isInitialFetch) {
                     isInitialFetchRef.current = false;
-                } else {
-                    setVisibleCount(MODELS_PER_LOADING);
                 }
 
             } catch (error) {
@@ -197,6 +330,14 @@ function useModelBrowser() {
                     error
                 );
 
+                // Obnova na pozadí selhala, výpis z paměti zůstane zobrazený
+                if (isSilentRefreshRef.current) {
+                    // Další stránka naváže na zobrazený výpis
+                    nextPageRef.current = { cursor: null, offset: shownModelsRef.current.length };
+
+                    return;
+                }
+
                 const errorMessage =
                     error instanceof Error
                         ? error.message
@@ -209,6 +350,9 @@ function useModelBrowser() {
                 if (controller.signal.aborted || requestId !== latestRequestIdRef.current) {
                     return;
                 }
+
+                // Obnova z paměti doběhla, další změna filtru animaci zase ukáže
+                isSilentRefreshRef.current = false;
 
                 setLoading(false);
 
@@ -228,7 +372,7 @@ function useModelBrowser() {
             clearTimeout(timeoutId);
         };
 
-    }, [filters, sort, tab]);
+    }, [filters, sort, tab, modelsCacheKey]);
 
     // Fuzzy vyhledávání nad modely vyfiltrovanými podle filtrů (index se sestaví jen při načtení nebo změně dat)
     const fuzzySearch = useMemo(
@@ -264,8 +408,8 @@ function useModelBrowser() {
         ? fuzzySearch.search(searchQuery).map(({ item }) => item)
         : exactModels;
 
-    // Zobrazuje se jen první načtené modely (24), další se přidají tlačítkem "Načíst další"
-    const visibleModels = searchedModels.slice(0, visibleCount);
+    // Zobrazují se všechny načtené modely; další stránka se dotáhne tlačítkem "Načíst další"
+    const visibleModels = searchedModels;
 
     // Modely, u kterých už doplnění popisku proběhlo (i když popisek nakonec nedorazil).
     // Karta podle toho pozná, že místo kostry má zobrazit zástupný text.
@@ -416,16 +560,84 @@ function useModelBrowser() {
 
     };
 
-    // Načte do výpisu další množství modelů
-    const loadMore = (): void => {
-        setVisibleCount((current) => current + MODELS_PER_LOADING);
+    // Načte ze serveru další stránku modelů a připojí ji k výpisu
+    const loadMore = async (): Promise<void> => {
+
+        // Dvojklik nebo načítání během obnovy výpisu se ignoruje
+        if (isLoadingMoreRef.current || loading || !hasMore) {
+            return;
+        }
+
+        const requestId = latestRequestIdRef.current;
+        const nextPage = nextPageRef.current;
+
+        isLoadingMoreRef.current = true;
+        setIsLoadingMore(true);
+        setLoadMoreError(null);
+
+        try {
+
+            const page = await getModels(filters, sort, tab, {
+                offset: nextPage.offset,
+                limit: MODELS_PER_PAGE,
+                cursor: nextPage.cursor,
+            });
+
+            // Mezitím se změnily filtry, řazení nebo štítek - stránka už do výpisu nepatří
+            if (requestId !== latestRequestIdRef.current) {
+                return;
+            }
+
+            // Když se výpis mezitím obnovil, stránka se jen připojí a duplicity se zahodí
+            if (nextPageRef.current === nextPage) {
+                nextPageRef.current = {
+                    cursor: page.nextCursor,
+                    offset: nextPage.offset + page.models.length,
+                };
+
+                // Prázdná stránka načítání ukončí, ať tlačítko neopakuje stejný požadavek
+                setHasMore(page.hasMore && page.models.length > 0);
+            }
+
+            const currentModels = shownModelsRef.current;
+            const knownIds = new Set(currentModels.map((model) => model.modelId));
+            const addedModels = page.models.filter((model) => !knownIds.has(model.modelId));
+            const mergedModels = [...currentModels, ...addedModels];
+
+            // Reference hned, aby na ni navázalo i rychlé kliknutí na další stránku
+            shownModelsRef.current = mergedModels;
+
+            setAllModels(mergedModels);
+
+            // Uloží se do paměti, ať se po návratu z detailu zobrazí hned
+            saveCachedModels(modelsCacheKey, mergedModels);
+
+        } catch (error) {
+
+            if (requestId !== latestRequestIdRef.current) {
+                return;
+            }
+
+            console.error("Nepodařilo se načíst další modely:", error);
+
+            setLoadMoreError("Další modely se nepodařilo načíst. Zkuste to prosím znovu.");
+
+        } finally {
+
+            isLoadingMoreRef.current = false;
+
+            setIsLoadingMore(false);
+
+        }
     };
 
     return {
         models: visibleModels,
         pendingDescriptionIds,
-        hasMore: searchedModels.length > visibleModels.length,
+        hasMore,
         loadMore,
+        isLoadingMore,
+        loadMoreError,
         searchQuery,
         isFuzzySearch,
         filters,

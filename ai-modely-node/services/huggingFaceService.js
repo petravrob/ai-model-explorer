@@ -106,6 +106,82 @@ async function fetchText(url) {
     return response.text();
 }
 
+// Výpisy modelů v paměti, aby se stejný seznam nestahoval pořád dokola.
+// Seznam se mění pomalu, takže delší doba znamená míň dotazů na Hugging Face.
+const LIST_CACHE_TTL_MS = 15 * 60 * 1000;
+
+// Při přeplnění se cache vyprázdní, ať paměť neroste
+const LIST_CACHE_LIMIT = 40;
+
+const listCache = new Map();
+
+// Rozdělaná stahování - víc požadavků na stejnou adresu čeká na jedno
+const pendingListRequests = new Map();
+
+/** Načte adresu s pamětí (souběžné požadavky čekají na jedno stahování). */
+async function fetchCached(url, load) {
+    const cached = listCache.get(url);
+
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.value;
+    }
+
+    const pending = pendingListRequests.get(url);
+
+    if (pending) {
+        return pending;
+    }
+
+    const request = (async () => {
+        try {
+            const value = await load(url);
+
+            if (listCache.size >= LIST_CACHE_LIMIT && !listCache.has(url)) {
+                listCache.clear();
+            }
+
+            listCache.set(url, { value, expiresAt: Date.now() + LIST_CACHE_TTL_MS });
+
+            return value;
+        } finally {
+            pendingListRequests.delete(url);
+        }
+    })();
+
+    pendingListRequests.set(url, request);
+
+    return request;
+}
+
+/** Načte seznam modelů (s pamětí, stejná adresa se nestahuje dvakrát). */
+async function fetchListJson(url) {
+    return fetchCached(url, (listUrl) => fetchJson(listUrl));
+}
+
+// Další stránku ohlašuje Hugging Face v hlavičce Link (rel="next")
+const NEXT_PAGE_LINK = /<([^>]+)>\s*;\s*rel="next"/;
+
+/** Vytáhne kurzor na další stránku z hlavičky Link. */
+function readNextCursor(linkHeader) {
+    const match = NEXT_PAGE_LINK.exec(linkHeader ?? "");
+
+    return match ? new URL(match[1]).searchParams.get("cursor") : null;
+}
+
+/** Načte stránku modelů i s kurzorem na tu další. */
+async function fetchListPage(url) {
+    return fetchCached(url, async (listUrl) => {
+        const response = await fetchFromHuggingFace(listUrl);
+        const nextCursor = readNextCursor(response.headers.get("link"));
+
+        return {
+            data: await response.json(),
+            nextCursor,
+            hasMore: Boolean(nextCursor),
+        };
+    });
+}
+
 /** Načte HTML stránku autora na Hugging Face (kvůli avataru). */
 async function getAuthorPageHtml(author) {
     return fetchText(`${HF_BASE_URL}/${author}`);
@@ -199,16 +275,22 @@ function buildListUrl(task, limitPerTask) {
     return url.toString();
 }
 
-/** Sestaví adresu výpisu modelů seřazeného podle zvoleného klíče (volitelně zúženého na úlohu). */
-function buildSortedListUrl(sortParam, limit, task) {
+/** Sestaví adresu výpisu modelů seřazeného podle klíče, volitelně zúženého na úlohu. */
+function buildSortedListUrl(sortParam, limit, task, paging = {}) {
     const url = new URL(HF_MODELS_API_URL);
 
     url.searchParams.set("sort", sortParam);
     url.searchParams.set("direction", "-1");
     url.searchParams.set("limit", String(limit));
 
-    // Zúžení na úlohu se předá přímo Hugging Face, aby filtrování
-    // neprobíhalo až nad malým celkovým výpisem (méně časté úlohy by jinak nic nenašly)
+    // Kurzor z hlavičky Link má přednost, jinak se přeskočí modely z předchozích stránek
+    if (paging.cursor) {
+        url.searchParams.set("cursor", paging.cursor);
+    } else if (paging.skip > 0) {
+        url.searchParams.set("skip", String(paging.skip));
+    }
+
+    // Úloha se předá přímo Hugging Face, jinak by se u méně častých úloh nic nenašlo
     if (task) {
         url.searchParams.set("pipeline_tag", task);
     }
@@ -224,20 +306,21 @@ function buildSortedListUrl(sortParam, limit, task) {
 async function getModels({ tasks = DEFAULT_TASKS, limitPerTask = DEFAULT_MODELS_PER_TASK } = {}) {
     // Úlohy se stahují souběžně, pořadí výsledků odpovídá pořadí úloh
     const taskResults = await Promise.all(
-        tasks.map((task) => fetchJson(buildListUrl(task, limitPerTask)))
+        tasks.map((task) => fetchListJson(buildListUrl(task, limitPerTask)))
     );
 
     return taskResults.flat();
 }
 
-/** Načte kompletní seznam modelů z Hugging Face s live daty pro lokální filtraci na serveru. */
-async function getAllModels(limit = DEFAULT_SORT_LIMIT) {
-    return fetchJson(buildSortedListUrl(SORT_PARAMS.downloads, limit));
-}
+/** Načte stránku modelů podle řazení, volitelně zúženou na úlohu. */
+async function getSortedModels(sort, limit = DEFAULT_SORT_LIMIT, task, paging = {}) {
+    const page = await fetchListPage(buildSortedListUrl(SORT_PARAMS[sort], limit, task, paging));
 
-/** Načte modely z Hugging Face seřazené podle klíče z API (např. popularity), volitelně zúžené na jednu úlohu. */
-async function getSortedModels(sort, limit = DEFAULT_SORT_LIMIT, task) {
-    return fetchJson(buildSortedListUrl(SORT_PARAMS[sort], limit, task));
+    return {
+        models: Array.isArray(page.data) ? page.data : [],
+        hasMore: page.hasMore,
+        nextCursor: page.nextCursor,
+    };
 }
 
 /** Načte surová data jednoho konkrétního modelu z Hugging Face podle jeho identifikátoru. */
@@ -293,7 +376,6 @@ module.exports = {
     getModel,
     getModelCard,
     getModels,
-    getAllModels,
     getSortedModels,
     getAuthorPageHtml,
     getAuthorAvatarUrl,

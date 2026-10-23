@@ -1,12 +1,10 @@
 const mongoose = require("mongoose");
 
 const AIModel = require("../models/AIModel");
+const { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, LANGUAGE_FILTER_OVERFETCH, MAX_PAGE_OFFSET } = require("../config/paging");
 const {
-    DEFAULT_TASKS,
     SORT_PARAMS,
     TAB_SORT_KEYS,
-    getModels: fetchHuggingFaceModels,
-    getAllModels,
     getModel: fetchHuggingFaceModel,
     getModelCard: fetchHuggingFaceCard,
     getSortedModels,
@@ -17,12 +15,6 @@ const { getStoredDescriptions } = require("../services/descriptionService");
 const { getStoredInsights } = require("../services/insightsService");
 const { enqueueJobs } = require("../services/generationQueue");
 const { ensureModelsStored, saveAuthorAvatar } = require("../services/modelStore");
-
-// Kolik modelů se načte z Hugging Face pro filtrování na serveru (větší objem zbytečně prodlužoval načtení)
-const FILTERED_MODELS_LIMIT = 100;
-
-// Kolik nejstaženějších modelů se načte pro každou vybranou úlohu při filtrování
-const FILTERED_MODELS_PER_TASK = 40;
 
 /**
  * Porovnávací funkce pro sloučený výpis podle zvoleného řazení.
@@ -50,34 +42,38 @@ const toArrayParam = (param) => {
     return typeof param === "string" && param.length > 0 ? [param] : [];
 };
 
-/** Načte modely živě z Hugging Face a zúží je podle zvolených filtrů (úlohy, jazyky). */
-const getFilteredModelsFromHuggingFace = async (tasks, languages) => {
+/** Přečte celočíselný parametr stránkování (neplatná hodnota se nahradí výchozí). */
+const readPageParam = (value, fallback, min, max) => {
+
+    const parsed = Number.parseInt(value, 10);
+
+    return Number.isInteger(parsed)
+        ? Math.min(Math.max(parsed, min), max)
+        : fallback;
+};
+
+/** Načte stránku modelů z Hugging Face a zúží ji podle úloh a jazyků. */
+const getFilteredModelsFromHuggingFace = async (tasks, languages, limit, paging) => {
     // S vybranými úlohami se Hugging Face dotáže přímo na ně přes pipeline_tag,
-    // jinak by se nad filtrem s malým množství modelů nenašlo nic (překlad, shrnutí).
-    let models;
-
-    if (tasks.length > 0) {
+    // jinak by se nad filtrem s malým množstvím modelů nenašlo nic (překlad, shrnutí).
+    const pages = tasks.length > 0
         // Každá vybraná úloha se stáhne zvlášť a výsledky se sloučí
-        const taskResults = await Promise.all(
-            tasks.map((task) =>
-                fetchHuggingFaceModels({ tasks: [task], limitPerTask: FILTERED_MODELS_PER_TASK })
+        ? await Promise.all(
+            tasks.map((task) => getSortedModels("downloads", limit, task, paging))
+        )
+        : [await getSortedModels("downloads", limit, undefined, paging)];
+
+    const models = mapRawModels(pages.flatMap((page) => page.models));
+
+    return {
+        // Jazyk se dofiltruje až tady - Hugging Face podle něj filtrovat neumí
+        models: languages.length > 0
+            ? models.filter((model) =>
+                model.languages.some((language) => languages.includes(language))
             )
-        );
-
-        models = mapRawModels(taskResults.flat());
-    } else {
-        const allModels = await getAllModels(FILTERED_MODELS_LIMIT);
-
-        models = mapRawModels(Array.isArray(allModels) ? allModels : []);
-    }
-
-    if (languages.length > 0) {
-        models = models.filter((model) =>
-            model.languages.some((language) => languages.includes(language))
-        );
-    }
-
-    return models;
+            : models,
+        hasMore: pages.some((page) => page.hasMore),
+    };
 };
 
 /** Načte model živě z Hugging Face a převede ho na tvar AIModel (když neexistuje, vrátí null). */
@@ -138,27 +134,37 @@ const getModels = async (req, res) => {
             });
         }
 
+        // Stránkování: klient si vyžádá počet modelů od zadané pozice, nebo naváže kurzorem
+        const pageOffset = readPageParam(req.query.offset, 0, 0, MAX_PAGE_OFFSET);
+        const pageLimit = readPageParam(req.query.limit, DEFAULT_PAGE_SIZE, 1, MAX_PAGE_SIZE);
+        const cursor = typeof req.query.cursor === "string" && req.query.cursor.length > 0
+            ? req.query.cursor
+            : null;
+
+        // S jazykovým filtrem se stáhne víc modelů, část jich jazyk nesplní
+        const fetchLimit = languages.length > 0
+            ? Math.min(pageLimit * LANGUAGE_FILTER_OVERFETCH, MAX_PAGE_SIZE)
+            : pageLimit;
+
         // Řazený výpis se načte z Hugging Face, filtry se zachovají nad výslednými modely.
         if (sort) {
-            // Štítek určuje, ze kterého výpisu se modely vyberou (např. "nové" z nejnovějších),
-            // zvolené řazení se pak použije až nad takto vybranými modely. Klient řazení posílá vždy.
+            // Štítek určuje, ze kterého výpisu se vybírá, řazení se použije až nad nimi
             const poolSort = TAB_SORT_KEYS[tab] ?? sort;
 
-            // S vybranými úlohami se Hugging Face dotáže na každou zvlášť (pipeline_tag),
-            // jinak se načte celek seřazený podle klíče. Filtrovat úlohy až nad malým
-            // celkovým výpisem by pro méně časté úlohy (překlad, shrnutí…) nenašlo nic.
-            const rawResults = tasks.length > 0
+            // Kurzor platí pro jeden výpis, s víc úlohami se stránkuje přeskočením
+            const paging = { skip: pageOffset, cursor: tasks.length > 1 ? null : cursor };
+
+            // HF vrátí rovnou požadovanou stránku, nic se nedotahuje navíc
+            const pages = tasks.length > 0
                 ? await Promise.all(
-                    tasks.map((task) =>
-                        getSortedModels(poolSort, FILTERED_MODELS_PER_TASK, task)
-                    )
+                    tasks.map((task) => getSortedModels(poolSort, fetchLimit, task, paging))
                 )
-                : [await getSortedModels(poolSort)];
+                : [await getSortedModels(poolSort, fetchLimit, undefined, paging)];
 
             // Sloučené výpisy jednotlivých úloh se znovu seřadí podle zvoleného klíče,
             // aby pořadí odpovídalo řazení a ne tomu, v jakém pořadí se úlohy načetly
             let models = sortMergedModels(
-                mapRawModels(rawResults.flat().filter(Boolean)),
+                mapRawModels(pages.flatMap((page) => page.models).filter(Boolean)),
                 sort
             );
 
@@ -168,39 +174,70 @@ const getModels = async (req, res) => {
                 );
             }
 
+            const pageModels = models.slice(0, pageLimit);
+
+            // Jestli má HF další stránku, říká kurzor - prázdná stránka po validaci ještě neznamená konec
+            const hasMore = pages.some((page) => page.hasMore);
+
+            // Kurzor na další stránku, u víc úloh se cursory rozcházejí, proto se nepoužije
+            const nextCursor = tasks.length > 1 ? null : pages[0]?.nextCursor ?? null;
+
             // Avatary se k výpisu nedotahují - klient si je načte zvlášť na pozadí,
             // aby stahování stránek autorů nezdržovalo zobrazení modelů.
-            // Ukládání modelů.
-            await ensureModelsStored(models);
+            // Ukládají se jen modely vrácené na stránce, ne celý stažený objem.
+            await ensureModelsStored(pageModels);
 
             // Uložené popisky se přidají rovnou k výpisu, aby se nežádaly znovu
-            const modelsWithDescriptions = await withStoredDescriptions(models);
+            const modelsWithDescriptions = await withStoredDescriptions(pageModels);
 
             return res.status(200).json({
                 status: "ok",
                 data: modelsWithDescriptions.map((model) => toApiModel({ ...model, _id: model.modelId, avatarUrl: null })),
+                meta: { offset: pageOffset, limit: pageLimit, hasMore, nextCursor },
             });
         }
 
         // Bez filtrů se vrací importované modely z databáze, s filtry se načtou živě z Hugging Face.
         const fromDatabase = tasks.length === 0 && languages.length === 0;
 
-        const models = fromDatabase
-            ? await AIModel.find({}, { insights: 0 }).sort({ downloads: -1 }).lean()
-            : await withStoredDescriptions(await getFilteredModelsFromHuggingFace(tasks, languages));
+        if (fromDatabase) {
+            // Z databáze se stránkuje přímo dotazem (o jeden model víc kvůli zjištění další stránky)
+            const models = await AIModel.find({}, { insights: 0 })
+                .sort({ downloads: -1 })
+                .skip(pageOffset)
+                .limit(pageLimit + 1)
+                .lean();
 
-        if (!fromDatabase) {
-            // Ukládání modelů
-            await ensureModelsStored(models);
+            const hasMore = models.length > pageLimit;
+            const pageModels = models.slice(0, pageLimit);
+
+            return res.status(200).json({
+                status: "ok",
+                data: pageModels.map(toApiModel),
+                meta: { offset: pageOffset, limit: pageLimit, hasMore },
+            });
         }
 
-        const responseModels = models.map((model) =>
-            fromDatabase ? toApiModel(model) : toApiModel({ ...model, avatarUrl: null })
+        const { models, hasMore: hasMoreModels } = await getFilteredModelsFromHuggingFace(
+            tasks,
+            languages,
+            fetchLimit,
+            { skip: pageOffset }
         );
+
+        const pageModels = models.slice(0, pageLimit);
+
+        // Jestli má HF další stránku, říká kurzor
+        const hasMore = hasMoreModels;
+
+        await ensureModelsStored(pageModels);
+
+        const modelsWithDescriptions = await withStoredDescriptions(pageModels);
 
         return res.status(200).json({
             status: "ok",
-            data: responseModels,
+            data: modelsWithDescriptions.map((model) => toApiModel({ ...model, avatarUrl: null })),
+            meta: { offset: pageOffset, limit: pageLimit, hasMore },
         });
     } catch (error) {
         console.error("Fetching models failed:", error);

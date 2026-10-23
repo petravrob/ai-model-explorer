@@ -26,6 +26,8 @@ function ModelBrowser() {
         pendingDescriptionIds,
         hasMore,
         loadMore,
+        isLoadingMore,
+        loadMoreError,
         searchQuery,
         isFuzzySearch,
         filters,
@@ -272,6 +274,9 @@ function ModelBrowser() {
         (tabOption) => tabOption.value === tab
     ) ?? MODEL_TABS_CONFIG[0];
 
+    // Dokud nic nedorazilo, drží stránku načítací animace
+    const isWaitingForModels = loading && models.length === 0;
+
     // Zpráva pro prázdný výpis, rozliší hledání, filtry, štítek a prázdnou databázi
     const emptyMessage = searchQuery
         ? `Pro hledaný výraz „${searchQuery}“ nebyly nalezeny žádné modely.`
@@ -325,7 +330,11 @@ function ModelBrowser() {
 
                     {error ? (
                         <PageMessage>{error}</PageMessage>
-                    ) : models.length === 0 ? (
+                    ) : isWaitingForModels ? (
+                        <div className="model-browser__initial-loading">
+                            <LogoLoader label="Načítání modelů" />
+                        </div>
+                    ) : models.length === 0 && !hasMore ? (
                         <PageMessage>{emptyMessage}</PageMessage>
                     ) : (
                         <div className="model-browser__results">
@@ -335,17 +344,32 @@ function ModelBrowser() {
                                 </p>
                             )}
 
-                            <ModelList
-                                models={models}
-                                onModelClick={handleModelClick}
-                                pendingDescriptionIds={pendingDescriptionIds}
-                            />
+                            {/* První stránka nemusí mít shodu - tlačítko pak nabídne další modely */}
+                            {models.length === 0 ? (
+                                <PageMessage>{emptyMessage}</PageMessage>
+                            ) : (
+                                <ModelList
+                                    models={models}
+                                    onModelClick={handleModelClick}
+                                    pendingDescriptionIds={pendingDescriptionIds}
+                                />
+                            )}
 
                             {hasMore && (
                                 <div className="model-browser__more">
-                                    <Button variant="outline" onClick={loadMore}>
-                                        Načíst další modely
+                                    <Button
+                                        variant="outline"
+                                        onClick={loadMore}
+                                        disabled={isLoadingMore || loading}
+                                    >
+                                        {isLoadingMore ? "Načítám další modely…" : "Načíst další modely"}
                                     </Button>
+
+                                    {loadMoreError && (
+                                        <p className="model-browser__more-error" role="alert">
+                                            {loadMoreError}
+                                        </p>
+                                    )}
                                 </div>
                             )}
 

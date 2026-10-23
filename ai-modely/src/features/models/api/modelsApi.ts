@@ -1,8 +1,23 @@
 import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
 import { AIModel, ModelFilters, ModelInsights } from "@/features/models";
+import { MODELS_PER_PAGE } from "../modelPagingConfig";
 import type { ModelSortKey } from "../modelSortsConfig";
 import type { ModelTabKey } from "../modelTabsConfig";
+
+/** Jedna stránka výpisu a informace, jestli jsou na serveru další. */
+export interface ModelsPage {
+    models: AIModel[];
+    hasMore: boolean;
+    nextCursor: string | null;
+}
+
+/** Odkud stránku načíst - navázáním na kurzor, nebo od zadané pozice. */
+export interface ModelsPaging {
+    offset?: number;
+    limit?: number;
+    cursor?: string | null;
+}
 
 /** Sestaví dotazovací řetězec ze zvolených filtrů (žádný filtr = bez parametrů). */
 const buildFiltersQuery = (filters: ModelFilters): string => {
@@ -19,13 +34,14 @@ const buildFiltersQuery = (filters: ModelFilters): string => {
     return query ? `?${query}` : "";
 };
 
-/** Načte modely se zvolenými filtry, štítkem a řazením ze serveru. */
+/** Načte stránku modelů podle filtrů, štítku a řazení. */
 export const getModels = async (
     filters?: ModelFilters,
     sort?: ModelSortKey,
     tab?: ModelTabKey,
+    paging: ModelsPaging = {},
     signal?: AbortSignal
-): Promise<AIModel[]> => {
+): Promise<ModelsPage> => {
 
     const params = filters ? new URLSearchParams(buildFiltersQuery(filters).slice(1)) : new URLSearchParams();
 
@@ -37,8 +53,17 @@ export const getModels = async (
         params.set("tab", tab);
     }
 
+    // Server vrátí jen požadovanou část výpisu a k tomu, jestli má další (meta.hasMore)
+    params.set("offset", String(paging.offset ?? 0));
+    params.set("limit", String(paging.limit ?? MODELS_PER_PAGE));
+
+    // Kurzor z předchozí odpovědi má přednost; server ho pošle jen u jednoho výpisu
+    if (paging.cursor) {
+        params.set("cursor", paging.cursor);
+    }
+
     const response = await fetch(
-        `${API_URL}/api/models${params.toString() ? `?${params.toString()}` : ""}`,
+        `${API_URL}/api/models?${params.toString()}`,
         {
             method: "GET",
             signal,
@@ -50,7 +75,11 @@ export const getModels = async (
         "Nepodařilo se načíst modely."
     );
 
-    return data.data as AIModel[];
+    return {
+        models: data.data as AIModel[],
+        hasMore: data.meta?.hasMore === true,
+        nextCursor: typeof data.meta?.nextCursor === "string" ? data.meta.nextCursor : null,
+    };
 };
 
 
