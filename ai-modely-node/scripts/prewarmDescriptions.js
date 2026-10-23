@@ -66,7 +66,8 @@ function hasCurrentDescription(model) {
  * Díky tomu se předgenerují přesně ty modely, které návštěvník uvidí první.
  */
 async function getModelIdsFromApi(baseUrl) {
-    const url = `${baseUrl.replace(/\/+$/, "")}/api/models?sort=popularity&tab=all`;
+    // limit=100 je největší stránka, kterou API vrací
+    const url = `${baseUrl.replace(/\/+$/, "")}/api/models?sort=popularity&tab=all&limit=100`;
     const response = await fetch(url);
 
     if (!response.ok) {
