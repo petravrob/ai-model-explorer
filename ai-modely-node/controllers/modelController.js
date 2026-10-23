@@ -25,8 +25,7 @@ const MAX_PAGE_SIZE = 100;
 // Kolikrát víc modelů se stáhne, když je zvolený jazyk (HF podle jazyka filtrovat neumí)
 const LANGUAGE_FILTER_OVERFETCH = 4;
 
-// HF povolí `skip` jen do ~3000. položky a označuje ho za zastaralý (místo něj doporučuje
-// kurzor z hlavičky Link, viz fetchListPage)
+// HF povolí "skip" jen do 3000. položky, výš vrátí chybu (parametr je zastaralý)
 const MAX_PAGE_OFFSET = 3000;
 
 /**
@@ -66,15 +65,15 @@ const readPageParam = (value, fallback, min, max) => {
 };
 
 /** Načte stránku modelů z Hugging Face a zúží ji podle úloh a jazyků. */
-const getFilteredModelsFromHuggingFace = async (tasks, languages, limit, skip) => {
+const getFilteredModelsFromHuggingFace = async (tasks, languages, limit, paging) => {
     // S vybranými úlohami se Hugging Face dotáže přímo na ně přes pipeline_tag,
     // jinak by se nad filtrem s malým množstvím modelů nenašlo nic (překlad, shrnutí).
     const pages = tasks.length > 0
         // Každá vybraná úloha se stáhne zvlášť a výsledky se sloučí
         ? await Promise.all(
-            tasks.map((task) => getSortedModels("downloads", limit, task, skip))
+            tasks.map((task) => getSortedModels("downloads", limit, task, paging))
         )
-        : [await getSortedModels("downloads", limit, undefined, skip)];
+        : [await getSortedModels("downloads", limit, undefined, paging)];
 
     const models = mapRawModels(pages.flatMap((page) => page.models));
 
@@ -147,9 +146,12 @@ const getModels = async (req, res) => {
             });
         }
 
-        // Stránkování: klient si vyžádá určený počet modelů od zadané pozice
+        // Stránkování: klient si vyžádá počet modelů od zadané pozice, nebo naváže kurzorem
         const pageOffset = readPageParam(req.query.offset, 0, 0, MAX_PAGE_OFFSET);
         const pageLimit = readPageParam(req.query.limit, DEFAULT_PAGE_SIZE, 1, MAX_PAGE_SIZE);
+        const cursor = typeof req.query.cursor === "string" && req.query.cursor.length > 0
+            ? req.query.cursor
+            : null;
 
         // S jazykovým filtrem se stáhne víc modelů, část jich jazyk nesplní
         const fetchLimit = languages.length > 0
@@ -161,12 +163,15 @@ const getModels = async (req, res) => {
             // Štítek určuje, ze kterého výpisu se vybírá, řazení se použije až nad nimi
             const poolSort = TAB_SORT_KEYS[tab] ?? sort;
 
+            // Kurzor platí pro jeden výpis, s víc úlohami se stránkuje přeskočením
+            const paging = { skip: pageOffset, cursor: tasks.length > 1 ? null : cursor };
+
             // HF vrátí rovnou požadovanou stránku, nic se nedotahuje navíc
             const pages = tasks.length > 0
                 ? await Promise.all(
-                    tasks.map((task) => getSortedModels(poolSort, fetchLimit, task, pageOffset))
+                    tasks.map((task) => getSortedModels(poolSort, fetchLimit, task, paging))
                 )
-                : [await getSortedModels(poolSort, fetchLimit, undefined, pageOffset)];
+                : [await getSortedModels(poolSort, fetchLimit, undefined, paging)];
 
             // Sloučené výpisy jednotlivých úloh se znovu seřadí podle zvoleného klíče,
             // aby pořadí odpovídalo řazení a ne tomu, v jakém pořadí se úlohy načetly
@@ -186,6 +191,9 @@ const getModels = async (req, res) => {
             // Další stránka se ukáže, jen když ji HF ohlašuje a něco se vrátilo
             const hasMore = pageModels.length > 0 && pages.some((page) => page.hasMore);
 
+            // Kurzor na další stránku, u víc úloh se cursory rozcházejí, proto se nepoužije
+            const nextCursor = tasks.length > 1 ? null : pages[0]?.nextCursor ?? null;
+
             // Avatary se k výpisu nedotahují - klient si je načte zvlášť na pozadí,
             // aby stahování stránek autorů nezdržovalo zobrazení modelů.
             // Ukládají se jen modely vrácené na stránce, ne celý stažený objem.
@@ -197,7 +205,7 @@ const getModels = async (req, res) => {
             return res.status(200).json({
                 status: "ok",
                 data: modelsWithDescriptions.map((model) => toApiModel({ ...model, _id: model.modelId, avatarUrl: null })),
-                meta: { offset: pageOffset, limit: pageLimit, hasMore },
+                meta: { offset: pageOffset, limit: pageLimit, hasMore, nextCursor },
             });
         }
 
@@ -226,7 +234,7 @@ const getModels = async (req, res) => {
             tasks,
             languages,
             fetchLimit,
-            pageOffset
+            { skip: pageOffset }
         );
 
         const pageModels = models.slice(0, pageLimit);

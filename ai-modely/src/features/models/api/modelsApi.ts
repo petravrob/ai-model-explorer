@@ -9,6 +9,14 @@ import type { ModelTabKey } from "../modelTabsConfig";
 export interface ModelsPage {
     models: AIModel[];
     hasMore: boolean;
+    nextCursor: string | null;
+}
+
+/** Odkud stránku načíst - navázáním na kurzor, nebo od zadané pozice. */
+export interface ModelsPaging {
+    offset?: number;
+    limit?: number;
+    cursor?: string | null;
 }
 
 /** Sestaví dotazovací řetězec ze zvolených filtrů (žádný filtr = bez parametrů). */
@@ -31,8 +39,7 @@ export const getModels = async (
     filters?: ModelFilters,
     sort?: ModelSortKey,
     tab?: ModelTabKey,
-    offset = 0,
-    limit = MODELS_PER_PAGE,
+    paging: ModelsPaging = {},
     signal?: AbortSignal
 ): Promise<ModelsPage> => {
 
@@ -47,8 +54,13 @@ export const getModels = async (
     }
 
     // Server vrátí jen požadovanou část výpisu a k tomu, jestli má další (meta.hasMore)
-    params.set("offset", String(offset));
-    params.set("limit", String(limit));
+    params.set("offset", String(paging.offset ?? 0));
+    params.set("limit", String(paging.limit ?? MODELS_PER_PAGE));
+
+    // Kurzor z předchozí odpovědi má přednost; server ho pošle jen u jednoho výpisu
+    if (paging.cursor) {
+        params.set("cursor", paging.cursor);
+    }
 
     const response = await fetch(
         `${API_URL}/api/models?${params.toString()}`,
@@ -66,6 +78,7 @@ export const getModels = async (
     return {
         models: data.data as AIModel[],
         hasMore: data.meta?.hasMore === true,
+        nextCursor: typeof data.meta?.nextCursor === "string" ? data.meta.nextCursor : null,
     };
 };
 

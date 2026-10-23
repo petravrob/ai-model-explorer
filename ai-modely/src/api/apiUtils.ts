@@ -9,6 +9,8 @@ export default interface ApiResponse<T> {
     // Doplňující informace k odpovědi (např. jestli server má další stránku)
     meta?: {
         hasMore?: boolean;
+        // Kurzor, kterým se naváže na další stránku výpisu
+        nextCursor?: string | null;
         [key: string]: unknown;
     };
     errors?: ApiError[];

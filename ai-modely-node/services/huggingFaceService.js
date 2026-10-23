@@ -158,16 +158,25 @@ async function fetchListJson(url) {
 }
 
 // Další stránku ohlašuje Hugging Face v hlavičce Link (rel="next")
-const NEXT_PAGE_LINK = /<[^>]+>\s*;\s*rel="next"/;
+const NEXT_PAGE_LINK = /<([^>]+)>\s*;\s*rel="next"/;
 
-/** Načte stránku modelů i s tím, jestli má zdroj další. */
+/** Vytáhne kurzor na další stránku z hlavičky Link. */
+function readNextCursor(linkHeader) {
+    const match = NEXT_PAGE_LINK.exec(linkHeader ?? "");
+
+    return match ? new URL(match[1]).searchParams.get("cursor") : null;
+}
+
+/** Načte stránku modelů i s kurzorem na tu další. */
 async function fetchListPage(url) {
     return fetchCached(url, async (listUrl) => {
         const response = await fetchFromHuggingFace(listUrl);
+        const nextCursor = readNextCursor(response.headers.get("link"));
 
         return {
             data: await response.json(),
-            hasMore: NEXT_PAGE_LINK.test(response.headers.get("link") ?? ""),
+            nextCursor,
+            hasMore: Boolean(nextCursor),
         };
     });
 }
@@ -266,16 +275,18 @@ function buildListUrl(task, limitPerTask) {
 }
 
 /** Sestaví adresu výpisu modelů seřazeného podle klíče, volitelně zúženého na úlohu. */
-function buildSortedListUrl(sortParam, limit, task, skip = 0) {
+function buildSortedListUrl(sortParam, limit, task, paging = {}) {
     const url = new URL(HF_MODELS_API_URL);
 
     url.searchParams.set("sort", sortParam);
     url.searchParams.set("direction", "-1");
     url.searchParams.set("limit", String(limit));
 
-    // Přeskočení modelů z předchozích stránek
-    if (skip > 0) {
-        url.searchParams.set("skip", String(skip));
+    // Kurzor z hlavičky Link má přednost, jinak se přeskočí modely z předchozích stránek
+    if (paging.cursor) {
+        url.searchParams.set("cursor", paging.cursor);
+    } else if (paging.skip > 0) {
+        url.searchParams.set("skip", String(paging.skip));
     }
 
     // Úloha se předá přímo Hugging Face, jinak by se u méně častých úloh nic nenašlo
@@ -306,12 +317,13 @@ async function getAllModels(limit = DEFAULT_SORT_LIMIT) {
 }
 
 /** Načte stránku modelů podle řazení, volitelně zúženou na úlohu. */
-async function getSortedModels(sort, limit = DEFAULT_SORT_LIMIT, task, skip = 0) {
-    const page = await fetchListPage(buildSortedListUrl(SORT_PARAMS[sort], limit, task, skip));
+async function getSortedModels(sort, limit = DEFAULT_SORT_LIMIT, task, paging = {}) {
+    const page = await fetchListPage(buildSortedListUrl(SORT_PARAMS[sort], limit, task, paging));
 
     return {
         models: Array.isArray(page.data) ? page.data : [],
         hasMore: page.hasMore,
+        nextCursor: page.nextCursor,
     };
 }
 

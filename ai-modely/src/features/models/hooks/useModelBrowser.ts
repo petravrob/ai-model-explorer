@@ -65,6 +65,7 @@ const loadModelsUpTo = async (
     // Kolik modelů už přišlo (i duplicitních) - podle toho se posouvá offset
     let consumed = 0;
     let hasMore = false;
+    let cursor: string | null = null;
 
     while (models.length < targetCount) {
 
@@ -73,12 +74,16 @@ const loadModelsUpTo = async (
             filters,
             sort,
             tab,
-            consumed,
-            Math.min(MODELS_MAX_PAGE_SIZE, targetCount - models.length),
+            {
+                offset: consumed,
+                limit: Math.min(MODELS_MAX_PAGE_SIZE, targetCount - models.length),
+                cursor,
+            },
             signal
         );
 
         consumed += page.models.length;
+        cursor = page.nextCursor;
 
         page.models.forEach((model) => {
             if (!knownIds.has(model.modelId)) {
@@ -95,8 +100,14 @@ const loadModelsUpTo = async (
         }
     }
 
-    return { models, hasMore, consumed };
+    return { models, hasMore, nextCursor: cursor, consumed };
 };
+
+/** Odkud načíst další stránku výpisu - navázáním na kurzor, nebo od zadané pozice. */
+interface NextPage {
+    cursor: string | null;
+    offset: number;
+}
 
 /** Obstarává logiku zobrazení seznamu modelů a přechodu na jejich detail */
 function useModelBrowser() {
@@ -204,7 +215,7 @@ function useModelBrowser() {
     const isLoadingMoreRef = useRef(false);
 
     // Další stránka začíná tam, kde skončila poslední úspěšně načtená
-    const nextOffsetRef = useRef(0);
+    const nextPageRef = useRef<NextPage>({ cursor: null, offset: 0 });
 
     // Počet načtených modelů se průběžně ukládá, aby se po návratu na stránku obnovil
     // celý dříve rozbalený výpis
@@ -241,10 +252,10 @@ function useModelBrowser() {
         const isInitialFetch = isInitialFetchRef.current;
 
         // Nový výpis (filtry, řazení, štítek) začíná znovu od začátku
-        nextOffsetRef.current = 0;
+        nextPageRef.current = { cursor: null, offset: 0 };
         setLoadMoreError(null);
 
-        // Staré modely zůstanou vidět, dokud nedorazí nové. Obnova po výpisu z paměti běží bez animace.
+        // Staré modely zůstanou vidět, dokud nedorazí nové (obnova z paměti běží bez animace)
         if (!isSilentRefreshRef.current) {
             setLoading(true);
         }
@@ -296,7 +307,7 @@ function useModelBrowser() {
                 setHasMore(page.hasMore);
 
                 // Další tlačítko naváže tam, kde tato stránka skončila
-                nextOffsetRef.current = page.consumed;
+                nextPageRef.current = { cursor: page.nextCursor, offset: page.consumed };
 
                 // Uloží se do paměti, ať se po návratu z detailu zobrazí hned
                 saveCachedModels(modelsCacheKey, mergedModels);
@@ -322,7 +333,7 @@ function useModelBrowser() {
                 // Obnova na pozadí selhala, výpis z paměti zůstane zobrazený
                 if (isSilentRefreshRef.current) {
                     // Další stránka naváže na zobrazený výpis
-                    nextOffsetRef.current = shownModelsRef.current.length;
+                    nextPageRef.current = { cursor: null, offset: shownModelsRef.current.length };
 
                     return;
                 }
@@ -558,7 +569,7 @@ function useModelBrowser() {
         }
 
         const requestId = latestRequestIdRef.current;
-        const offset = nextOffsetRef.current;
+        const nextPage = nextPageRef.current;
 
         isLoadingMoreRef.current = true;
         setIsLoadingMore(true);
@@ -566,17 +577,23 @@ function useModelBrowser() {
 
         try {
 
-            const page = await getModels(filters, sort, tab, offset, MODELS_PER_PAGE);
+            const page = await getModels(filters, sort, tab, {
+                offset: nextPage.offset,
+                limit: MODELS_PER_PAGE,
+                cursor: nextPage.cursor,
+            });
 
             // Mezitím se změnily filtry, řazení nebo štítek - stránka už do výpisu nepatří
             if (requestId !== latestRequestIdRef.current) {
                 return;
             }
 
-            // Mezitím mohla proběhnout obnova výpisu a offset se posunul - stránka se
-            // jen připojí (duplicity se zahodí) a další offset zůstane podle novějšího výpisu
-            if (nextOffsetRef.current === offset) {
-                nextOffsetRef.current = offset + page.models.length;
+            // Když se výpis mezitím obnovil, stránka se jen připojí a duplicity se zahodí
+            if (nextPageRef.current === nextPage) {
+                nextPageRef.current = {
+                    cursor: page.nextCursor,
+                    offset: nextPage.offset + page.models.length,
+                };
 
                 // Prázdná stránka načítání ukončí, ať tlačítko neopakuje stejný požadavek
                 setHasMore(page.hasMore && page.models.length > 0);
