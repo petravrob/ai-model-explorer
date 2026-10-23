@@ -11,7 +11,8 @@ import type { ModelSortKey } from "../modelSortsConfig";
 import type { ModelTabKey } from "../modelTabsConfig";
 import { MODELS_MAX_PAGE_SIZE, MODELS_PER_PAGE } from "../modelPagingConfig";
 import { readVisibleCount, saveScrollPosition, saveVisibleCount } from "../utils/browserPageStorage";
-import { readSortFromParams, readTabFromParams, writeSortToParams, writeTabToParams } from "../utils/modelListParams";
+import { buildFiltersParamsKey, readFiltersFromParams, readSortFromParams, readTabFromParams, writeSortToParams, writeTabToParams } from "../utils/modelListParams";
+import { buildModelsCacheKey, readCachedModels, saveCachedModels } from "../utils/modelsCache";
 import { applyTab } from "../utils/modelTabUtils";
 
 /** Převede text na malá písmena bez diakritiky pro nezávislé vyhledávání. */
@@ -103,16 +104,7 @@ const loadModelsUpTo = async (
 /** Obstarává logiku zobrazení seznamu modelů a přechodu na jejich detail */
 function useModelBrowser() {
 
-    // Uložená plná sada modelů z posledního serverového načtení. Filtry ji jen zúží,
-    // nesmí ji přepsat prázdným seznamem po konkrétním vyfiltrování.
-    const [allModels, setAllModels] = useState<AIModel[]>([]);
-
-    const [loading, setLoading] = useState(true);
-
     const [error, setError] = useState<string | null>(null);
-
-    // Příznak dokončeného úvodního načtení: při obnově kvůli filtrům zůstane na stránce stávající výpis
-    const [hasLoaded, setHasLoaded] = useState(false);
 
     const navigate = useNavigate();
 
@@ -128,6 +120,36 @@ function useModelBrowser() {
     // Zvolený štítek, řazení i filtry se drží v URL, aby zůstaly nastavené i po návratu z detailu modelu
     const tab = readTabFromParams(searchParams);
     const sort = readSortFromParams(searchParams);
+
+    // Klíč výpisu v paměti - podle něj se pozná, jestli se pro tyto parametry už něco načetlo
+    const modelsCacheKey = useMemo(
+        () => buildModelsCacheKey(readFiltersFromParams(searchParams), sort, tab),
+        [buildFiltersParamsKey(searchParams), sort, tab]
+    );
+
+    // Výpis z paměti se použije hned při prvním vykreslení. Po návratu z detailu modelu
+    // se tak místo načítací animace rovnou ukáže poslední seznam, který se obnoví na pozadí.
+    const [initialCachedModels] = useState(() => readCachedModels(modelsCacheKey));
+
+    // Uložená plná sada modelů z posledního serverového načtení. Filtry ji jen zúží,
+    // nesmí ji přepsat prázdným seznamem po konkrétním vyfiltrování.
+    const [allModels, setAllModels] = useState<AIModel[]>(() => initialCachedModels ?? []);
+
+    const [loading, setLoading] = useState(initialCachedModels === null);
+
+    // Příznak dokončeného úvodního načtení: při obnově kvůli filtrům zůstane na stránce stávající výpis
+    const [hasLoaded, setHasLoaded] = useState(initialCachedModels !== null);
+
+    // První obnova po použití výpisu z paměti běží na pozadí, aby se načítací animace vůbec neukázala
+    const isSilentRefreshRef = useRef(initialCachedModels !== null);
+
+    // Naposledy zobrazené modely se drží i v referenci, aby k nim šly při obnově
+    // přidat už doplněné popisky
+    const shownModelsRef = useRef<AIModel[]>(allModels);
+
+    useEffect(() => {
+        shownModelsRef.current = allModels;
+    }, [allModels]);
 
     /** Zapíše do URL novou hodnotu štítku nebo řazení a ostatní parametry (filtry, hledání) nechá být. */
     const updateListParams = (
@@ -227,8 +249,12 @@ function useModelBrowser() {
         setLoadMoreError(null);
 
         // Obnova se ohlásí hned (i během čekání na sloučení změn filtrů),
-        // dříve načtené modely přitom zůstanou zobrazené, dokud nedorazí nová data
-        setLoading(true);
+        // dříve načtené modely přitom zůstanou zobrazené, dokud nedorazí nová data.
+        // První obnova po použití výpisu z paměti běží na pozadí, aby se animace neukázala.
+        if (!isSilentRefreshRef.current) {
+            setLoading(true);
+        }
+
         setError(null);
 
         const loadModels = async (): Promise<void> => {
@@ -254,14 +280,13 @@ function useModelBrowser() {
                 }
 
                 // Popisky, které se doplňovaly za běhu, se zobrazí ve výsledcích
-                setAllModels((current) => {
-                    const knownDescriptions = new Map<string, string>();
+                const knownDescriptions = new Map<string, string>();
 
-                    current.forEach((model) => {
-                        if (model.description?.trim()) {
-                            knownDescriptions.set(model.modelId, model.description);
-                        }
-                    });
+                shownModelsRef.current.forEach((model) => {
+                    if (model.description?.trim()) {
+                        knownDescriptions.set(model.modelId, model.description);
+                    }
+                });
 
                 const mergedModels = page.models.map((model) =>
                     !model.description?.trim() && knownDescriptions.has(model.modelId)
@@ -322,6 +347,9 @@ function useModelBrowser() {
                     return;
                 }
 
+                // Obnova po výpisu z paměti už doběhla, další změny filtrů zase ukážou načítací animaci
+                isSilentRefreshRef.current = false;
+
                 setLoading(false);
 
             }
@@ -340,7 +368,7 @@ function useModelBrowser() {
             clearTimeout(timeoutId);
         };
 
-    }, [filters, sort, tab]);
+    }, [filters, sort, tab, modelsCacheKey]);
 
     // Fuzzy vyhledávání nad modely vyfiltrovanými podle filtrů (index se sestaví jen při načtení nebo změně dat)
     const fuzzySearch = useMemo(

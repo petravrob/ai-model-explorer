@@ -274,6 +274,9 @@ function ModelBrowser() {
         (tabOption) => tabOption.value === tab
     ) ?? MODEL_TABS_CONFIG[0];
 
+    // Dokud pro zobrazený výpis nic nedorazilo, drží stránku načítací animace
+    const isWaitingForModels = loading && models.length === 0;
+
     // Zpráva pro prázdný výpis, rozliší hledání, filtry, štítek a prázdnou databázi
     const emptyMessage = searchQuery
         ? `Pro hledaný výraz „${searchQuery}“ nebyly nalezeny žádné modely.`
