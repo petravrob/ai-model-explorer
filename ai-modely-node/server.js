@@ -3,6 +3,7 @@ const connectDatabase = require("./config/database");
 const { PORT, SUMMARY_ENABLED, SUMMARY_PROVIDERS } = require("./config/env");
 const { startGenerationWorker } = require("./services/generationQueue");
 const { getSortedModels } = require("./services/huggingFaceService");
+const { DEFAULT_PAGE_SIZE } = require("./config/paging");
 
 const startServer = async () => {
     try {
@@ -11,8 +12,9 @@ const startServer = async () => {
         // Generování popisků a přehledů běží na pozadí mimo požadavky klientů
         startGenerationWorker();
 
-        // Nejoblíbenější výpis se natáhne už při startu, ať první návštěva nečeká na Hugging Face
-        getSortedModels("popularity").catch((error) => {
+        // Nejoblíbenější výpis se natáhne už při startu, ať první návštěva nečeká na Hugging Face.
+        // Musí jít o stejnou adresu, jakou si vyžádá klient, jinak se do paměti nechytí.
+        getSortedModels("popularity", DEFAULT_PAGE_SIZE).catch((error) => {
             console.error("Prewarming model list failed:", error.message);
         });
 

@@ -106,7 +106,8 @@ async function fetchText(url) {
     return response.text();
 }
 
-// Výpisy modelů v paměti, aby se stejný seznam nestahoval pořád dokola
+// Výpisy modelů v paměti, aby se stejný seznam nestahoval pořád dokola.
+// Seznam se mění pomalu, takže delší doba znamená míň dotazů na Hugging Face.
 const LIST_CACHE_TTL_MS = 15 * 60 * 1000;
 
 // Při přeplnění se cache vyprázdní, ať paměť neroste
@@ -311,11 +312,6 @@ async function getModels({ tasks = DEFAULT_TASKS, limitPerTask = DEFAULT_MODELS_
     return taskResults.flat();
 }
 
-/** Načte kompletní seznam modelů z Hugging Face s live daty pro lokální filtraci na serveru. */
-async function getAllModels(limit = DEFAULT_SORT_LIMIT) {
-    return fetchListJson(buildSortedListUrl(SORT_PARAMS.downloads, limit));
-}
-
 /** Načte stránku modelů podle řazení, volitelně zúženou na úlohu. */
 async function getSortedModels(sort, limit = DEFAULT_SORT_LIMIT, task, paging = {}) {
     const page = await fetchListPage(buildSortedListUrl(SORT_PARAMS[sort], limit, task, paging));
@@ -380,7 +376,6 @@ module.exports = {
     getModel,
     getModelCard,
     getModels,
-    getAllModels,
     getSortedModels,
     getAuthorPageHtml,
     getAuthorAvatarUrl,
