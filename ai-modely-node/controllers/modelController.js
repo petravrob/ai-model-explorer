@@ -188,8 +188,8 @@ const getModels = async (req, res) => {
 
             const pageModels = models.slice(0, pageLimit);
 
-            // Další stránka se ukáže, jen když ji HF ohlašuje a něco se vrátilo
-            const hasMore = pageModels.length > 0 && pages.some((page) => page.hasMore);
+            // Jestli má HF další stránku, říká kurzor - prázdná stránka po validaci ještě neznamená konec
+            const hasMore = pages.some((page) => page.hasMore);
 
             // Kurzor na další stránku, u víc úloh se cursory rozcházejí, proto se nepoužije
             const nextCursor = tasks.length > 1 ? null : pages[0]?.nextCursor ?? null;
@@ -239,8 +239,8 @@ const getModels = async (req, res) => {
 
         const pageModels = models.slice(0, pageLimit);
 
-        // Další stránka se ukáže, jen když ji HF ohlašuje a něco se vrátilo
-        const hasMore = pageModels.length > 0 && hasMoreModels;
+        // Jestli má HF další stránku, říká kurzor
+        const hasMore = hasMoreModels;
 
         await ensureModelsStored(pageModels);
 

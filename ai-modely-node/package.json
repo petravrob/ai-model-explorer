@@ -9,7 +9,8 @@
         "import:models": "node scripts/importModels.js",
         "create:indexes": "node scripts/createIndexes.js",
         "generate:content": "node scripts/generateContent.js",
-        "prewarm:descriptions": "node scripts/prewarmDescriptions.js"
+        "prewarm:descriptions": "node scripts/prewarmDescriptions.js",
+        "prewarm:recent": "node scripts/prewarmDescriptions.js --updated-days=7 --sort=updated --all"
     },
     "author": "Petra Vrobelová",
     "license": "ISC",
