@@ -1,0 +1,80 @@
+# CI: při každém pushi a pull requestu ověří frontend (typy, build) a backend (syntaxi).
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# Kontroly kód pouze čtou, nic nezapisují.
+permissions:
+  contents: read
+
+# Novější push na stejné větvi zruší rozpracovaný běh.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Frontend: kontrola typů TypeScriptu a produkční build.
+  frontend:
+    name: Frontend - kontrola typů a build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Příkazy se spouští ve složce ai-modely.
+    defaults:
+      run:
+        working-directory: ai-modely
+
+    steps:
+      - name: Stažení repozitáře
+        uses: actions/checkout@v4
+
+      # Node.js 24 s npm cache zrychlí instalaci závislostí.
+      - name: Nastavení Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ai-modely/package-lock.json
+
+      - name: Instalace závislostí
+        run: npm ci
+
+      # Skript typecheck je definovaný v ai-modely/package.json.
+      - name: Kontrola typů (TypeScript)
+        run: npm run typecheck
+
+      - name: Produkční build
+        run: npm run build
+
+  # Backend: kontrola syntaxe všech .js souborů.
+  backend:
+    name: Backend - kontrola syntaxe JavaScriptu
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Příkazy se spouští ve složce ai-modely-node.
+    defaults:
+      run:
+        working-directory: ai-modely-node
+
+    steps:
+      - name: Stažení repozitáře
+        uses: actions/checkout@v4
+
+      # Node.js 24 s npm cache zrychlí instalaci závislostí.
+      - name: Nastavení Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ai-modely-node/package-lock.json
+
+      - name: Instalace závislostí
+        run: npm ci
+
+      # node --check ověří pouze syntaxi, nic nespouští.
+      - name: Syntaktická kontrola všech .js souborů
+        run: find . -name '*.js' -not -path './node_modules/*' -exec node --check {} \;
+
