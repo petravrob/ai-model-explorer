@@ -23,7 +23,8 @@ The main page: the search field in the header, the filter panel on the left (tas
 
 A model detail page: the header with the author avatar, the model name, the statistics, the modality badges, the best use-cases and the full Czech description alongside with the generated insight sections, next to the technical sidebar (task, input, parameters, context, version, library, licence, last update), the model's origin and variants, and the recommended deployment settings.
 
-
+> 💼 P.S. Currently looking for my next opportunity in software development.
+> If you like what you see, let's talk!
 
 ## Table of contents
 
