@@ -1,4 +1,4 @@
-# AI Model Explorer
+<a name="ai-model-explorer"><img src="docs/logo/ai-model-explorer-banner.svg" alt="AI model explorer - a web application for exploring AI models from Hugging Face" /></a>
 
 **A web application for exploring AI models from Hugging Face, featuring AI-generated Czech overviews that make it easier to discover and compare models.**
 

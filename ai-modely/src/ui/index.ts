@@ -16,6 +16,7 @@ export { default as FlowDiagram } from "./FlowDiagram/FlowDiagram";
 export { default as Form } from "./Form/Form";
 export { default as FormActions } from "./FormActions/FormActions";
 export { default as FormField } from "./FormField/FormField";
+export { default as HuggingFaceLogo } from "./HuggingFaceLogo/HuggingFaceLogo";
 export { default as Icon } from "./Icon/Icon";
 export { CLOSE_ICON, DOWNLOAD_ICON, FILTER_ICON, LIKE_ICON, MAGNIFIER_ICON, ROBOT_ICON, SORT_ICON, USER_ICON } from "./Icon/icons";
 export { default as LinkButton } from "./LinkButton/LinkButton";

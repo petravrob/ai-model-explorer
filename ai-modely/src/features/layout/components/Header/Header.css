@@ -104,6 +104,11 @@
     line-height: 1.3;
 }
 
+/* Logo Hugging Face v podtitulku - srovnané s textem */
+.header__subtitle-logo {
+    vertical-align: -.15em;
+}
+
 .header__main {
     display: flex;
     align-items: center;
