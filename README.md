@@ -1,65 +1,60 @@
 # AI Model Explorer
 
-**A Czech-language web application for exploring AI models from Hugging Face, with AI-generated Czech descriptions that make technical model information understandable to non-experts.**
+**A web application for exploring AI models from Hugging Face, featuring AI-generated Czech overviews that make it easier to discover and compare models.**
 
-Hugging Face hosts an enormous catalogue of models, but its model pages assume that the reader is comfortable with pipeline tags, parameter counts, quantization formats and benchmark tables. AI Model Explorer is built for Czech-speaking users who are curious about AI models but are not machine-learning engineers. It browses the Hugging Face catalogue, presents each model in Czech, and adds two layers of generated content: a readable description of what the model does and who it is for, and a structured set of insights extracted from the model's own documentation (capabilities, use cases, limitations, deployment frameworks, hardware requirements, variants, images and videos). The entire interface is in Czech.
-
-The project is a full-stack application, not a static catalogue: a React and TypeScript single-page app, an Express API, MongoDB for model data and generated content, and a database-backed background queue that calls an OpenAI-compatible LLM provider to produce the Czech text.
+Designed for everyone, from curious beginners without a machine-learning background to experienced users looking for technical details. It combines accessible explanations with insights into model capabilities, architecture, compatibility and deployment requirements.
 
 **[Open the live application →](https://ai-model-explorer.netlify.app/)**
 
-![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-5FA04E?logo=nodedotjs&logoColor=white)
-![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)
+The project is a full-stack application, not a static listing: a React and TypeScript single-page app, an Express API, MongoDB for model data and generated content, and a database-backed background queue that calls an OpenAI-compatible LLM provider to produce the Czech text.
 
-## Screenshots
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white) ![Node.js](https://img.shields.io/badge/Node.js-5FA04E?logo=nodedotjs&logoColor=white) ![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white) ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)
 
-Screenshots are not committed to the repository yet, so the README does not reference any image files. To finish this section, capture the application and save the files into a `docs/screenshots/` folder at the repository root, then reference them with relative paths such as `![Model catalogue](docs/screenshots/catalogue.png)`.
 
-| Screen | What to capture | Suggested file |
-| --- | --- | --- |
-| Model catalogue | The main page with the tab bar, the sorting menu, the filter panel and several model cards including Czech descriptions | `docs/screenshots/catalogue.png` |
-| Filtering and search | The filter panel with a few categories expanded, or a search query with its results | `docs/screenshots/filters.png` |
-| Model detail | A detail page with the Czech description, the generated insight sections and the technical sidebar | `docs/screenshots/model-detail.png` |
-| Mobile layout | The catalogue at phone width, with the collapsed search and the filter and sorting icons in the header | `docs/screenshots/mobile.png` |
+### Model browser
 
-Tip: the pull request descriptions of [#29](https://github.com/petravrob/ai-model-explorer/pull/29) and [#35](https://github.com/petravrob/ai-model-explorer/pull/35) already contain captures of the model catalogue and the detail page, taken before the most recent layout refinements.
+![The model browser with the search field in the header, the filter panel on the left, the tab bar above the results and model cards with Czech descriptions](docs/screenshots/home_page.png)
+
+The main page: the search field in the header, the filter panel on the left (task, language, library and further categories), the tab bar and the sorting menu above the results, and model cards with the Czech description preview, task tags, parameters, library, licence, languages, last update, downloads and likes.
+
+### Model detail
+
+![A model detail page with the Czech description, the generated insight sections and the technical sidebar](docs/screenshots/detail_page.png)
+
+A model detail page: the header with the author avatar, the model name, the statistics, the modality badges, the best use-cases and the full Czech description alongside with the generated insight sections, next to the technical sidebar (task, input, parameters, context, version, library, licence, last update), the model's origin and variants, and the recommended deployment settings.
+
+
+
+## Table of contents
+
+- [AI Model Explorer](#ai-model-explorer)
+  - [Model browser](#model-browser)
+  - [Model detail](#model-detail)
+- [Table of contents](#table-of-contents)
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Architecture](#architecture)
+- [Deployment](#deployment)
+- [Selected pull requests](#selected-pull-requests)
+- [Engineering Highlights](#engineering-highlights)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Testing and Quality](#testing-and-quality)
+- [Not implemented yet](#not-implemented-yet)
+- [Author](#author)
 
 ## Features
 
-### Browsing the Hugging Face catalogue
-
-- The catalogue is requested from the Hugging Face Hub API one page at a time, 24 models per page. A "Load more" button appends the next page, following the cursor that Hugging Face returns in its `Link` header.
-- Six tabs narrow the catalogue to a specific slice: **All**, **Recommended** (models with a licence, a library, a parameter count and at least one like), **New** (published in the last 60 days), **Trending** (positive Hugging Face trending score), **Local** (quantized formats such as GGUF, AWQ, GPTQ, ONNX, OpenVINO or MLX, or up to 1 billion parameters) and **Server** (above 13 billion parameters). Each tab reads a different sorted Hugging Face list, so the tabs do not repeat the same models.
-- Sorting by popularity, number of downloads, number of likes or creation date.
-- Filtering by task, language, library, licence, model size and author. Each category is a multi-select checkbox group, and the selected filters are written into the URL, so a filtered view can be shared or restored after visiting a model detail page.
-- Search across model name, author, task, Hugging Face identifier and tags. Matching ignores case and diacritics; when nothing matches exactly, Fuse.js returns the closest models and the interface says that the results are approximate.
-
-### Model cards and the model detail page
-
-- List cards show the author avatar, a preview of the Czech description (until it exists, a short sentence derived from the model's task and tags), task tags, parameters, library, licence, languages, last update, downloads and likes.
-- The detail page shows the full Czech description and the generated insight sections: highlights, best use cases, input and output modalities, context length, architecture, model family and variants, inference frameworks, recommended settings, hardware requirements, quantization formats and compatibility.
-- Images and videos extracted from the model documentation are shown in a gallery, and a "how the model works" flow diagram is drawn only when the documentation actually describes the processing path.
-- Every model links to its original Hugging Face page.
-
-### AI-generated Czech content
-
-- Descriptions are generated for the models that are actually being displayed. The client asks for descriptions in batches of up to eight missing models; the API immediately returns what is already stored and queues the rest.
-- While a description is still being generated, the card shows a skeleton that reserves the same amount of space as the finished text, so the list does not jump when the text arrives. If the text does not arrive after a bounded number of attempts, the card falls back to a short sentence derived from the model's task and tags instead of waiting indefinitely.
-- Generated text is stored in MongoDB, so each model is generated once and then served from the database.
-
-### Browsing experience
-
-- Returning from a model detail page restores the scroll position and the previously loaded number of models; changing the tab, the sorting or the filters deliberately starts the list from the top.
-- On desktop the filter panel is always visible. On narrower screens the filters and the sorting menu move into panels opened from the header icons, the search field collapses behind a magnifier button, and the tab bar hides while scrolling down.
-- Loading, empty and error states are handled explicitly: a logo animation while a list is loaded or refreshed, inline messages for errors and empty results, and a separate retry message when loading another page fails.
+- **AI-Generated Czech Descriptions** – Read Czech descriptions explaining each model's purpose and practical applications.
+- **Model Insights** – Explore use cases, capabilities, limitations and hardware requirements extracted from model documentation.
+- **Search and Filtering** – Search by model name, author or tags, filter by task, language, library, licence and model size, and sort results by popularity, downloads, likes or date.
+- **Six Model Views** – Browse All, Recommended, New, Trending, Local and Server models.
+- **Model Details** – View technical metadata, generated insights, supported modalities and available images or videos from model documentation.
+- **Pagination and Caching** – Load model data incrementally and cache results to reduce repeated requests and improve browsing performance.
 
 ## Tech stack
 
-| Area | Technologies |
+| Category | Stack |
 | --- | --- |
 | Frontend | React 18, TypeScript (strict mode), Vite, React Router 6, Fuse.js, plain CSS with global custom properties and one stylesheet per component |
 | Backend | Node.js, Express 4, Mongoose 7, CORS, dotenv |
@@ -68,89 +63,130 @@ Tip: the pull request descriptions of [#29](https://github.com/petravrob/ai-mode
 | Tooling and CI | npm, nodemon, GitHub Actions |
 | Deployment | Netlify for the frontend, Render for the API, a hosted MongoDB database |
 
-react-toastify is still a frontend dependency because its container is mounted in `App.tsx`, but the current application never raises a notification; the calls live in the archived authentication code.
-
 ## Architecture
 
 ```mermaid
 flowchart TB
-    subgraph Browser["Browser - React and TypeScript SPA"]
-        Catalogue["Model catalogue<br/>tabs, filters, search, sorting"]
-        Detail["Model detail<br/>description and insights"]
+    subgraph FE["🖥️ Frontend"]
+        UI("⚛️ React + 📘 TypeScript<br/>Model browsing · Search · Filters")
     end
 
-    subgraph Server["Express API - ai-modely-node"]
-        Api["REST endpoints<br/>/api/models"]
-        Worker["Background generation worker<br/>at most 4 concurrent jobs"]
+    subgraph BE["⚙️ Backend"]
+        API("🔌 Express REST API")
+        WORKER("🤖 Background Worker<br/>Async content generation")
     end
 
-    HF["Hugging Face Hub API<br/>model lists, model details, model cards, avatars"]
-    LLM["OpenAI-compatible LLM provider<br/>Czech descriptions and insights"]
-    DB[("MongoDB<br/>models, generationjobs")]
+    DB[("🗄️ MongoDB<br/>Models · Generation Jobs")]
+    HF("🤗 Hugging Face Hub<br/>Model data · Documentation")
+    LLM("✨ LLM Provider<br/>Czech descriptions · Insights")
 
-    Catalogue -->|page, filters, sort, tab| Api
-    Detail -->|model, descriptions, insights| Api
-    Api -->|model pages, details, avatars| HF
-    Api -->|stored models and generated content| DB
-    Api -->|new models, generation jobs| DB
-    Worker -->|job claims, generated content| DB
-    Worker -->|model card| HF
-    Worker -->|prompt| LLM
+    UI <--> API
+    API <--> DB
+    API <--> HF
+
+    WORKER <--> DB
+    WORKER --> HF
+    WORKER --> LLM
+
+    classDef frontend fill:#edf4ff,stroke:#8aa9d6,color:#243b5a,stroke-width:1.5px
+    classDef backend fill:#f2f0ff,stroke:#a49ad6,color:#39335f,stroke-width:1.5px
+    classDef storage fill:#edf7f0,stroke:#8eb99a,color:#285438,stroke-width:1.5px
+    classDef external fill:#f8f5ed,stroke:#c6b58a,color:#51452c,stroke-width:1.5px
+
+    class UI frontend
+    class API,WORKER backend
+    class DB storage
+    class HF,LLM external
+
+    style FE fill:#f8faff,stroke:#c4d3e8,color:#344b68
+    style BE fill:#faf9ff,stroke:#d0c9eb,color:#48416a
+
+    linkStyle default stroke:#929bad,stroke-width:1.5px
 ```
 
-**How model data enters the system.** The API never imports the whole Hugging Face catalogue. `GET /api/models` asks Hugging Face for one sorted page at a time (`sort`, `direction=-1`, `limit`, `pipeline_tag` when a task filter is active, and `expand[]` for the fields the app needs). When several tasks are selected, one page is fetched per task and the results are merged and re-sorted in memory. Language filtering cannot be pushed to Hugging Face, so with a language filter the API requests up to four times as many models (capped at 100 per request) and then narrows them down. The cursor from the `Link` header is passed to the client for the next page; `skip` is the fallback and is capped at Hugging Face's 3000-item limit.
+**Frontend:** The React and TypeScript frontend displays AI models and allows users to search, filter and explore their details. It communicates with the backend through the REST API.
 
-**Where model metadata and generated content are stored.** Every model that appears in a response is written to the `models` collection if it is not stored yet, and that write uses `$setOnInsert`, so refreshing a list can never overwrite an existing document. The generated description and insights are embedded subdocuments of the model document, which is why a model has to be stored before any text can be attached to it.
+**Backend:** The Express API fetches model data from Hugging Face and stores it in MongoDB. It also handles requests from the frontend and returns model information together with any generated descriptions and insights already available.
 
-**How the frontend requests and displays data.** The catalogue comes from `GET /api/models`, a single model from `GET /api/models/:modelId`, author avatars from `GET /api/models/avatar/:author`, and generated content from `POST /api/models/descriptions` (models currently on screen) and `POST /api/models/:modelId/insights` (the model that is open).
+**Background Worker:** When a model is missing a description or insights, the API adds a job to the MongoDB queue and returns without waiting for the AI response. The background worker processes these jobs, retrieves the necessary model documentation from Hugging Face and sends it to the LLM provider to generate Czech descriptions and insights.
 
-**How background generation is scheduled and processed.** No endpoint ever waits for the LLM. The two generation endpoints read whatever is already in MongoDB, enqueue the missing Hugging Face model identifiers into the `generationjobs` collection, and answer immediately. A worker inside the API process polls that collection every second, claims the highest-priority job whose `runAt` has passed, and processes at most four jobs at a time. The queue lives in the database, so it survives restarts and is shared by all server instances.
+**Database:** MongoDB stores model information, generated content and pending jobs. Once generated, descriptions and insights are saved and reused for future requests, avoiding unnecessary calls to LLM provider.
+## Deployment
 
-**How generated content is reused.** Because the result is stored in the model document, the next request for the same model is answered from MongoDB with no LLM call. The client polls a bounded number of times while a card shows its skeleton, so the text usually appears without a page reload. Content is regenerated only when its input changes: descriptions carry the prompt version that produced them, and insights carry a hash of the model card text they were derived from.
+Deployment is configured through the hosting dashboards.
 
-## Engineering highlights
+### Frontend — Netlify
 
-### A database-backed queue for AI generation
+**Live app:** [ai-model-explorer.netlify.app](https://ai-model-explorer.netlify.app/)
 
-Generation is the slowest and most failure-prone part of the system, so it is kept out of the request path. `GenerationJob` is a Mongoose model backed by the `generationjobs` collection. A unique index on `(type, modelId)` makes duplicate prevention work across instances and restarts, which a process-local `Set` could not do. Jobs are prioritised by request recency: the client re-requests the models it is displaying while they are loading, which refreshes their priority, so the text a visitor is actually waiting for is generated before older background work. Descriptions are processed in batches of six per LLM call (two for recently requested models, so the first cards fill in quickly), which keeps the number of provider requests low.
+- The `_redirects` file enables direct access to frontend routes such as `/model/<id>`, including after refreshing the page.
+- Netlify builds the frontend using its Git integration. The build also determines the application version displayed in the header.
+- `npm run build` generates the static files in `dist/`.
 
-### Failure handling, retries and recovery
+### Backend — Render
 
-Every failure path is classified instead of being retried blindly. Transient provider errors are retried inside the provider client; a daily quota exhaustion skips to the next provider and pauses the whole queue for 30 minutes instead of burning the retry budget of every waiting job; an HTTP 429 pauses the queue only for the delay the provider itself reports. A job that fails for a permanent reason (for example, the model is not in the database) is not retried at all, other failures are retried up to three times with a linearly increasing delay, and the last error is stored on the job so the failure can be inspected in the database. Jobs left in `processing` by a crashed process are returned to the queue after 30 minutes. This matters because generation volume is bounded by free provider quotas, where one badly handled error can waste a whole day's budget.
+**API:** [ai-modely-api.onrender.com](https://ai-modely-api.onrender.com)
 
-### Preserving generated content instead of regenerating it
+- The API uses the `PORT` environment variable and binds to `0.0.0.0`.
+- `GET /health` responds without querying MongoDB or Hugging Face and is used as a keep-alive endpoint. A cron-job.org job pings it every 10 minutes.
+- The free Render instance can sleep after inactivity, causing delays of tens of seconds on the first request. Keep-alive pings reduce these cold starts but cannot eliminate them entirely.
+- On startup, the API preloads the most popular model list into memory to reduce the initial loading time for visitors.
 
-Generated Czech text is expensive to produce, so the system treats it as data that must survive everything else. Listing a model again only inserts it if it is missing (`$setOnInsert`), and the import script writes model fields with `$set` without ever touching `description` or `insights`. Both kinds of content are additionally versioned by their input: `DESCRIPTION_VERSION` invalidates descriptions written with older instructions, and insights store a SHA-256 fingerprint of the documentation excerpt, so they are regenerated only when the model card actually changes. A prompt change therefore becomes a deliberate, reviewable action rather than a silent full regeneration.
+## Selected pull requests
 
-### Hugging Face integration with caching and cursor pagination
+Each of these is a merged pull request in the repository; the links point at the change and the discussion, not just at the resulting code.
 
-The backend depends on a single external API for everything, so repeated calls are avoided at several levels. List pages are cached in memory for 15 minutes with in-flight request de-duplication, so concurrent visitors share one Hugging Face request. Model cards are cached with an entry limit and their YAML front matter stripped, and failed card lookups are deliberately not cached. Author avatars are resolved through the dedicated Hugging Face avatar endpoint (which redirects to its CDN), cached with a longer time to live for hits than for misses, and also stored on the model documents. All Hugging Face requests share a 15-second timeout and retry with backoff when rate limited.
+- **[#46 - Optimized the AI model content generation](https://github.com/petravrob/ai-model-explorer/pull/45)** - moved generation out of the request path into a database-backed queue with priorities, duplicate prevention, retries, limit rate cooldowns and batch generation, and added the bulk generation scripts.
+- **[#36 - Improved the AI generation of text for model description](https://github.com/petravrob/ai-model-explorer/pull/35)** - reworked the prompt, introduced description versioning so older text can be regenerated, and replaced short summaries with longer descriptions shown in part on the card and in full on the detail page.
+- **[#30 - Added new option to filter models based on tabs](https://github.com/petravrob/ai-model-explorer/pull/29)** - added the tab bar and the backend support behind it, where each tab reads a different sorted Hugging Face list so the tabs do not show the same models.
+- **[#28 - Added AI generation to transform model README information and quickfixed the AI generation provider daily limit used](https://github.com/petravrob/ai-model-explorer/pull/26)** - introduced the structured insights extracted from the model documentation through a dedicated insights service and a multi-provider AI client with automatic fallback, and fixed how an exhausted daily limit at one provider is handled so it no longer blocks generation.
+- **[#26 - Updated Model Card Details](https://github.com/petravrob/ai-model-explorer/pull/25)** - reworked the model card and the list around a shared model card helper, so each card shows the model's task, parameters, library, licence, languages and last update next to its generated Czech description.
+- **[#23 - Added AI Models sorting dropdown](https://github.com/petravrob/ai-model-explorer/pull/22)** - added the sorting dropdown with popularity, downloads, likes and creation date, backed by the matching sort keys on the server and kept in the URL so the chosen order survives a return from a model detail page.
+- **[#21 - Fixed and improved search field, fuzzy search enabled](https://github.com/petravrob/ai-model-explorer/pull/20)** - reworked the search field and added fuzzy matching with Fuse.js, so a query without an exact match still returns the closest models and the interface says the results are approximate.
+- **[#19 - Displaying real AI model data from Hugging Face](https://github.com/petravrob/ai-model-explorer/pull/18)** - replaced the hard-coded seed data with real models pulled from the Hugging Face Hub, added the import script and the Hugging Face service, and updated the list and detail views to show the real data.
 
-### MongoDB schema and indexes
+## Engineering Highlights
 
-A single model document holds everything known about a model: identity, statistics, Hugging Face metadata, and the generated `description` and `insights` subdocuments. Eleven compound indexes cover the ways the catalogue is sorted and filtered (downloads, likes, trending score, publication date, last modification, and task, language, tag, library, licence and author combined with downloads), and one more index supports finding models whose description still has to be generated. Indexes are created by a script instead of on startup (`autoIndex: false`), so the server does not rebuild them on every deploy.
+### Background Generation Queue
+AI generation runs in the background without blocking API requests. Jobs are stored in MongoDB to prevent duplicates and survive server restarts. Recently requested models get higher priority, and descriptions are generated in batches to reduce the number of LLM requests.
 
-### Frontend data flow and interaction state
+### Error Handling and Provider Fallback
+Errors are handled based on their type. Temporary failures are retried, permanent failures are skipped, and the queue pauses when a provider reaches a rate limit or is out of service. Multiple LLM providers are supported, with automatic fallback when one becomes unavailable.
 
-The browsing state (search query, tab, sorting, filters) lives in the URL, which makes a filtered view shareable and restores it after a return from a detail page. Requests are guarded by an `AbortController` and a request identifier, so a slow response for an older filter selection cannot overwrite newer results, and filter changes are debounced by 400 ms so several checkbox clicks produce a single request. The last list for each combination of tab, sorting and filters is cached in memory, so returning from a detail page renders instantly and then refreshes silently in the background. Scroll position and the number of loaded models are kept in `sessionStorage` per history entry, and a detail page always opens at the top.
+### Data Storage and Caching
+Model data, descriptions and insights are stored in MongoDB. Generated content is preserved during data refreshes and regenerated only when the prompt version or source documentation changes. Hugging Face responses and frontend results are cached to reduce repeated requests and improve performance.
 
-### Multiple LLM providers with automatic fallback
+### Hugging Face Integration
+The API fetches models page by page using cursor pagination instead of loading the entire catalogue at once. Model cards and author avatars are cached, and requests use timeouts and retries to handle rate limits.
 
-The text generation client accepts up to five OpenAI-compatible providers, configured as `SUMMARY_API_URL`, `SUMMARY_API_URL_2` and so on. They are tried in order, so an exhausted free-tier quota at one provider does not stop the application. A provider is skipped immediately on quota exhaustion or configuration errors, but retried on transient failures, and an API key is inherited by later providers only when they point at the same host. The outcome is summarised back to the queue, which decides whether to pause for seconds or for half an hour.
+### Frontend State and Performance
+Search, sorting, tabs and filters are synchronized with the URL, allowing users to share and restore specific views. Debouncing, request cancellation and caching reduce unnecessary API calls, while session storage preserves the catalogue state when navigating between model details and the catalogue.
 
-## Getting started
+### Database Indexes
+MongoDB uses compound indexes to speed up model queries by combining fields used for sorting and filtering. This allows the API to retrieve matching models without scanning the entire collection.
 
-The repository contains two independent projects that each need their own dependencies and their own terminal session:
+## Getting Started
 
-- `ai-modely/` - the React and TypeScript frontend
-- `ai-modely-node/` - the Express API, MongoDB models, background queue and maintenance scripts
+The repository contains two independent projects. Install dependencies and run each one in a separate terminal:
+
+- `ai-modely/` — React and TypeScript frontend
+- `ai-modely-node/` — Express API, MongoDB models and background worker
+
+Steps in this chapter:
+
+- [Prerequisites](#prerequisites)
+- [1. Clone the repository](#1-clone-the-repository)
+- [2. Set up the backend](#2-set-up-the-backend)
+- [3. Set up the frontend](#3-set-up-the-frontend)
+- [4. Generate Czech descriptions and insights (optional)](#4-generate-czech-descriptions-and-insights-optional)
+- [5. Build the frontend](#5-build-the-frontend)
 
 ### Prerequisites
 
-- **Node.js 24 and npm.** The CI workflow builds and checks the project on Node.js 24, and the frontend type check and build documented below were verified on Node.js 24.19.0 with npm 11.17.0.
-- **A MongoDB database.** Either a hosted cluster or a local server. The connection string must include the database name, otherwise the data is written to the default `test` database.
-- **Optional: an OpenAI-compatible API key.** Without it the application still runs, but no Czech descriptions or insights are generated.
-- **Optional: a Hugging Face token.** Public model data works without one; a token only raises the API rate limits.
+- **Node.js 24 and npm**
+- **MongoDB** — a local server or hosted database
+- **LLM API key (optional)** — required to generate Czech descriptions and insights
+- **Hugging Face token (optional)** — increases API rate limits
 
 ### 1. Clone the repository
 
@@ -159,28 +195,37 @@ git clone https://github.com/petravrob/ai-model-explorer.git
 cd ai-model-explorer
 ```
 
-### 2. Backend (terminal 1)
+### 2. Set up the backend
+
+In terminal 1:
 
 ```bash
 cd ai-modely-node
 npm install
-cp .env.example .env     # on Windows: copy .env.example .env
+cp .env.example .env
 ```
 
-Fill in `MONGO_URI` and `JWT_SECRET` in the new `.env` file. The full list of variables is in the [environment variables](#environment-variables) section.
+On Windows, use `copy .env.example .env` instead.
+
+Open `.env` and set `MONGO_URI` and `JWT_SECRET`. Make sure `MONGO_URI` includes the database name.
+
+Initialize the database and start the API:
 
 ```bash
-npm run create:indexes   # creates the collections and their indexes (once, on a fresh database)
-npm run import:models    # fills the catalogue from Hugging Face
-npm run dev              # nodemon; npm start runs the server without reloading
+npm run create:indexes
+npm run import:models
+npm run dev
 ```
 
-- `npm run create:indexes` is required only once per database. The server starts with automatic index creation disabled, so indexes are never rebuilt during a deploy.
-- `npm run import:models` reads the most downloaded models for the tasks listed in `services/huggingFaceService.js` (40 per task by default) and resolves the avatar of every new author with a 200 ms pause between requests, so this is the slowest setup step. Optional flags: `--per-task=100`, `--task=text-to-image` (repeatable), `--id=<hugging-face-model-id>` (repeatable).
-- If no generation key is set, the server logs that text completion is disabled and the queue is not started; the catalogue still works, only the Czech descriptions and insights are missing.
-- The API listens on port 5000 by default and binds to `0.0.0.0`, which is what hosted environments expect.
+- `create:indexes` creates the required database indexes. Run it once per database.
+- `import:models` imports popular models from Hugging Face and also fetches author avatars.
+- `npm run dev` starts the API with automatic reloading. Use `npm start` to run it without reloading.
 
-### 3. Frontend (terminal 2)
+The API listens on port `5000` by default. See [Environment Variables](#environment-variables) for configuration options.
+
+### 3. Set up the frontend
+
+In terminal 2, from the repository root:
 
 ```bash
 cd ai-modely
@@ -188,129 +233,99 @@ npm install
 npm run dev
 ```
 
-Vite prints the local URL in the terminal. To point the frontend at the local API instead of the deployed one, create `ai-modely/.env` with:
+Vite prints the local URL in the terminal.
 
-```
+By default, the frontend uses the deployed API. To use your local backend, create `ai-modely/.env` with:
+
+```env
 VITE_API_URL=development
 ```
 
-Without that file the frontend calls the deployed API, so the frontend can be started on its own.
+### 4. Generate Czech descriptions and insights (optional)
 
-### 4. Generating Czech content (optional, long-running)
-
-The server generates descriptions and insights in the background as models are browsed. The same work can be prepared in advance, which makes the first visit faster:
+The application generates missing content in the background as users browse models. You can also generate content in advance:
 
 ```bash
 cd ai-modely-node
-npm run prewarm:descriptions -- --limit=100   # descriptions for the 100 most downloaded models
-npm run prewarm:recent                        # descriptions for models updated in the last 7 days
-npm run generate:content                      # all missing descriptions and insights, runs until the queue is empty
+
+npm run prewarm:descriptions -- --limit=100
+npm run prewarm:recent
+npm run generate:content
 ```
 
-`prewarm:descriptions` accepts `--limit=N`, `--all`, `--sort=downloads|likes|created|trending|updated`, `--updated-days=N`, `--from-api=<url>`, `--dry-run` and `--timeout=<minutes>`. With `--from-api` it selects exactly the models that the running application returns first.
+- `prewarm:descriptions` prepares descriptions for the 100 most downloaded models.
+- `prewarm:recent` prepares descriptions for models updated in the last seven days.
+- `generate:content` processes all missing descriptions and insights until the queue is empty.
 
-Two things are worth knowing before running these scripts:
+The scripts support additional options, including selecting specific models or tasks and limiting the number of models. Generation depends on the provider's available quota, unfinished jobs remain in the queue and can be processed later.
 
-- They write to the database in `MONGO_URI`, so check that `.env` points at the intended database before running them against a deployed environment.
-- Generation is bounded by the provider's daily quota. Both scripts report their progress and leave unfinished jobs in the queue, so a later run or the running server can finish them. Running them again is safe: content that is already current is skipped.
+**Before running these scripts, check that `MONGO_URI` points to the intended database.** They write directly to it. Running them again is safe because up-to-date content is skipped.
 
-### 5. Production build of the frontend
+### 5. Build the frontend
 
 ```bash
 cd ai-modely
-npm run build      # output in dist/
-npm run preview    # serves the built output locally
+npm run build
+npm run preview
 ```
 
-## Environment variables
+The production build is created in `dist/`. The preview command serves it locally.
 
-### Backend (`ai-modely-node/.env`)
+## Environment Variables
 
-`ai-modely-node/.env.example` lists these variables with explanations in Czech and is safe to commit; real values belong only in `ai-modely-node/.env`, which is git-ignored.
+### Backend — `ai-modely-node/.env`
 
-| Variable | Purpose | Required | Default or example |
-| --- | --- | --- | --- |
-| `MONGO_URI` | MongoDB connection string, including the database name (for example `mongodb+srv://<user>:<password>@<cluster>/ai-model-explorer`) | Yes | none - the server refuses to start without it |
-| `JWT_SECRET` | Secret used to sign authentication tokens. It is required by `config/env.js` even though the authentication code that uses it is currently archived | Yes | none - the server refuses to start without it |
-| `PORT` | Port the API listens on | No | `5000` |
-| `HUGGINGFACE_API_KEY` | Hugging Face token, which raises the API rate limits | No | empty; public model data is available without a token |
-| `SUMMARY_API_KEY`, `SUMMARY_API_KEY_2` … `_5` | API key of an OpenAI-compatible text generation provider | No | empty. Required for Czech descriptions and insights; `GROQ_API_KEY` is also accepted for the first provider |
-| `SUMMARY_API_URL`, `SUMMARY_API_URL_2` … `_5` | Base URL of the provider | No | `https://api.groq.com/openai/v1` |
-| `SUMMARY_MODEL`, `SUMMARY_MODEL_2` … `_5` | Model name at that provider | No | `openai/gpt-oss-120b` |
-| `SUMMARY_REASONING_EFFORT`, `…_2` … `_5` | `reasoning_effort` sent to reasoning models; providers that do not know the parameter must leave it unset | No | empty |
-| `GENERATION_CONCURRENCY` | How many generation jobs the worker processes at the same time | No | `4` |
+The `.env.example` file lists the available variables and includes example configurations. Keep actual secrets in `.env`, which is excluded from Git.
 
-The provider settings can be repeated up to five times (`_2`, `_3`, …) and are tried in order, so a fallback provider keeps the application running when one free tier runs out of quota. Any service with an OpenAI-compatible chat completions endpoint works, including Gemini, OpenRouter, Mistral or a local Ollama instance; the comments in `.env.example` list ready-to-use combinations.
+| Variable | Purpose | Required |
+| --- | --- | --- |
+| `MONGO_URI` | MongoDB connection string, including the database name | Yes |
+| `JWT_SECRET` | Secret required by the backend configuration | Yes |
+| `PORT` | API port; defaults to `5000` | No |
+| `HUGGINGFACE_API_KEY` | Hugging Face token for higher rate limits | No |
+| `SUMMARY_API_KEY` | API key for the LLM provider | For generation |
+| `SUMMARY_API_URL` | Provider's API URL | For generation |
+| `SUMMARY_MODEL` | Model name used by the provider | For generation |
+| `SUMMARY_REASONING_EFFORT` | Optional reasoning effort setting for supported models | No |
+| `GENERATION_CONCURRENCY` | Number of jobs processed simultaneously; defaults to `4` | No |
 
-### Frontend (`ai-modely/.env`)
+You can configure up to five providers using numbered variants such as `SUMMARY_API_KEY_2`, `SUMMARY_API_URL_2` and `SUMMARY_MODEL_2`. Providers are tried in order, allowing fallback when a provider reaches its quota or becomes unavailable.
 
-The frontend has no `.env.example` file, and `.env` is git-ignored.
+The API uses an OpenAI-compatible chat completions interface. Supported options include Groq, Gemini, OpenRouter, Mistral and local Ollama instances. `GROQ_API_KEY` is also accepted for the first provider.
 
-| Variable | Purpose | Required | Default or example |
-| --- | --- | --- | --- |
-| `VITE_API_URL` | Set to `development` to send requests to `http://localhost:5000` instead of the deployed API | No | unset; the frontend then uses `https://ai-modely-api.onrender.com` |
+Without an LLM API key, the catalogue still works, but Czech descriptions and insights are not generated.
 
-## Testing and quality
+### Frontend — `ai-modely/.env`
 
-There is no automated test suite in this repository: neither `package.json` defines a test script and there are no test files, so no test coverage is claimed here.
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `VITE_API_URL` | Set to `development` to use `http://localhost:5000` | Uses the deployed API |
 
-What does exist is continuous integration in [`.github/workflows/ci.yml`](.github/workflows/ci.yml), which runs on every push and pull request on Node.js 24:
+The frontend `.env` file is optional.
 
-| Job | Steps |
+## Testing and Quality
+
+The repository does not currently include an automated tests.
+
+The [CI workflow](.github/workflows/ci.yml) runs on every push and pull request using Node.js 24.
+
+| Project | Automated checks |
 | --- | --- |
-| Frontend (`ai-modely`) | `npm ci`, `npm run typecheck` (`tsc --noEmit`), `npm run build` |
-| Backend (`ai-modely-node`) | `npm ci`, `node --check` on every `.js` file outside `node_modules` |
+| Frontend | `npm ci`, TypeScript type check and production build |
+| Backend | `npm ci` and JavaScript syntax checks |
 
-The checks that can be run locally:
+You can run the frontend checks locally:
 
 ```bash
-# frontend
 cd ai-modely
-npm run typecheck   # TypeScript check with strict mode enabled
-npm run build       # production build
-npm run preview     # serve the build locally
-
-# backend
-cd ai-modely-node
-npm start           # or npm run dev
+npm run typecheck
+npm run build
 ```
 
-`npm run typecheck` and `npm run build` were run in `ai-modely` on Node.js 24.19.0 while writing this README and both completed without errors. The backend has no separate lint or type-check step; its only automated check is the syntax check in CI.
+To start the backend locally, use `npm run dev` or `npm start` from `ai-modely-node/`.
 
-## Deployment
+The frontend type check and production build were verified on Node.js 24.19.0 with npm 11.17.0. The backend does not currently have a separate linting or type-checking step.
 
-Deployment is configured in the hosting dashboards rather than in the repository - there is no Dockerfile, `netlify.toml` or `render.yaml` here. What the repository does contain is everything needed to make the two deployments work:
-
-**Frontend on Netlify** - [ai-model-explorer.netlify.app](https://ai-model-explorer.netlify.app/)
-
-- `ai-modely/public/_redirects` contains `/*  /index.html  200`, so deep links such as `/model/<id>` work when loaded or refreshed directly.
-- `vite.config.mjs` derives the application version shown in the header from the build environment: Netlify's `REVIEW_ID` for deploy previews, otherwise the branch number, and as a last resort the highest pull request number found in the commit subjects. The resolved value is injected as `__APP_VERSION__` and logged during the build, so the version is visible in the deploy log. This is why the frontend is built on Netlify with its git integration rather than from an exported bundle.
-- `npm run build` produces a static bundle in `dist/` (about 283 kB of JavaScript and 56 kB of CSS before gzip).
-
-**API on Render** - `https://ai-modely-api.onrender.com`, which is the default API address in `ai-modely/src/config.ts`.
-
-- The server binds to `0.0.0.0` and reads `PORT` from the environment.
-- `GET /health` answers immediately without querying MongoDB or Hugging Face, so it is cheap enough to be used as a keep-alive probe. According to the notes in `ai-modely/README.md`, it is pinged every 10 minutes by cron-job.org.
-- On the free Render tier the instance sleeps after a period of inactivity, so the first request after a pause can take tens of seconds. The keep-alive ping reduces how often that happens, but cold starts are still possible.
-- On startup the server also prewarms the most popular model list in memory, so the first visitor does not wait for Hugging Face.
-
-## Selected pull requests
-
-Each of these is a merged pull request in the repository; the links point at the change and the discussion, not just at the resulting code.
-
-- **[#45 - Optimized the AI model content generation](https://github.com/petravrob/ai-model-explorer/pull/45)** - moved generation out of the request path into a database-backed queue with priorities, duplicate prevention, retries, quota cooldowns and batch generation, and added the bulk generation scripts.
-- **[#38 - Updated the app to work with new and better database](https://github.com/petravrob/ai-model-explorer/pull/38)** - redesigned the MongoDB schema around a single `models` collection plus a separate `generationjobs` collection, added the indexes, made the import preserve generated content, and disabled automatic index creation on startup.
-- **[#26 - Added AI generation to transform model README information](https://github.com/petravrob/ai-model-explorer/pull/26)** - introduced the structured insights extracted from the model documentation and the multi-provider configuration with automatic fallback.
-- **[#35 - Improved the AI generation of text for model description](https://github.com/petravrob/ai-model-explorer/pull/35)** - reworked the prompt, introduced description versioning so older text can be regenerated, and replaced short summaries with longer descriptions shown in part on the card and in full on the detail page.
-- **[#24 - Improved the inefficient and long loading of AI models and its avatars](https://github.com/petravrob/ai-model-explorer/pull/24)** - moved avatar loading to the background with a generated placeholder, added request caching and cancellation of outdated responses, and extended the model mapper with the metadata the catalogue now sorts and filters by.
-- **[#29 - Added new option to filter models based on tabs](https://github.com/petravrob/ai-model-explorer/pull/29)** - added the tab bar and the backend support behind it, where each tab reads a different sorted Hugging Face list so the tabs do not show the same models.
-
-## Not implemented yet
-
-- **Automated tests.** There is no test runner, no test script and no test files in either project. This is the most obvious gap in the current setup.
-- **Benchmark results in the UI.** Insights already extract benchmark names and scores from the model documentation and store them in MongoDB, and the API returns them, but the detail page does not render them yet.
-- **User accounts.** Sign-up, login and the user profile are archived under `ai-modely/_archive/` and `ai-modely-node/_archive/` with step-by-step restore instructions in the accompanying `ARCHIVE.md` files. They are outside `src` and outside the running application, so nothing in the deployed app depends on them.
-- **Raw model card rendering.** The API exposes `GET /api/models/:modelId/card` and the frontend contains a `ModelReadme` component with a markdown renderer, but the detail page currently shows the generated Czech insights instead of the original README.
 
 ## Author
 
