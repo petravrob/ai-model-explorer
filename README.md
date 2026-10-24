@@ -1,4 +1,4 @@
-# AI Model Explorer
+<a name="ai-model-explorer"><img src="docs/logo/ai-model-explorer-banner.svg" alt="AI model explorer - a web application for exploring AI models from Hugging Face" /></a>
 
 **A web application for exploring AI models from Hugging Face, featuring AI-generated Czech overviews that make it easier to discover and compare models.**
 
@@ -23,7 +23,8 @@ The main page: the search field in the header, the filter panel on the left (tas
 
 A model detail page: the header with the author avatar, the model name, the statistics, the modality badges, the best use-cases and the full Czech description alongside with the generated insight sections, next to the technical sidebar (task, input, parameters, context, version, library, licence, last update), the model's origin and variants, and the recommended deployment settings.
 
-
+> 💼 P.S. Currently looking for my next opportunity in software development.
+> If you like what you see, let's talk!
 
 ## Table of contents
 

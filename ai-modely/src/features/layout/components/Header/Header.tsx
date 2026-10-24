@@ -7,6 +7,7 @@ import { APP_VERSION } from "@/config";
 import { ROUTE_PATHS, isSearchablePath } from "@/routes/paths";
 import {
     FILTER_ICON,
+    HuggingFaceLogo,
     Icon,
     LogoBadge,
     MAGNIFIER_ICON,
@@ -139,7 +140,7 @@ function Header() {
                         </span>
 
                         <span className="header__subtitle">
-                            Prohlížení AI modelů z Hugging Face
+                            Prohlížení AI modelů z <HuggingFaceLogo className="header__subtitle-logo" /> Hugging Face
                         </span>
                     </span>
                 </NavLink>

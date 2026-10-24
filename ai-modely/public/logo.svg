@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="AI model explorer">
+    <style>
+        .logo-breathe {
+            transform-box: fill-box;
+            transform-origin: center;
+            animation: logo-breathe 2.2s ease-in-out infinite;
+        }
+
+        @keyframes logo-breathe {
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .logo-breathe {
+                animation: none;
+            }
+        }
+    </style>
+
+    <g transform="translate(256 256)">
+        <g class="logo-breathe">
+            <rect x="-224" y="-224" width="448" height="448" rx="139" fill="#fff" />
+
+            <svg x="-170" y="-170" width="340" height="340" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4.5 13.7A4 4 0 0 1 8.5 9.7h7a4 4 0 0 1 4 4v2.5a4 4 0 0 1-4 4h-7a4 4 0 0 1-4-4zM12 5.8v3.9M13 4.8a1 1 0 1 1-2 0 1 1 0 0 1 2 0M9.7 13.4v1.9M14.3 13.4v1.9M9.8 16.9q2.2 1.9 4.4 0M2.7 14.3v2.8M21.3 14.3v2.8" />
+            </svg>
+        </g>
+    </g>
+</svg>
