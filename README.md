@@ -23,8 +23,6 @@ The main page: the search field in the header, the filter panel on the left (tas
 
 A model detail page: the header with the author avatar, the model name, the statistics, the modality badges, the best use-cases and the full Czech description alongside with the generated insight sections, next to the technical sidebar (task, input, parameters, context, version, library, licence, last update), the model's origin and variants, and the recommended deployment settings.
 
-> 💼 P.S. Currently looking for my next opportunity in software development.
-> If you like what you see, let's talk!
 
 ## Table of contents
 
@@ -44,9 +42,10 @@ A model detail page: the header with the author avatar, the model name, the stat
 - [Not implemented yet](#not-implemented-yet)
 - [Author](#author)
 
+
 ## Features
 
-- **AI-Generated Czech Descriptions** – Read Czech descriptions explaining each model's purpose and practical applications.
+- **AI-Generated Czech Descriptions based on Hugging Face documentation** – Read Czech descriptions explaining each model's purpose and practical applications.
 - **Model Insights** – Explore use cases, capabilities, limitations and hardware requirements extracted from model documentation.
 - **Search and Filtering** – Search by model name, author or tags, filter by task, language, library, licence and model size, and sort results by popularity, downloads, likes or date.
 - **Six Model Views** – Browse All, Recommended, New, Trending, Local and Server models.
@@ -173,14 +172,14 @@ The repository contains two independent projects. Install dependencies and run e
 - `ai-modely/` — React and TypeScript frontend
 - `ai-modely-node/` — Express API, MongoDB models and background worker
 
-Steps in this chapter:
 
-- [Prerequisites](#prerequisites)
-- [1. Clone the repository](#1-clone-the-repository)
-- [2. Set up the backend](#2-set-up-the-backend)
-- [3. Set up the frontend](#3-set-up-the-frontend)
-- [4. Generate Czech descriptions and insights (optional)](#4-generate-czech-descriptions-and-insights-optional)
-- [5. Build the frontend](#5-build-the-frontend)
+**Steps to reproduce:**
+1. [Prerequisites](#prerequisites)
+2. [Clone the repository](#1-clone-the-repository)
+3. [Set up the backend](#2-set-up-the-backend)
+4. [Set up the frontend](#3-set-up-the-frontend)
+5. [Generate Czech descriptions and insights (optional)](#4-generate-czech-descriptions-and-insights-optional)
+6. [Build the frontend](#5-build-the-frontend)
 
 ### Prerequisites
 
@@ -312,8 +311,8 @@ The [CI workflow](.github/workflows/ci.yml) runs on every push and pull request 
 
 | Project | Automated checks |
 | --- | --- |
-| Frontend | `npm ci`, TypeScript type check and production build |
-| Backend | `npm ci` and JavaScript syntax checks |
+| Frontend | `npm ci` TypeScript type check and production build |
+| Backend | `npm ci` JavaScript syntax checks |
 
 You can run the frontend checks locally:
 
@@ -332,3 +331,5 @@ The frontend type check and production build were verified on Node.js 24.19.0 wi
 
 **Petra Vrobelová** - [github.com/petravrob](https://github.com/petravrob)
 
+> 💼 **Currently looking for my next opportunity in software development.**
+> **If you like what you see, let's talk!**

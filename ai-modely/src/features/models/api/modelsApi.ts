@@ -57,7 +57,7 @@ export const getModels = async (
     params.set("offset", String(paging.offset ?? 0));
     params.set("limit", String(paging.limit ?? MODELS_PER_PAGE));
 
-    // Kurzor z předchozí odpovědi má přednost; server ho pošle jen u jednoho výpisu
+    // Kurzor z předchozí odpovědi má přednost, server ho pošle jen u jednoho výpisu
     if (paging.cursor) {
         params.set("cursor", paging.cursor);
     }
