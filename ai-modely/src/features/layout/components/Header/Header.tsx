@@ -136,60 +136,69 @@ function Header() {
                         <span className="header__title-row">
                             <span className="header__title">AI model explorer</span>
 
-                            <span className="header__version">Verze: {APP_VERSION}</span>
+                            {/* Na široké liště je verze vedle názvu, na menších šířkách je vpravo u ikon */}
+                            <span className="header__version header__version--title">Verze: {APP_VERSION}</span>
                         </span>
 
+                        {/* Podtitulek je rozdělený na dvě části - na telefonu je každá na vlastním řádku */}
                         <span className="header__subtitle">
-                            Prohlížení AI modelů z <HuggingFaceLogo className="header__subtitle-logo" /> Hugging Face
+                            <span className="header__subtitle-line">Prohlížení AI modelů</span>{" "}
+                            <span className="header__subtitle-line">
+                                z <HuggingFaceLogo className="header__subtitle-logo" /> Hugging Face
+                            </span>
                         </span>
                     </span>
                 </NavLink>
 
                 {/* Na telefonu jsou v liště i ikony filtru a řazení (jen nad výpisem modelů) */}
                 <div className="header__actions">
-                    {isModelBrowserPage && (
-                        <div className="header__quick-actions">
-                            <button
-                                type="button"
-                                className={`header__icon-button${isFilterOpen ? " header__icon-button--open" : ""}${isFilterActive ? " header__icon-button--active" : ""}`}
-                                aria-label={`${isFilterOpen ? "Skrýt filtry" : "Zobrazit filtry"}${
-                                    activeFilterCount > 0 ? ` (zvoleno ${activeFilterCount})` : ""
-                                }`}
-                                aria-expanded={isFilterOpen}
-                                aria-controls="model-filter-categories"
-                                onClick={requestModelBrowserFilterToggle}
-                            >
-                                <Icon path={FILTER_ICON} className="header__icon-button-icon" />
-                                {activeFilterCount > 0 && (
-                                    <span className="header__icon-button-badge" aria-hidden="true">
-                                        {activeFilterCount}
-                                    </span>
-                                )}
-                            </button>
+                    {/* Na menších šířkách je verze tady vpravo u ikon (na široké liště je vedle názvu) */}
+                    <span className="header__version header__version--actions">Verze: {APP_VERSION}</span>
 
-                            <button
-                                type="button"
-                                className={`header__icon-button${isSortOpen ? " header__icon-button--open" : ""}`}
-                                aria-label={isSortOpen ? "Skrýt řazení" : "Zobrazit řazení"}
-                                aria-expanded={isSortOpen}
-                                onClick={requestModelBrowserSortToggle}
-                            >
-                                <Icon path={SORT_ICON} className="header__icon-button-icon" />
-                            </button>
-                        </div>
-                    )}
+                    <div className="header__icon-row">
+                        {isModelBrowserPage && (
+                            <div className="header__quick-actions">
+                                <button
+                                    type="button"
+                                    className={`header__icon-button${isFilterOpen ? " header__icon-button--open" : ""}${isFilterActive ? " header__icon-button--active" : ""}`}
+                                    aria-label={`${isFilterOpen ? "Skrýt filtry" : "Zobrazit filtry"}${
+                                        activeFilterCount > 0 ? ` (zvoleno ${activeFilterCount})` : ""
+                                    }`}
+                                    aria-expanded={isFilterOpen}
+                                    aria-controls="model-filter-categories"
+                                    onClick={requestModelBrowserFilterToggle}
+                                >
+                                    <Icon path={FILTER_ICON} className="header__icon-button-icon" />
+                                    {activeFilterCount > 0 && (
+                                        <span className="header__icon-button-badge" aria-hidden="true">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
+                                </button>
 
-                    {/* Tlačítko s lupou se zobrazuje jen tam, kde je vyhledávání schované */}
-                    <button
-                        type="button"
-                        className="header__search-toggle"
-                        aria-label="Vyhledávání"
-                        aria-expanded={isSearchOpen}
-                        aria-controls="header-search"
-                        onClick={toggleSearch}
-                    >
-                        <Icon path={MAGNIFIER_ICON} className="header__search-toggle-icon" />
-                    </button>
+                                <button
+                                    type="button"
+                                    className={`header__icon-button${isSortOpen ? " header__icon-button--open" : ""}`}
+                                    aria-label={isSortOpen ? "Skrýt řazení" : "Zobrazit řazení"}
+                                    aria-expanded={isSortOpen}
+                                    onClick={requestModelBrowserSortToggle}
+                                >
+                                    <Icon path={SORT_ICON} className="header__icon-button-icon" />
+                                </button>
+                            </div>
+                        )}
+
+                        <button
+                            type="button"
+                            className="header__search-toggle"
+                            aria-label="Vyhledávání"
+                            aria-expanded={isSearchOpen}
+                            aria-controls="header-search"
+                            onClick={toggleSearch}
+                        >
+                            <Icon path={MAGNIFIER_ICON} className="header__search-toggle-icon" />
+                        </button>
+                    </div>
                 </div>
 
                 <div

@@ -97,6 +97,18 @@
     white-space: nowrap;
 }
 
+/* Verze v pravém horním rohu lišty - zobrazuje se na menších šířkách (telefon) */
+.header__version--actions {
+    display: none;
+}
+
+/* Ikony v liště */
+.header__icon-row {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+}
+
 /* Podtitulek */
 .header__subtitle {
     color: rgb(255 255 255 / 80%);
@@ -159,8 +171,25 @@
 
     .header__brand {
         flex: 1;
-        min-width: 0;
+        /* Název se nezalomí */
+        min-width: max-content;
         padding: 0;
+    }
+
+    /* Název aplikace je na menší šířce větší, aby se lépe četl */
+    .header__title {
+        font-size: 1.5rem;
+    }
+
+    /* Podtitulek je na telefonu větší */
+    .header__subtitle {
+        font-size: 1rem;
+        line-height: 1.35;
+    }
+
+    /* Na telefonu je podtitulek rozdělen do dvou řádků */
+    .header__subtitle-line {
+        display: block;
     }
 
     /* Rozbalené vyhledávání jde na samostatný řádek pod logem */
@@ -178,12 +207,22 @@
         max-width: none;
     }
 
-    /* Obal tlačítek vpravo vedle loga (filtr, řazení, lupa) */
+    /* Obal tlačítek vpravo vedle loga (odznak s verzí, filtr, řazení, lupa) */
     .header .header__actions {
         display: flex;
         align-items: center;
         gap: .45rem;
         flex-shrink: 0;
+    }
+
+    /* Verze se vedle názvu nevejde - na menších šířkách je vpravo u ikon */
+    .header__version--title {
+        display: none;
+    }
+
+    .header__version--actions {
+        display: inline-block;
+        font-size: .75rem;
     }
 
     /* Ikony filtru a řazení se ukazují jen nad výpisem modelů */
@@ -296,10 +335,11 @@
     }
 }
 
-/* Na telefonu je lišta nižší a název menší */
+/* Na telefonu je lišta nižší */
 @media (max-width: 600px) {
+    /* Menší odsazení, aby se větší název vlezl na jeden řádek */
     .header__container {
-        padding: .5rem .9rem .7rem;
+        padding: .5rem .75rem .7rem;
     }
 
     .header__brand {
@@ -311,18 +351,27 @@
         display: contents;
     }
 
+    /* Název je na telefonu menší než na tabletu */
     .header__title {
-        font-size: 1.1rem;
+        font-size: 1.25rem;
     }
 
-    /* Verze se na telefonu zmenší, aby se tam vešla */
-    .header__version {
-        font-size: .62rem;
+    /* Verze je na telefonu v pravém horním rohu nad ikonami (vedle nich se nevejde) */
+    .header .header__actions {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: .3rem;
+    }
+}
+
+/* Úzké telefony: menší název i podtitulek, aby se oba vešly na řádky */
+@media (max-width: 380px) {
+    .header__title {
+        font-size: 1.05rem;
     }
 
-    /* Podtitulek se na telefonu skryje, aby lišta nezabírala tolik místa */
     .header__subtitle {
-        display: none;
+        font-size: .95rem;
     }
 }
 

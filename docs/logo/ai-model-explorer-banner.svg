@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 290" width="1200" height="290" role="img" aria-label="AI model explorer">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 250" width="1200" height="250" role="img" aria-label="AI model explorer">
     <defs>
         <filter id="banner-mark-shadow" filterUnits="userSpaceOnUse" x="-250" y="-250" width="500" height="500">
             <feDropShadow dx="0" dy="5.94" stdDeviation="8.31" flood-color="#0a0e2a" flood-opacity="0.35" />
@@ -87,7 +87,7 @@
 
         .logo-spark {
             transform-box: view-box;
-            transform-origin: 140.4px 145px;
+            transform-origin: 105.8px 125px;
             animation: logo-spin 1.9s linear infinite;
         }
 
@@ -97,7 +97,7 @@
         }
 
         .logo-spark--narrow {
-            transform-origin: 125px 145px;
+            transform-origin: 125px 125px;
         }
 
         @keyframes logo-breathe {
@@ -133,9 +133,9 @@
     </style>
 
     <g class="layout-wide">
-        <rect width="1200" height="290" rx="14" fill="#3a3a87" />
+        <rect width="1200" height="250" rx="14" fill="#3a3a87" />
 
-        <g transform="translate(0 145) scale(1.5263158) translate(0 -95)">
+        <g transform="translate(0 125) scale(1.15) translate(0 -95)">
             <use href="#banner-mark" transform="translate(92 95)" />
 
             <text x="195" y="90" fill="#fff" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="38" font-weight="600" letter-spacing="-0.76">AI model explorer</text>
@@ -148,39 +148,39 @@
         </g>
 
         <g class="logo-spark">
-            <circle cx="140.4" cy="57.3" r="20.3" fill="url(#banner-spark-glow)" />
-            <circle cx="140.4" cy="57.3" r="8.7" fill="#818cf8" />
+            <circle cx="105.8" cy="58.9" r="15.3" fill="url(#banner-spark-glow)" />
+            <circle cx="105.8" cy="58.9" r="6.6" fill="#818cf8" />
         </g>
 
         <g class="logo-spark logo-spark--slow" transform="rotate(180)">
-            <circle cx="140.4" cy="57.3" r="20.3" fill="url(#banner-spark-glow-soft)" />
-            <circle cx="140.4" cy="57.3" r="8.7" fill="#a78bfa" />
+            <circle cx="105.8" cy="58.9" r="15.3" fill="url(#banner-spark-glow-soft)" />
+            <circle cx="105.8" cy="58.9" r="6.6" fill="#a78bfa" />
         </g>
     </g>
 
     <g class="layout-narrow">
-        <rect width="1200" height="290" rx="34" fill="#3a3a87" />
+        <rect width="1200" height="250" rx="34" fill="#3a3a87" />
 
-        <use href="#banner-mark" transform="translate(125 145) scale(1.42)" />
+        <use href="#banner-mark" transform="translate(125 125) scale(1.42)" />
 
-        <text x="232" y="102" fill="#fff" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="96" font-weight="600" letter-spacing="-1.92">AI model explorer</text>
+        <text x="232" y="86.6" fill="#fff" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="88" font-weight="600" letter-spacing="-1.76">AI model explorer</text>
 
-        <text x="232" y="176" fill="#fff" fill-opacity="0.82" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="66" font-weight="400">Prohlížení AI modelů</text>
+        <text x="232" y="153.3" fill="#fff" fill-opacity="0.82" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="60" font-weight="400">Prohlížení AI modelů</text>
 
-        <text x="232" y="243" fill="#fff" fill-opacity="0.82" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="66" font-weight="400">z</text>
+        <text x="232" y="214.1" fill="#fff" fill-opacity="0.82" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="60" font-weight="400">z</text>
 
-        <use href="#banner-hf" transform="translate(300 189.5) scale(2.7447) translate(-442 -101.5)" />
+        <use href="#banner-hf" transform="translate(294 168.9) scale(2.246) translate(-442 -101.5)" />
 
-        <text x="395" y="243" fill="#fff" fill-opacity="0.82" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="66" font-weight="400">Hugging Face</text>
+        <text x="374.7" y="214.1" fill="#fff" fill-opacity="0.82" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="60" font-weight="400">Hugging Face</text>
 
         <g class="logo-spark logo-spark--narrow">
-            <circle cx="125" cy="63.4" r="18.9" fill="url(#banner-spark-glow)" />
-            <circle cx="125" cy="63.4" r="8.1" fill="#818cf8" />
+            <circle cx="125" cy="43.4" r="18.9" fill="url(#banner-spark-glow)" />
+            <circle cx="125" cy="43.4" r="8.1" fill="#818cf8" />
         </g>
 
         <g class="logo-spark logo-spark--narrow logo-spark--slow" transform="rotate(180)">
-            <circle cx="125" cy="63.4" r="18.9" fill="url(#banner-spark-glow-soft)" />
-            <circle cx="125" cy="63.4" r="8.1" fill="#a78bfa" />
+            <circle cx="125" cy="43.4" r="18.9" fill="url(#banner-spark-glow-soft)" />
+            <circle cx="125" cy="43.4" r="8.1" fill="#a78bfa" />
         </g>
     </g>
 
