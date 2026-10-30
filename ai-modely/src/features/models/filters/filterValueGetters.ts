@@ -1,4 +1,5 @@
 import type { AIModel } from "../types";
+import { LIBRARY_FILTER_OPTIONS } from "./filterOptions";
 
 /**
  * Vytvoří čtení hodnot kategorie z vlastnosti modelu.
@@ -22,6 +23,19 @@ export const fromModelField =
 
         return [];
     };
+
+/** Tagy knihoven modelu (Hugging Face podle nich filtruje). */
+const LIBRARY_VALUES: string[] = LIBRARY_FILTER_OPTIONS.map((option) => option.value);
+
+/**
+ * Převede knihovnu modelu na hodnoty filtru (např. "pytorch" nebo "transformers")
+ */
+export const fromLibrary = (model: AIModel): string[] => {
+    const library = fromModelField("library")(model);
+    const libraryTags = (model.tags ?? []).filter((tag) => LIBRARY_VALUES.includes(tag));
+
+    return [...new Set([...library, ...libraryTags])];
+};
 
 /** Převede počet parametrů modelu na rozsah používaný filtrem. */
 export const fromParameterCount = (model: AIModel): string[] => {

@@ -52,29 +52,45 @@ const readPageParam = (value, fallback, min, max) => {
         : fallback;
 };
 
-/** Načte stránku modelů z Hugging Face a zúží ji podle úloh a jazyků. */
-const getFilteredModelsFromHuggingFace = async (tasks, languages, limit, paging) => {
-    // S vybranými úlohami se Hugging Face dotáže přímo na ně přes pipeline_tag,
-    // jinak by se nad filtrem s malým množstvím modelů nenašlo nic (překlad, shrnutí).
-    const pages = tasks.length > 0
-        // Každá vybraná úloha se stáhne zvlášť a výsledky se sloučí
-        ? await Promise.all(
-            tasks.map((task) => getSortedModels("downloads", limit, task, paging))
-        )
-        : [await getSortedModels("downloads", limit, undefined, paging)];
+// Kolik kombinací zvolených filtrů se maximálně pošle na Hugging Face. Hodnoty v každé
+// kategorii se načítají zvlášť, takže při velkém výběru by požadavků rychle přibývalo.
+const MAX_FILTER_QUERIES = 12;
 
-    const models = mapRawModels(pages.flatMap((page) => page.models));
+/**
+ * Vytvoří kombinace zvolených hodnot filtrů pro dotazy na Hugging Face.
+ * Prázdná kategorie výpis neomezuje, proto má prázdnou hodnotu.
+ */
+const buildFilterQueries = ({ libraries, licenses, authors, parameterRanges }) => {
 
-    return {
-        // Jazyk se dofiltruje až tady - Hugging Face podle něj filtrovat neumí
-        models: languages.length > 0
-            ? models.filter((model) =>
-                model.languages.some((language) => languages.includes(language))
-            )
-            : models,
-        hasMore: pages.some((page) => page.hasMore),
-    };
+    const dimensions = [libraries, licenses, authors, parameterRanges].map(
+        (values) => values.length > 0 ? values : [null]
+    );
+
+    const combinations = dimensions.reduce(
+        (queries, values) => queries.flatMap((query) => values.map((value) => [...query, value])),
+        [[]]
+    );
+
+    return combinations.slice(0, MAX_FILTER_QUERIES).map(
+        ([library, license, author, parameters]) => ({ library, license, author, parameters })
+    );
 };
+
+/**
+ * Načte modely z Hugging Face pro všechny kombinace zvolených filtrů.
+ */
+const fetchModelPages = (queries, sort, limit, paging) =>
+    Promise.all(
+        queries.map(({ task, ...filters }) => getSortedModels(sort, limit, task, paging, filters))
+    );
+
+/** Vyfiltruje modely podle jazyků (Hugging Face podle nich filtrovat neumí). */
+const filterByLanguages = (models, languages) =>
+    languages.length > 0
+        ? models.filter((model) =>
+            model.languages.some((language) => languages.includes(language))
+        )
+        : models;
 
 /** Načte model živě z Hugging Face a převede ho na tvar AIModel (když neexistuje, vrátí null). */
 const getHuggingFaceModel = async (modelId) => {
@@ -120,6 +136,21 @@ const getModels = async (req, res) => {
         const tasks = toArrayParam(req.query.tasks);
         const languages = toArrayParam(req.query.languages);
 
+        // Filtrování Hugging Face
+        const libraries = toArrayParam(req.query.library);
+        const licenses = toArrayParam(req.query.license);
+        const authors = toArrayParam(req.query.author);
+        const parameterRanges = toArrayParam(req.query.parameters);
+
+        // Hodnoty filtrů se mají spojit (např. dvě knihovny), ale Hugging Face
+        // umí v jednom dotazu jen průnik, proto se každá kombinace načítá zvlášť
+        const filterQueries = buildFilterQueries({ libraries, licenses, authors, parameterRanges });
+
+        // Bez zvolené úlohy vstupuje do kombinace prázdná hodnota, ta výpis nijak neomezí
+        const queries = (tasks.length > 0 ? tasks : [null]).flatMap((task) =>
+            filterQueries.map((filters) => ({ task, ...filters }))
+        );
+
         if (sort && !SORT_PARAMS[sort]) {
             return res.status(400).json({
                 status: "error",
@@ -146,41 +177,34 @@ const getModels = async (req, res) => {
             ? Math.min(pageLimit * LANGUAGE_FILTER_OVERFETCH, MAX_PAGE_SIZE)
             : pageLimit;
 
-        // Řazený výpis se načte z Hugging Face, filtry se zachovají nad výslednými modely.
+        // Řazený výpis se načte z Hugging Face, zvolené řazení se použije nad sloučenými výsledky.
         if (sort) {
             // Štítek určuje, ze kterého výpisu se vybírá, řazení se použije až nad nimi
             const poolSort = TAB_SORT_KEYS[tab] ?? sort;
 
-            // Kurzor platí pro jeden výpis, s víc úlohami se stránkuje přeskočením
-            const paging = { skip: pageOffset, cursor: tasks.length > 1 ? null : cursor };
+            // Kurzor platí pro jeden výpis, s víc kombinacemi filtrů se stránkuje přeskočením
+            const paging = { skip: pageOffset, cursor: queries.length > 1 ? null : cursor };
 
             // HF vrátí rovnou požadovanou stránku, nic se nedotahuje navíc
-            const pages = tasks.length > 0
-                ? await Promise.all(
-                    tasks.map((task) => getSortedModels(poolSort, fetchLimit, task, paging))
-                )
-                : [await getSortedModels(poolSort, fetchLimit, undefined, paging)];
+            const pages = await fetchModelPages(queries, poolSort, fetchLimit, paging);
 
-            // Sloučené výpisy jednotlivých úloh se znovu seřadí podle zvoleného klíče,
-            // aby pořadí odpovídalo řazení a ne tomu, v jakém pořadí se úlohy načetly
-            let models = sortMergedModels(
-                mapRawModels(pages.flatMap((page) => page.models).filter(Boolean)),
-                sort
+            // Sloučené výpisy jednotlivých kombinací se znovu seřadí podle zvoleného klíče,
+            // aby pořadí odpovídalo řazení a ne tomu, v jakém pořadí se kombinace načetly
+            const models = filterByLanguages(
+                sortMergedModels(
+                    mapRawModels(pages.flatMap((page) => page.models).filter(Boolean)),
+                    sort
+                ),
+                languages
             );
-
-            if (languages.length > 0) {
-                models = models.filter((model) =>
-                    model.languages.some((language) => languages.includes(language))
-                );
-            }
 
             const pageModels = models.slice(0, pageLimit);
 
             // Jestli má HF další stránku, říká kurzor - prázdná stránka po validaci ještě neznamená konec
             const hasMore = pages.some((page) => page.hasMore);
 
-            // Kurzor na další stránku, u víc úloh se cursory rozcházejí, proto se nepoužije
-            const nextCursor = tasks.length > 1 ? null : pages[0]?.nextCursor ?? null;
+            // Kurzor na další stránku, u víc kombinací se cursory rozcházejí, proto se nepoužije
+            const nextCursor = queries.length > 1 ? null : pages[0]?.nextCursor ?? null;
 
             // Avatary se k výpisu nedotahují - klient si je načte zvlášť na pozadí,
             // aby stahování stránek autorů nezdržovalo zobrazení modelů.
@@ -197,10 +221,11 @@ const getModels = async (req, res) => {
             });
         }
 
-        // Bez filtrů se vrací importované modely z databáze, s filtry se načtou živě z Hugging Face.
-        const fromDatabase = tasks.length === 0 && languages.length === 0;
+        // Bez zvolených filtrů se vrací importované modely z databáze, s filtry se načtou živě z Hugging Face.
+        const hasSelectedFilters = [tasks, languages, libraries, licenses, authors, parameterRanges]
+            .some((values) => values.length > 0);
 
-        if (fromDatabase) {
+        if (!hasSelectedFilters) {
             // Z databáze se stránkuje přímo dotazem (o jeden model víc kvůli zjištění další stránky)
             const models = await AIModel.find({}, { insights: 0 })
                 .sort({ downloads: -1 })
@@ -218,17 +243,17 @@ const getModels = async (req, res) => {
             });
         }
 
-        const { models, hasMore: hasMoreModels } = await getFilteredModelsFromHuggingFace(
-            tasks,
-            languages,
-            fetchLimit,
-            { skip: pageOffset }
+        const pages = await fetchModelPages(queries, "downloads", fetchLimit, { skip: pageOffset });
+
+        const models = filterByLanguages(
+            mapRawModels(pages.flatMap((page) => page.models)),
+            languages
         );
 
         const pageModels = models.slice(0, pageLimit);
 
         // Jestli má HF další stránku, říká kurzor
-        const hasMore = hasMoreModels;
+        const hasMore = pages.some((page) => page.hasMore);
 
         await ensureModelsStored(pageModels);
 
