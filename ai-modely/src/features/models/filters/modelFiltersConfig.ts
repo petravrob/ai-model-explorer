@@ -7,7 +7,7 @@ import {
     LIBRARY_FILTER_OPTIONS,
     LICENSE_FILTER_OPTIONS,
 } from "./filterOptions";
-import { fromModelField, fromParameterCount } from "./filterValueGetters";
+import { fromLibrary, fromModelField, fromParameterCount } from "./filterValueGetters";
 
 /**
  * Konfigurace kategorií filtrů v levém panelu.
@@ -38,7 +38,7 @@ export const MODEL_FILTERS_CONFIG = [
         icon: "M4 19.5V6a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 1.5zM8 4v16M20 17H6",
         visibleValues: 8,
         options: LIBRARY_FILTER_OPTIONS,
-        getValues: fromModelField("library"),
+        getValues: fromLibrary,
     },
     {
         key: "license",

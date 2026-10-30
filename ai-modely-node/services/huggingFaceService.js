@@ -38,6 +38,16 @@ const TAB_SORT_KEYS = {
     server: "downloads",
 };
 
+// Rozsahy velikosti modelu pro filtry.
+const PARAMETER_RANGES = {
+    "0-1B": { min: 0, max: 1_000_000_000 },
+    "1-7B": { min: 1_000_000_000, max: 7_000_000_000 },
+    "7-13B": { min: 7_000_000_000, max: 13_000_000_000 },
+    "13-30B": { min: 13_000_000_000, max: 30_000_000_000 },
+    "30-70B": { min: 30_000_000_000, max: 70_000_000_000 },
+    "70B+": { min: 70_000_000_000, max: null },
+};
+
 // Kolik modelů se načte pro seřazený výpis
 const DEFAULT_SORT_LIMIT = 100;
 
@@ -275,8 +285,8 @@ function buildListUrl(task, limitPerTask) {
     return url.toString();
 }
 
-/** Sestaví adresu výpisu modelů seřazeného podle klíče, volitelně zúženého na úlohu. */
-function buildSortedListUrl(sortParam, limit, task, paging = {}) {
+/** Sestaví adresu výpisu modelů seřazeného podle klíče, volitelně zúženého na úlohu a filtry. */
+function buildSortedListUrl(sortParam, limit, task, paging = {}, filters = {}) {
     const url = new URL(HF_MODELS_API_URL);
 
     url.searchParams.set("sort", sortParam);
@@ -293,6 +303,37 @@ function buildSortedListUrl(sortParam, limit, task, paging = {}) {
     // Úloha se předá přímo Hugging Face, jinak by se u méně častých úloh nic nenašlo
     if (task) {
         url.searchParams.set("pipeline_tag", task);
+    }
+
+    // Filtry se předají přímo Hugging Face, aby se vybíralo ze všech modelů (ne pouze z databáze).
+    // Knihovna a licence jsou na Hugging Face tagy, podle kterých umí filtrovat.
+    if (filters.library) {
+        url.searchParams.append("filter", filters.library);
+    }
+
+    if (filters.license) {
+        url.searchParams.append("filter", `license:${filters.license}`);
+    }
+
+    // Autor a velikost modelu mají vlastní parametry dotazu
+    if (filters.author) {
+        url.searchParams.set("author", filters.author);
+    }
+
+    // Rozsah velikosti modelu se zjistí z hodnoty filtru, neznámý rozsah se přeskočí
+    const parameters = Object.hasOwn(PARAMETER_RANGES, filters.parameters)
+        ? PARAMETER_RANGES[filters.parameters]
+        : null;
+
+    if (parameters) {
+        const bounds = [`min:${parameters.min}`];
+
+        // U rozsahu (např. "70B+"") se posílá jen spodní hranice
+        if (parameters.max !== null) {
+            bounds.push(`max:${parameters.max}`);
+        }
+
+        url.searchParams.set("num_parameters", bounds.join(","));
     }
 
     for (const field of EXPAND_FIELDS) {
@@ -312,9 +353,9 @@ async function getModels({ tasks = DEFAULT_TASKS, limitPerTask = DEFAULT_MODELS_
     return taskResults.flat();
 }
 
-/** Načte stránku modelů podle řazení, volitelně zúženou na úlohu. */
-async function getSortedModels(sort, limit = DEFAULT_SORT_LIMIT, task, paging = {}) {
-    const page = await fetchListPage(buildSortedListUrl(SORT_PARAMS[sort], limit, task, paging));
+/** Načte stránku modelů podle řazení, volitelně zúženou na úlohu a filtry. */
+async function getSortedModels(sort, limit = DEFAULT_SORT_LIMIT, task, paging = {}, filters = {}) {
+    const page = await fetchListPage(buildSortedListUrl(SORT_PARAMS[sort], limit, task, paging, filters));
 
     return {
         models: Array.isArray(page.data) ? page.data : [],
