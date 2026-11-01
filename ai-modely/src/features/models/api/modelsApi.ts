@@ -10,6 +10,8 @@ export interface ModelsPage {
     models: AIModel[];
     hasMore: boolean;
     nextCursor: string | null;
+    // Pozice, odkud server naváže další stránkou (u jazykového filtru se liší od počtu vrácených modelů)
+    nextOffset: number;
 }
 
 /** Odkud stránku načíst - navázáním na kurzor, nebo od zadané pozice. */
@@ -75,10 +77,14 @@ export const getModels = async (
         "Nepodařilo se načíst modely."
     );
 
+    const models = data.data as AIModel[];
+
     return {
-        models: data.data as AIModel[],
+        models,
         hasMore: data.meta?.hasMore === true,
         nextCursor: typeof data.meta?.nextCursor === "string" ? data.meta.nextCursor : null,
+        // Bez pozice od serveru se naváže počtem vrácených modelů
+        nextOffset: typeof data.meta?.nextOffset === "number" ? data.meta.nextOffset : (paging.offset ?? 0) + models.length,
     };
 };
 

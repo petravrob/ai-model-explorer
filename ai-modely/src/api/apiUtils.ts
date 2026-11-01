@@ -11,6 +11,8 @@ export default interface ApiResponse<T> {
         hasMore?: boolean;
         // Kurzor, kterým se naváže na další stránku výpisu
         nextCursor?: string | null;
+        // Pozice, odkud server naváže další stránkou (u jazykového filtru se liší od počtu vrácených modelů)
+        nextOffset?: number;
         [key: string]: unknown;
     };
     errors?: ApiError[];
