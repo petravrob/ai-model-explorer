@@ -32,20 +32,24 @@
         left: 0;
         z-index: 20;
         display: flex;
-        padding: .75rem 1.75rem calc(.75rem + env(safe-area-inset-bottom, 0px));
+        /* Tlačítko vyplňuje celou lištu, proto odsazení lišty drží ono */
+        padding: 0;
         background: var(--header-surface);
         box-shadow:
             inset 0 1px 0 rgb(255 255 255 / 13%),
             0 -2px 10px rgba(15, 23, 42, .21);
     }
 
-    /* Na tmavé liště má tlačítko bílé ohraničení a bílý text, podklad zůstává tmavý */
+    /* Na tmavé liště má tlačítko bílý text a tmavý podklad */
     .model-detail-page__toolbar .btn {
         width: 100%;
-        border: 1px solid var(--on-primary);
+        padding: .55rem 1rem calc(.55rem + env(safe-area-inset-bottom, 0px));
+        border: none;
+        border-radius: 0;
         background: transparent;
         color: var(--on-primary);
         font-weight: 600;
+        line-height: 1.2;
     }
 
     /* Při najetí se tlačítko vyplní bíle a text ztmavne */
@@ -54,9 +58,10 @@
         color: var(--header-bg);
     }
 
+    /* Zvýraznění pro klávesnici drží uvnitř lišty, na krajích obrazovky by se ořezávalo */
     .model-detail-page__toolbar .btn:focus-visible {
         outline: 2px solid var(--on-primary);
-        outline-offset: 2px;
+        outline-offset: -2px;
     }
 
     /* Lišta nesmí zakrývat konec textu - stránka si přidá místo na její výšku
@@ -77,12 +82,5 @@
 
     .model-detail-page .model-detail {
         margin-top: 1rem;
-    }
-}
-
-@media (max-width: 600px) {
-    /* Na užších telefonech drží tlačítko zpět menší okraje */
-    .model-detail-page__toolbar {
-        padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom, 0px));
     }
 }
