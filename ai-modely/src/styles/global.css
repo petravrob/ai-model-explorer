@@ -13,6 +13,11 @@
   /* Podklad horní lišty */
   --header-bg: #3a3a87;
   --header-bg-deep: #2d2c6a;
+  /* Podklad horní lišty a lišty s tlačítkem zpět na detailu modelu */
+  --header-surface:
+    radial-gradient(38rem 14rem at 14% -70%, rgb(129 140 248 / 24%) 0, rgb(129 140 248 / 0%) 72%),
+    radial-gradient(34rem 13rem at 94% 160%, rgb(167 139 250 / 19%) 0, rgb(167 139 250 / 0%) 74%),
+    linear-gradient(180deg, var(--header-bg) 0, var(--header-bg-deep) 100%);
   --danger: #b91c1c;
   --danger-light: #fef2f2;
   /* Plochy (podklad prohlížeče, barva pozadí filtrů, barva pozadí karet)*/

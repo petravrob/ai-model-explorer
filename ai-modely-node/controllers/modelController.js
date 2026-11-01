@@ -32,6 +32,14 @@ const SORT_COMPARATORS = {
 const sortMergedModels = (models, sort) =>
     [...models].sort(SORT_COMPARATORS[sort] ?? SORT_COMPARATORS.downloads);
 
+/* Řazení modelů v databázi */
+const STORED_SORTS = {
+    popularity: { trendingScore: -1, downloads: -1 },
+    downloads: { downloads: -1 },
+    likes: { likes: -1 },
+    created: { publishedAt: -1 },
+};
+
 /** Převede opakovatelný parametr dotazu na pole hodnot (např. „?tasks=a&tasks=b“). */
 const toArrayParam = (param) => {
 
@@ -209,6 +217,29 @@ const withStoredDescriptions = async (models) => {
     );
 };
 
+/**
+ * Načte stránku modelů uložených v databázi (naplněno importem).
+ */
+const fetchStoredPage = async (poolSort, sort, pageLimit, pageOffset) => {
+
+    // Z databáze se stránkuje přímo dotazem (o jeden model víc kvůli zjištění další stránky)
+    const pool = await AIModel.find({}, { insights: 0 })
+        .sort(STORED_SORTS[poolSort] ?? STORED_SORTS.downloads)
+        .skip(pageOffset)
+        .limit(pageLimit + 1)
+        .lean();
+
+    const pageModels = pool.slice(0, pageLimit);
+
+    return {
+        models: sortMergedModels(pageModels, sort),
+        hasMore: pool.length > pageLimit,
+        // U databáze se stránkuje pozicí, kurzor k ní nepatří
+        nextCursor: null,
+        nextOffset: pageOffset + pageModels.length,
+    };
+};
+
 const getModels = async (req, res) => {
     try {
         const { sort, tab } = req.query;
@@ -251,7 +282,24 @@ const getModels = async (req, res) => {
             ? req.query.cursor
             : null;
 
-        // Řazený výpis se načte z Hugging Face, zvolené řazení se použije nad sloučenými výsledky.
+        // Bez zvolených filtrů se výpis bere z databáze (naplněno importem).
+        const hasSelectedFilters = [tasks, languages, libraries, licenses, authors, parameterRanges]
+            .some((values) => values.length > 0);
+
+        if (!hasSelectedFilters) {
+            // Štítek určuje, z jakého výpisu se vybírá, řazení se použije až nad stránkou
+            const poolSort = TAB_SORT_KEYS[tab] ?? sort;
+
+            const page = await fetchStoredPage(poolSort, sort, pageLimit, pageOffset);
+
+            return res.status(200).json({
+                status: "ok",
+                data: page.models.map(toApiModel),
+                meta: { offset: pageOffset, limit: pageLimit, hasMore: page.hasMore, nextOffset: page.nextOffset, nextCursor: page.nextCursor },
+            });
+        }
+
+        // Se zvolenými filtry se výpis načte živě z Hugging Face, zvolené řazení se použije nad sloučenými výsledky.
         if (sort) {
             // Štítek určuje, ze kterého výpisu se vybírá, řazení se použije až nad nimi
             const poolSort = TAB_SORT_KEYS[tab] ?? sort;
@@ -273,28 +321,6 @@ const getModels = async (req, res) => {
                 status: "ok",
                 data: modelsWithDescriptions.map((model) => toApiModel({ ...model, _id: model.modelId, avatarUrl: null })),
                 meta: { offset: pageOffset, limit: pageLimit, hasMore: page.hasMore, nextOffset: page.nextOffset, nextCursor: page.nextCursor },
-            });
-        }
-
-        // Bez zvolených filtrů se vrací importované modely z databáze, s filtry se načtou živě z Hugging Face.
-        const hasSelectedFilters = [tasks, languages, libraries, licenses, authors, parameterRanges]
-            .some((values) => values.length > 0);
-
-        if (!hasSelectedFilters) {
-            // Z databáze se stránkuje přímo dotazem (o jeden model víc kvůli zjištění další stránky)
-            const models = await AIModel.find({}, { insights: 0 })
-                .sort({ downloads: -1 })
-                .skip(pageOffset)
-                .limit(pageLimit + 1)
-                .lean();
-
-            const hasMore = models.length > pageLimit;
-            const pageModels = models.slice(0, pageLimit);
-
-            return res.status(200).json({
-                status: "ok",
-                data: pageModels.map(toApiModel),
-                meta: { offset: pageOffset, limit: pageLimit, hasMore, nextOffset: pageOffset + pageModels.length },
             });
         }
 

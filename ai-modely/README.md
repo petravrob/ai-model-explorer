@@ -75,7 +75,7 @@ npm run dev        # vývoj (nodemon), nebo npm start
 
 Backend očekává v `.env` proměnné `MONGO_URI` a `JWT_SECRET` (druhou z nich používá jen vyřazená autentizace, ale `config/env.js` ji stále vyžaduje), výchozí port je `5000`.
 
-Modely se do databáze plní příkazem `npm run import:models`.
+Modely se do databáze plní příkazem `npm run import:models`. Výpis bez zvolených filtrů se bere právě z ní, takže prázdná databáze znamená prázdný seznam modelů a živě z Hugging Face se načítá jen výpis se zvolenými filtry.
 
 ### Nová databáze
 
