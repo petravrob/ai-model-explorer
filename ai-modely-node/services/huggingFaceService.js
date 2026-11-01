@@ -38,7 +38,7 @@ const TAB_SORT_KEYS = {
     server: "downloads",
 };
 
-// Rozsahy velikosti modelu pro filtry.
+// Rozsahy velikosti modelu pro filtry (stejné hodnoty používá i dotaz do databáze)
 const PARAMETER_RANGES = {
     "0-1B": { min: 0, max: 1_000_000_000 },
     "1-7B": { min: 1_000_000_000, max: 7_000_000_000 },
@@ -414,6 +414,7 @@ module.exports = {
     DEFAULT_TASKS,
     SORT_PARAMS,
     TAB_SORT_KEYS,
+    PARAMETER_RANGES,
     getModel,
     getModelCard,
     getModels,

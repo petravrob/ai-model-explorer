@@ -5,6 +5,7 @@ const { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, LANGUAGE_FILTER_OVERFETCH, MAX_PAGE_OF
 const {
     SORT_PARAMS,
     TAB_SORT_KEYS,
+    PARAMETER_RANGES,
     getModel: fetchHuggingFaceModel,
     getModelCard: fetchHuggingFaceCard,
     getSortedModels,
@@ -38,6 +39,56 @@ const STORED_SORTS = {
     downloads: { downloads: -1 },
     likes: { likes: -1 },
     created: { publishedAt: -1 },
+};
+
+/**
+ * Sestaví dotaz do databáze ze zvolených filtrů (podobně jako filtry pro Hugging Face).
+ */
+const buildStoredQuery = ({ tasks, languages, libraries, licenses, authors, parameterRanges }) => {
+
+    const conditions = [];
+
+    if (tasks.length > 0) {
+        conditions.push({ task: { $in: tasks } });
+    }
+
+    // Jazyky umí vyhodnotit jen databáze, Hugging Face je neumí filtrovat
+    if (languages.length > 0) {
+        conditions.push({ languages: { $in: languages } });
+    }
+
+    // Knihovna může být uložená jako název knihovny i jako štítek modelu
+    if (libraries.length > 0) {
+        conditions.push({
+            $or: [
+                { library: { $in: libraries } },
+                { tags: { $in: libraries } },
+            ],
+        });
+    }
+
+    if (licenses.length > 0) {
+        conditions.push({ license: { $in: licenses } });
+    }
+
+    if (authors.length > 0) {
+        conditions.push({ author: { $in: authors } });
+    }
+
+    // Velikost modelu je v databázi uložená jako počet parametrů, rozsahy odpovídají filtrům
+    const ranges = parameterRanges
+        .map((value) => PARAMETER_RANGES[value])
+        .filter(Boolean);
+
+    if (ranges.length > 0) {
+        conditions.push({
+            $or: ranges.map(({ min, max }) => ({
+                parameters: max === null ? { $gte: min } : { $gte: min, $lt: max },
+            })),
+        });
+    }
+
+    return conditions.length > 0 ? { $and: conditions } : {};
 };
 
 /** Převede opakovatelný parametr dotazu na pole hodnot (např. „?tasks=a&tasks=b“). */
@@ -171,7 +222,8 @@ const fetchFilteredPage = async (queries, poolSort, sort, pageLimit, languages, 
     }
 
     return {
-        models: sortMergedModels(models, sort),
+        // Víc kombinací filtrů vrátí dohromady víc modelů, do stránky jich patří jen pageLimit
+        models: sortMergedModels(models, sort).slice(0, pageLimit),
         hasMore,
         nextCursor: cursor,
         // Pozice pro navázání další stránky (při stránkování kurzorem se místo ní použije kurzor)
@@ -218,26 +270,68 @@ const withStoredDescriptions = async (models) => {
 };
 
 /**
- * Načte stránku modelů uložených v databázi (naplněno importem).
+ * Načte stránku modelů uložených v databázi (naplněno importem) podle dotazu z filtrů.
+ * Z databáze se stránkuje přímo dotazem, takže se u ní nemusí volat Hugging Face.
  */
-const fetchStoredPage = async (poolSort, sort, pageLimit, pageOffset) => {
+const fetchStoredModels = async (query, poolSort, sort, pageLimit, pageOffset) => {
 
-    // Z databáze se stránkuje přímo dotazem (o jeden model víc kvůli zjištění další stránky)
-    const pool = await AIModel.find({}, { insights: 0 })
+    const models = await AIModel.find(query, { insights: 0 })
         .sort(STORED_SORTS[poolSort] ?? STORED_SORTS.downloads)
         .skip(pageOffset)
-        .limit(pageLimit + 1)
+        .limit(pageLimit)
         .lean();
 
-    const pageModels = pool.slice(0, pageLimit);
+    return sortMergedModels(models, sort);
+};
 
-    return {
-        models: sortMergedModels(pageModels, sort),
-        hasMore: pool.length > pageLimit,
-        // U databáze se stránkuje pozicí, kurzor k ní nepatří
-        nextCursor: null,
-        nextOffset: pageOffset + pageModels.length,
-    };
+// Kolik částí se maximálně stáhne, aby se stránka doplnila modely, které v databází ještě nejsou
+const LIVE_FILL_ROUNDS = 4;
+
+/**
+ * Doplní stránku modely, které v databází pro zvolené filtry ještě nejsou (živě z Hugging Face).
+ * Už uložené modely se přeskočí, aby se stejné modely neopakovaly při dalším načtení stránky.
+ * Když je v databázi jen část modelů, musí se jich z Hugging Face stáhnout víc, proto se
+ * pokračuje, dokud se stránka nenaplní (nebo dokud Hugging Face něco vrací).
+ */
+const fetchLiveModels = async (queries, storedQuery, poolSort, sort, count, languages, startSkip, startCursor) => {
+
+    const models = [];
+    const seenModelIds = new Set();
+
+    let skip = startSkip;
+    let cursor = startCursor;
+    let hasMore = false;
+
+    for (let round = 0; round < LIVE_FILL_ROUNDS && models.length < count; round++) {
+
+        const page = await fetchFilteredPage(queries, poolSort, sort, count - models.length, languages, { skip, cursor });
+
+        hasMore = page.hasMore;
+        cursor = page.nextCursor;
+        skip = page.nextOffset;
+
+        // Uložené modely se do stránky nepřidají, aby se výpis neopakoval
+        const stored = new Set(
+            (await AIModel.find(
+                { ...storedQuery, modelId: { $in: page.models.map((model) => model.modelId) } },
+                { modelId: 1 }
+            ).lean()).map((model) => model.modelId)
+        );
+
+        page.models.forEach((model) => {
+            if (!stored.has(model.modelId) && !seenModelIds.has(model.modelId)) {
+                seenModelIds.add(model.modelId);
+                models.push(model);
+            }
+        });
+
+        // Prázdná stránka znamená, že na Hugging Face už nejsou další modely
+        if (page.models.length === 0) {
+            break;
+        }
+    }
+
+    return { models: models.slice(0, count), hasMore, nextCursor: cursor, consumed: skip - startSkip };
 };
 
 const getModels = async (req, res) => {
@@ -282,58 +376,62 @@ const getModels = async (req, res) => {
             ? req.query.cursor
             : null;
 
-        // Bez zvolených filtrů se výpis bere z databáze (naplněno importem).
-        const hasSelectedFilters = [tasks, languages, libraries, licenses, authors, parameterRanges]
-            .some((values) => values.length > 0);
+        // Štítek určuje, z jakého výpisu se modely vybírají, zvolené řazení se použije nad stránkou
+        const poolSort = TAB_SORT_KEYS[tab] ?? sort ?? "downloads";
 
-        if (!hasSelectedFilters) {
-            // Štítek určuje, z jakého výpisu se vybírá, řazení se použije až nad stránkou
-            const poolSort = TAB_SORT_KEYS[tab] ?? sort;
+        // Stránka se nejdřív vytvoří z modelů uložených v databázi.
+        // Uložené modely mají popisky i avatary, takže se pro ně nic negeneruje a
+        // nečeká se na Hugging Face. Chybějící modely se doplní živě z Hugging Face
+        const storedQuery = buildStoredQuery({ tasks, languages, libraries, licenses, authors, parameterRanges });
+        const storedTotal = await AIModel.countDocuments(storedQuery);
+        const storedModels = await fetchStoredModels(storedQuery, poolSort, sort, pageLimit, pageOffset);
 
-            const page = await fetchStoredPage(poolSort, sort, pageLimit, pageOffset);
+        // Kolik modelů ještě chybí doplnit do stránky
+        const missingCount = pageLimit - storedModels.length;
 
-            return res.status(200).json({
-                status: "ok",
-                data: page.models.map(toApiModel),
-                meta: { offset: pageOffset, limit: pageLimit, hasMore: page.hasMore, nextOffset: page.nextOffset, nextCursor: page.nextCursor },
-            });
-        }
+        // Živě se naváže tam, kde se skončilo
+        const liveSkip = Math.max(0, pageOffset - storedTotal);
 
-        // Se zvolenými filtry se výpis načte živě z Hugging Face, zvolené řazení se použije nad sloučenými výsledky.
-        if (sort) {
-            // Štítek určuje, ze kterého výpisu se vybírá, řazení se použije až nad nimi
-            const poolSort = TAB_SORT_KEYS[tab] ?? sort;
+        const livePage = missingCount > 0
+            ? await fetchLiveModels(
+                queries,
+                storedQuery,
+                poolSort,
+                sort,
+                missingCount,
+                languages,
+                liveSkip,
+                // Kurzor platí pro jeden výpis, s víc kombinacemi filtrů se stránkuje přeskočením
+                queries.length > 1 ? null : cursor
+            )
+            : { models: [], hasMore: false, nextCursor: null, consumed: 0 };
 
-            // Kurzor platí pro jeden výpis, s víc kombinacemi filtrů se stránkuje přeskočením
-            const paging = { skip: pageOffset, cursor: queries.length > 1 ? null : cursor };
+        // Avatary se k výpisu nedotahují - klient si je načte zvlášť na pozadí,
+        // aby stahování stránek autorů nezdržovalo zobrazení modelů.
+        // Ukládají se jen modely vrácené na stránce, ne celý stažený objem.
+        await ensureModelsStored(livePage.models);
 
-            const page = await fetchFilteredPage(queries, poolSort, sort, pageLimit, languages, paging);
+        // Uložené popisky se přidají rovnou k výpisu, aby se nenačítaly znovu.
+        // Živé modely nemají databázové id, v adrese detailu se použije identifikátor z Hugging Face.
+        const liveModels = (await withStoredDescriptions(livePage.models)).map((model) => ({
+            ...model,
+            _id: model._id ?? model.modelId,
+            avatarUrl: model.avatarUrl ?? null,
+        }));
 
-            // Avatary se k výpisu nedotahují - klient si je načte zvlášť na pozadí,
-            // aby stahování stránek autorů nezdržovalo zobrazení modelů.
-            // Ukládají se jen modely vrácené na stránce, ne celý stažený objem.
-            await ensureModelsStored(page.models);
-
-            // Uložené popisky se přidají rovnou k výpisu, aby se nežádaly znovu
-            const modelsWithDescriptions = await withStoredDescriptions(page.models);
-
-            return res.status(200).json({
-                status: "ok",
-                data: modelsWithDescriptions.map((model) => toApiModel({ ...model, _id: model.modelId, avatarUrl: null })),
-                meta: { offset: pageOffset, limit: pageLimit, hasMore: page.hasMore, nextOffset: page.nextOffset, nextCursor: page.nextCursor },
-            });
-        }
-
-        const page = await fetchFilteredPage(queries, "downloads", sort, pageLimit, languages, { skip: pageOffset });
-
-        await ensureModelsStored(page.models);
-
-        const modelsWithDescriptions = await withStoredDescriptions(page.models);
+        // Modely z databáze i z živého výpisu se sloučí a stránka se seřadí podle zvoleného řazení
+        const pageModels = sortMergedModels([...storedModels, ...liveModels], sort);
 
         return res.status(200).json({
             status: "ok",
-            data: modelsWithDescriptions.map((model) => toApiModel({ ...model, avatarUrl: null })),
-            meta: { offset: pageOffset, limit: pageLimit, hasMore: page.hasMore, nextOffset: page.nextOffset, nextCursor: page.nextCursor },
+            data: pageModels.map(toApiModel),
+            meta: {
+                offset: pageOffset,
+                limit: pageLimit,
+                hasMore: missingCount > 0 ? livePage.hasMore : true,
+                nextOffset: pageOffset + storedModels.length + livePage.consumed,
+                nextCursor: livePage.nextCursor ?? null,
+            },
         });
     } catch (error) {
         console.error("Fetching models failed:", error);
