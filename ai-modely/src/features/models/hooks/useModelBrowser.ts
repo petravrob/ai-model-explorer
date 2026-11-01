@@ -57,13 +57,13 @@ const loadModelsUpTo = async (
     tab: ModelTabKey,
     targetCount: number,
     signal: AbortSignal
-): Promise<ModelsPage & { consumed: number }> => {
+): Promise<ModelsPage> => {
 
     const models: AIModel[] = [];
     const knownIds = new Set<string>();
 
-    // Kolik modelů už přišlo (i duplicitních) - podle toho se posouvá offset
-    let consumed = 0;
+    // Pozice, odkud se načte další stránka (u jazykového filtru se liší od počtu vrácených modelů)
+    let nextOffset = 0;
     let hasMore = false;
     let cursor: string | null = null;
 
@@ -75,14 +75,14 @@ const loadModelsUpTo = async (
             sort,
             tab,
             {
-                offset: consumed,
+                offset: nextOffset,
                 limit: Math.min(MODELS_MAX_PAGE_SIZE, targetCount - models.length),
                 cursor,
             },
             signal
         );
 
-        consumed += page.models.length;
+        nextOffset = page.nextOffset;
         cursor = page.nextCursor;
 
         page.models.forEach((model) => {
@@ -100,7 +100,7 @@ const loadModelsUpTo = async (
         }
     }
 
-    return { models, hasMore, nextCursor: cursor, consumed };
+    return { models, hasMore, nextCursor: cursor, nextOffset };
 };
 
 /** Odkud načíst další stránku výpisu - navázáním na kurzor, nebo od zadané pozice. */
@@ -303,11 +303,12 @@ function useModelBrowser() {
 
                 setAllModels(mergedModels);
 
-                // Jestli existují další modely, říká server
+                // Jestli existují další modely se zjistí ze serveru
                 setHasMore(page.hasMore);
 
-                // Další tlačítko naváže tam, kde tato stránka skončila
-                nextPageRef.current = { cursor: page.nextCursor, offset: page.consumed };
+                // Další tlačítko naváže tam, kde tato stránka skončila (u jazykového filtru
+                // se pozice liší od počtu vrácených modelů)
+                nextPageRef.current = { cursor: page.nextCursor, offset: page.nextOffset };
 
                 // Uloží se do paměti, ať se po návratu z detailu zobrazí hned
                 saveCachedModels(modelsCacheKey, mergedModels);
@@ -592,11 +593,11 @@ function useModelBrowser() {
             if (nextPageRef.current === nextPage) {
                 nextPageRef.current = {
                     cursor: page.nextCursor,
-                    offset: nextPage.offset + page.models.length,
+                    offset: page.nextOffset,
                 };
 
-                // Prázdná stránka načítání ukončí, ať tlačítko neopakuje stejný požadavek
-                setHasMore(page.hasMore && page.models.length > 0);
+                // Jestli má server další modely, říká odpověď
+                setHasMore(page.hasMore);
             }
 
             const currentModels = shownModelsRef.current;
