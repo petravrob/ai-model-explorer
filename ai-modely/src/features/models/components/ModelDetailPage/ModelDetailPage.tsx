@@ -24,6 +24,19 @@ function ModelDetailPage() {
         error,
     } = useModelDetail(modelId);
 
+    // Tlačítko zpět se na stránce ukazuje jen tam, kde chybí tlačítko zpět prohlížeče.
+    // Na telefonu a tabletu drží fixně u dolního okraje - viditelnost řeší ModelDetailPage.css
+    const backToolbar = (
+        <div className="model-detail-page__toolbar">
+            <Button
+                variant="outline"
+                onClick={handleBack}
+            >
+                Zpět na výpis modelů
+            </Button>
+        </div>
+    );
+
 
     if (loading) {
         return (
@@ -37,6 +50,8 @@ function ModelDetailPage() {
         return (
             <PageContainer>
                 <div className="model-detail-page">
+                    {backToolbar}
+
                     <PageMessage>
                         {error ?? "Model nebyl nalezen."}
                     </PageMessage>
@@ -48,6 +63,8 @@ function ModelDetailPage() {
     return (
         <PageContainer>
             <div className="model-detail-page">
+                {backToolbar}
+
                 <ModelDetail
                     model={model}
                     insights={insights}
