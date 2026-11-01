@@ -438,7 +438,7 @@ const getModels = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Fetching models failed.",
+            error: "Nepodařilo se načíst modely.",
         });
     }
 };
@@ -480,7 +480,7 @@ const getModel = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Fetching model failed.",
+            error: "Nepodařilo se načíst model.",
         });
     }
 };
@@ -510,7 +510,7 @@ const getAvatar = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Fetching avatar failed.",
+            error: "Nepodařilo se načíst avatar.",
         });
     }
 };
@@ -540,7 +540,7 @@ const createDescriptions = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Reading descriptions failed.",
+            error: "Nepodařilo se vygenerovat popisky.",
         });
     }
 };
@@ -568,7 +568,7 @@ const getModelCard = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Fetching model card failed.",
+            error: "Nepodařilo se načíst dokumentaci modelu.",
         });
     }
 };
@@ -612,7 +612,7 @@ const createInsights = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Reading insights failed.",
+            error: "Nepodařilo se připravit přehledy z dokumentace.",
         });
     }
 };
