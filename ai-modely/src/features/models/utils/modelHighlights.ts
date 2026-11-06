@@ -1,17 +1,22 @@
 import type { AIModel, ModelInsights } from "../types";
-import { joinCzech } from "./modelCard";
+import { getModelLicense, joinCzech } from "./modelCard";
 
 /**
  * Vlastnosti, které model odlišují od ostatních.
  *
- * Slouží k odpovědi na otázku "proč tento model". Bere se jen to, co dokumentace
- * skutečně uvádí, a záměrně se neopakují údaje, které mají vlastní sekci
- * (technické údaje, nasazení, výkon i omezení).
- * Nic se nedomýšlí a nic se nehodnotí.
+ * Slouží k odpovědi na otázku "proč tento model" a používá se jako záloha,
+ * když z dokumentace žádný výčet nedorazil. Bere se jen to, co je doložené
+ * (dokumentace, štítky a údaje o modelu) a nic se nedomýšlí ani nehodnotí.
  */
 
 // Kolik vlastností se nejvýš vypíše, aby sekce zůstala krátká
 const MAX_HIGHLIGHTS = 4;
+
+// Licence, které umožňují i komerční použití
+const PERMISSIVE_LICENSE = /^(mit|apache-2\.0|cc0-1\.0|cc-by-4\.0|bsd-2-clause|bsd-3-clause|mpl-2\.0|unlicense|isc|zlib)$/i;
+
+// Od kolika jazyků se dá mluvit o širokém jazykovém pokrytí
+const BROAD_LANGUAGE_COUNT = 10;
 
 // Druhy vstupů a výstupů, které se dají poznat ze štítků a úlohy, když je dokumentace neuvádí
 const MODALITY_GROUPS = [
@@ -47,8 +52,24 @@ export const getModelHighlights = (model: AIModel, insights: ModelInsights | nul
             : `Kromě textu zvládá i ${joinCzech(beyondText)}.`);
     }
 
+    if (insights?.architecture) {
+        highlights.push(`Architektura podle dokumentace: ${insights.architecture}.`);
+    }
+
     if (insights?.trainingMethod) {
         highlights.push(`Způsob tréninku podle dokumentace: ${insights.trainingMethod}.`);
+    }
+
+    if (model.license && PERMISSIVE_LICENSE.test(model.license)) {
+        highlights.push(`Otevřená licence ${getModelLicense(model.license)} umožňuje i komerční použití.`);
+    }
+
+    if (insights?.contextLength) {
+        highlights.push(`Zvládne kontext až ${insights.contextLength}.`);
+    }
+
+    if ((model.languages?.length ?? 0) >= BROAD_LANGUAGE_COUNT) {
+        highlights.push(`Podporuje ${model.languages.length} jazyků.`);
     }
 
     return highlights.slice(0, MAX_HIGHLIGHTS);

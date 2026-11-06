@@ -112,6 +112,11 @@ const insightsSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        // Verze zadání, ze kterého přehledy vznikly - při změně pravidel se vytvoří znovu
+        promptVersion: {
+            type: String,
+            trim: true,
+        },
         // ok = přehledy jsou hotové, failed = generování se nepodařilo
         status: {
             type: String,

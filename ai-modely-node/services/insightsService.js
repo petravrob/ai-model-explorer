@@ -48,13 +48,19 @@ const YOUTUBE_LINK = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\
 const IGNORED_IMAGE = /(badge|shield|logo|icon|favicon|avatar|star|trend|visitor|counter|commit|pypi|npm|conda|colab|discord|twitter)/i;
 
 // Nadpisy, u kterých se dá čekat užitečná informace (včetně výsledků měření a praktických údajů)
-const RELEVANT_SECTION = /(overview|introduc|about|descript|highlight|capab|feature|use case|usage|quick ?start|inferenc|deploy|serv|framework|context|limitation|caveat|restriction|out of scope|known|issue|why|benchmark|evaluat|performance|result|score|metric|leaderboard|model|train|finetun|distill|architect|licen|requirement|hardware|vram|quantiz|compatib|format|api|releas|note)/i;
+const RELEVANT_SECTION = /(overview|introduc|about|descript|highlight|capab|feature|use case|usage|quick ?start|inferenc|deploy|serv|framework|context|limitation|caveat|restriction|out[-\s]?of[-\s]?scope|known|issue|why|bias|risk|ethic|safety|misuse|intended|prohibit|benchmark|evaluat|performance|result|score|metric|leaderboard|model|train|finetun|distill|architect|licen|requirement|hardware|vram|quantiz|compatib|format|api|releas|note)/i;
 
 // Nadpisy, které naopak jen zabírají místo
 const SKIP_SECTION = /(citation|bibtex|acknowledg|changelog|version histor|references|star history|install|setup|discord|community|social|contents)/i;
 
 // Oddíly s výsledky měření - u dlouhých dokumentací se nesmí ztratit
 const BENCHMARK_SECTION = /(benchmark|evaluat|performance|result|score|metric|leaderboard)/i;
+
+// Oddíly s omezeními a riziky - bývají na konci karty, proto se jim drží místo
+const LIMITATION_SECTION = /(limitation|caveat|restriction|out[-\s]?of[-\s]?scope|known issue|risk|bias|ethic|safety|misuse|prohibit|disclaimer)/i;
+
+// Kolik znaků se drží pro oddíly s omezeními, aby se neořezaly se zbytkem
+const LIMITATION_EXCERPT_LENGTH = Math.floor(MAX_EXCERPT_LENGTH / 4);
 
 const SYSTEM_PROMPT = [
     "Jsi editor českého katalogu AI modelů.",
@@ -75,7 +81,7 @@ function buildPrompt(excerpt) {
         "",
         "Vrať pouze JSON v tomto tvaru (bez dalšího vysvětlování):",
         "{",
-        '  "highlights": ["3–7 konkrétních vlastností, které model odlišují (schopnosti, architektura, délka kontextu, multimodalita, rychlost, podporovaná workflow, způsob tréninku, vlastnosti nasazení)"],',
+        '  "highlights": ["3–6 konkrétních vlastností, které model odlišují (schopnosti, architektura, délka kontextu, multimodalita, rychlost, podporovaná workflow, způsob tréninku, vlastnosti nasazení); vždy vyplň alespoň 3 body"],',
         '  "bestFor": ["oblasti použití, které dokumentace výslovně zmiňuje"],',
         '  "useCases": ["4–8 konkrétních praktických scénářů odvozených z dokumentace (např. asistent pro psaní kódu, dávkový přepis porad, úprava fotografií)"],',
         '  "capabilities": ["konkrétní schopnosti, které dokumentace výslovně zmiňuje"],',
@@ -92,7 +98,7 @@ function buildPrompt(excerpt) {
         '  "hardwareRequirements": ["nároky na provoz modelu, které dokumentace uvádí (např. 24 GB VRAM, CUDA) – ne hardware použitý při tréninku"],',
         '  "quantization": ["kvantizace nebo formáty, které dokumentace uvádí (např. fp16, int8, GGUF, safetensors)"],',
         '  "compatibility": ["s čím je model kompatibilní nebo co vyžaduje (verze knihoven, operační systémy, související modely)"],',
-        '  "limitations": ["všechna významná omezení, výhrady a upozornění z dokumentace"],',
+        '  "limitations": ["2–6 prakticky důležitých omezení (podmínky licence, omezený přístup, nároky na provoz, limit kontextu, jazykové nebo doménové pokrytí, známé předsudky a rizika, co model nezvládne); vždy vyplň alespoň 2 body, když dokumentace dává podklad"],',
         '  "benchmarks": [',
         "    {",
         '      "name": "název benchmarku (např. MMLU, GSM8K, SWE-bench)",',
@@ -106,18 +112,18 @@ function buildPrompt(excerpt) {
         "",
         "PRAVIDLA:",
         "- všechny popisné položky piš česky; anglické nech jen vlastní názvy a názvy nástrojů",
-        "- co v dokumentaci není, nech prázdné (null nebo prázdné pole), nic nedomýšlej",
+        "- co dokumentace neuvádí, nedomýšlej: neodhaduj čísla ani skóre a nepřidávej nová fakta; chybějící popisnou položku nech prázdnou (null nebo prázdné pole)",
         "- položky piš krátce (2–6 slov) a věcně, bez hodnocení a bez doporučování",
         "- frameworky, názvy modelů a délku kontextu zachovej přesně jako v dokumentaci",
-        "- dodrž počty: highlights 3–7 bodů, useCases 4–8 bodů",
+        "- highlights vyplň vždy alespoň 3 body a limitations alespoň 2 body, kdykoli k tomu dokumentace dává podklad; useCases 4–8 bodů",
         "- nejvýš 6 položek v ostatních seznamech (u omezení nejvýš 12, u benchmarků nejvýš 24)",
         "- vše piš konkrétně k tomuto modelu; obecné fráze typu „vhodný pro širokou škálu úloh“ nepatří nikam",
         "- nevypisuj obecně známé údaje (např. požadavky na Python nebo CUDA), pokud je dokumentace výslovně neuvádí",
-        "- highlights ať vystihují to, čím se model liší od ostatních, ne co umí každý podobný model",
+        "- highlights ať vystihují to, čím se model liší od ostatních; když model nemá výraznou specialitu, použij konkrétní doložené vlastnosti (architektura, délka kontextu, jazyky, úloha, licence)",
         "- useCases odvozuj z dokumentace (např. „asistent pro psaní kódu“, „dávkový přepis porad“); co v dokumentaci není, nedopisuj",
         "- z příkladů použití vytáhni jen podstatnou informaci (např. doporučené hodnoty), kód nikdy nekopíruj",
         "- neuváděj citace, odkazy na komunitu, instalační návody ani marketingové slogany",
-        "- projdi oddíly Limitations, Caveats, Known issues, Out of scope a licenční podmínky a vezmi z nich všechna významná omezení",
+        "- projdi oddíly Limitations, Caveats, Known issues, Out of scope, Risks, Bias, Safety a licenční podmínky a vezmi z nich všechna významná omezení",
         "- neuváděj jako omezení to, že něco v dokumentaci chybí (např. chybějící licence nebo testy)",
         "- licence a její praktická omezení patří do limitations",
         "- version, baseModel, quantization a compatibility vyplň jen tehdy, když dokumentace uvádí konkrétní informaci",
@@ -134,6 +140,9 @@ function buildPrompt(excerpt) {
         "- variants a recommendedSettings jen když dokumentace uvádí konkrétní varianty nebo doporučené hodnoty",
         "- activeParameters vyplň jen u modelů typu MoE a jen tehdy, když dokumentace aktivní parametry uvádí; jinak nech null",
         "- do limitations patří všechna významná omezení, která dokumentace výslovně uvádí (i prakticky důležité omezení licence)",
+        "- do limitations patří i praktický důsledek doloženého údaje: nekomerční licence znamená zákaz komerčního použití, velikost modelu znamená nároky na provoz, uvedené jazyky vymezují jazykové pokrytí",
+        "- když dokumentace výslovně žádná omezení neuvádí, odvoď je z uvedené licence, rozsahu jazyků a úloh; limitations nenech prázdné, pokud k tomu dokumentace dává podklad",
+        "- highlights nenech prázdné jen proto, že model nemá výraznou specialitu",
         "- do hardwareRequirements patří jen nároky na provoz modelu, ne hardware použitý při tréninku",
         "",
         "DOKUMENTACE MODELU:",
@@ -290,9 +299,13 @@ function selectRelevantParts(documentation) {
     let benchmarkLevel = null;
     let partBenchmark = false;
 
+    // Úroveň nadpisu, pod kterou jde o omezení a rizika (i v pododdílech)
+    let limitationLevel = null;
+    let partLimitation = false;
+
     const flush = () => {
         if (isRelevant && current.length > 0) {
-            parts.push({ text: current.join("\n"), isBenchmark: partBenchmark });
+            parts.push({ text: current.join("\n"), isBenchmark: partBenchmark, isLimitation: partLimitation });
         }
 
         current = [];
@@ -316,6 +329,15 @@ function selectRelevantParts(documentation) {
 
             partBenchmark = benchmarkLevel !== null;
 
+            // Oddíly s omezeními se poznají stejně, aby se jim drželo místo
+            if (LIMITATION_SECTION.test(title)) {
+                limitationLevel = level;
+            } else if (limitationLevel !== null && level <= limitationLevel) {
+                limitationLevel = null;
+            }
+
+            partLimitation = limitationLevel !== null;
+
             // První nadpis je název modelu – text pod ním patří k úvodu, proto se bere vždy
             isRelevant = isFirstHeading
                 || (RELEVANT_SECTION.test(title) && !SKIP_SECTION.test(title));
@@ -330,21 +352,27 @@ function selectRelevantParts(documentation) {
 
     const textOf = (items) => items.map((part) => part.text).join("\n\n");
 
-    // Na výsledky měření zůstává vyhrazená část rozpočtu, aby se neořezaly se zbytkem
+    // Na výsledky měření a na omezení zůstává vyhrazená část rozpočtu,
+    // aby se neořezaly se zbytkem (omezení bývají až na konci dokumentace)
     const benchmarkText = cutAtLine(
         textOf(parts.filter((part) => part.isBenchmark)),
         Math.floor(MAX_EXCERPT_LENGTH / 2)
     );
 
-    const mainText = cutAtLine(
-        textOf(parts.filter((part) => !part.isBenchmark)),
-        MAX_EXCERPT_LENGTH - benchmarkText.length
+    const limitationText = cutAtLine(
+        textOf(parts.filter((part) => part.isLimitation && !part.isBenchmark)),
+        LIMITATION_EXCERPT_LENGTH
     );
 
-    return [mainText, benchmarkText].filter(Boolean).join("\n\n");
+    const mainText = cutAtLine(
+        textOf(parts.filter((part) => !part.isBenchmark && !part.isLimitation)),
+        MAX_EXCERPT_LENGTH - benchmarkText.length - limitationText.length
+    );
+
+    return [mainText, limitationText, benchmarkText].filter(Boolean).join("\n\n");
 }
 
-const PROMPT_VERSION = "v18";
+const PROMPT_VERSION = "v19";
 
 /**
  * Vytvoří otisk vstupu, ze kterého přehledy vznikají (verze zadání + dokumentace).
@@ -601,6 +629,7 @@ async function generateInsights(modelId) {
                         ...insights,
                         ...visual,
                         sourceFingerprint,
+                        promptVersion: PROMPT_VERSION,
                         status: "ok",
                         generatedAt: new Date(),
                     },
@@ -621,6 +650,7 @@ async function generateInsights(modelId) {
 }
 
 module.exports = {
+    PROMPT_VERSION,
     generateInsights,
     getStoredInsights,
 };
