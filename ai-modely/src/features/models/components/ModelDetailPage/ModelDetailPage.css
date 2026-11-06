@@ -44,6 +44,7 @@
     /* Na tmavé liště má tlačítko bílý text a tmavý podklad */
     .model-detail-page__toolbar .btn {
         width: 100%;
+        min-height: 50px;
         padding: .55rem 1rem calc(.55rem + env(safe-area-inset-bottom, 0px));
         border: none;
         border-radius: 0;
