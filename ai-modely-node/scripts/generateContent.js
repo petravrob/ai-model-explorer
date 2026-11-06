@@ -15,6 +15,7 @@ const AIModel = require("../models/AIModel");
 const GenerationJob = require("../models/GenerationJob");
 const { DESCRIPTION_VERSION } = require("../services/descriptionService");
 const { enqueueJobs, startGenerationWorker } = require("../services/generationQueue");
+const { PROMPT_VERSION } = require("../services/insightsService");
 
 // Jak často skript hlásí, kolik úkolů ještě zbývá
 const PROGRESS_INTERVAL_MS = 10000;
@@ -28,7 +29,7 @@ async function enqueueMissingContent() {
         .map((model) => model.modelId);
 
     const missingInsights = models
-        .filter((model) => !model.insights?.sourceFingerprint)
+        .filter((model) => !model.insights?.sourceFingerprint || model.insights?.promptVersion !== PROMPT_VERSION)
         .map((model) => model.modelId);
 
     const enqueuedDescriptions = await enqueueJobs("description", missingDescriptions);

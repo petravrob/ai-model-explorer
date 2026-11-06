@@ -4,6 +4,7 @@ const connectDatabase = require("../config/database");
 const AIModel = require("../models/AIModel");
 const { DESCRIPTION_VERSION } = require("../services/descriptionService");
 const { enqueueJobs } = require("../services/generationQueue");
+const { PROMPT_VERSION } = require("../services/insightsService");
 const { DEFAULT_TASKS, getAuthorPageHtml, getModel, getModels } = require("../services/huggingFaceService");
 const { mapRawModels } = require("../services/modelMapper");
 
@@ -161,7 +162,7 @@ async function importModels() {
             .map((doc) => doc.modelId);
 
         const missingInsights = storedDocs
-            .filter((doc) => !doc.insights?.sourceFingerprint)
+            .filter((doc) => !doc.insights?.sourceFingerprint || doc.insights?.promptVersion !== PROMPT_VERSION)
             .map((doc) => doc.modelId);
 
         const enqueuedDescriptions = await enqueueJobs("description", missingDescriptions);

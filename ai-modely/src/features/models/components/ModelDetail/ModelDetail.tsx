@@ -4,6 +4,7 @@ import { AIModel, ModelInsights } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
 import { getModelLicense, getModelProvider, getModelSummary, getModelTagList, isModelItself } from "../../utils/modelCard";
 import { getModelHighlights } from "../../utils/modelHighlights";
+import { getModelLimitations } from "../../utils/modelLimitations";
 import { getDeploymentDescription } from "../../utils/deploymentLabels";
 import {
     BulletList,
@@ -72,7 +73,11 @@ function ModelDetail({ model, insights }: {
         ? documentedHighlights
         : getModelHighlights(model, insights);
 
-    const limitations = nonEmpty(insights?.limitations);
+    // Omezení: přednost má dokumentace, jinak se odvodí z doložených údajů modelu
+    const documentedLimitations = nonEmpty(insights?.limitations);
+    const limitations = documentedLimitations.length > 0
+        ? documentedLimitations
+        : getModelLimitations(model, insights);
     const deployment = nonEmpty(insights?.inferenceFrameworks);
     const settings = nonEmpty(insights?.recommendedSettings);
     const hardware = nonEmpty(insights?.hardwareRequirements);
