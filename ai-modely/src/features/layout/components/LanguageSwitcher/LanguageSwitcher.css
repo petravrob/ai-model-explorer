@@ -1,0 +1,124 @@
+/* Přepínač jazyka v pravém horním rohu lišty */
+.language-switcher {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Tlačítko s vlajkou aktuálního jazyka */
+.language-switcher__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2rem;
+    padding: 0 .45rem;
+    border: 1px solid rgb(255 255 255 / 35%);
+    border-radius: var(--radius-md);
+    background: rgb(255 255 255 / 12%);
+    color: var(--on-primary);
+    cursor: pointer;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.language-switcher__toggle:hover,
+.language-switcher__toggle[aria-expanded="true"] {
+    background: rgb(255 255 255 / 24%);
+}
+
+.language-switcher__toggle:focus-visible {
+    outline: 2px solid var(--on-primary);
+    outline-offset: 2px;
+}
+
+/* Vlajka */
+.language-switcher__flag {
+    display: block;
+    width: 1.35rem;
+    height: auto;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgb(15 23 42 / 18%);
+}
+
+/* Rozbalená nabídka s volbou jazyka */
+.language-switcher__menu {
+    position: absolute;
+    top: calc(100% + .4rem);
+    right: 0;
+    z-index: 120;
+    display: flex;
+    flex-direction: column;
+    min-width: 9.5rem;
+    padding: var(--space-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    box-shadow: 0 8px 24px rgb(15 23 42 / 18%);
+}
+
+.language-switcher__option {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .5rem .6rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text);
+    font-size: .9rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.language-switcher__option:hover {
+    background: var(--surface-soft);
+}
+
+.language-switcher__option--active {
+    font-weight: 600;
+}
+
+.language-switcher__option:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+}
+
+.language-switcher__check {
+    margin-left: auto;
+    color: var(--primary);
+}
+
+/* Tablet: tlačítko je čtverec */
+@media (max-width: 900px) {
+    .language-switcher__toggle {
+        width: var(--header-action-size);
+        height: var(--header-action-size);
+        padding: 0;
+    }
+
+    .language-switcher__flag {
+        width: calc(var(--header-action-size) * .55);
+    }
+}
+
+/* Telefon: ikony vyplňují celý prostor vedle názvu */
+@media (max-width: 600px) {
+    .language-switcher {
+        min-width: 0;
+    }
+
+    .language-switcher__toggle {
+        width: 100%;
+        height: 100%;
+    }
+
+    .language-switcher__flag {
+        width: 55%;
+    }
+}
+
+@media (hover: hover) {
+    .language-switcher__toggle:active {
+        transform: scale(.94);
+    }
+}

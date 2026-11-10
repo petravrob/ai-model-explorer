@@ -10,10 +10,10 @@
         0 2px 10px rgba(15, 23, 42, .21);
 }
 
-/* Rozdělení na logo a vyhledávací pole (zarovnáno s filtrem) */
+/* Rozdělení na logo, vyhledávací pole a akce v pravém rohu (zarovnáno s filtrem) */
 .header__container {
     display: grid;
-    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr) auto;
     align-items: center;
     height: var(--header-height);
 }
@@ -135,8 +135,19 @@
     box-shadow: 0 2px 8px rgba(15, 23, 42, .16);
 }
 
-/* Tlačítka v liště (lupa, na telefonu i filtr a řazení) se používají jen na menších šířkách */
+/* Akce v pravém rohu lišty: na počítači jen přepínač jazyka, na menších šířkách
+ * přibyde verze, ikony filtru a řazení a lupa vyhledávání */
 .header__actions {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    grid-column: 3;
+    grid-row: 1;
+    padding-right: 1.75rem;
+}
+
+/* Ikony filtru a řazení se na počítači neukazují (filtry má vlastní panel, řazení lištu) */
+.header__quick-actions {
     display: none;
 }
 
@@ -150,11 +161,12 @@
  */
 @media (max-width: 900px) {
     /*
-     * Velikost tlačítek v liště (filtr, řazení, lupa). Stejně velký je i čtverec
-     * s logem, aby byla lišta na telefonu vyrovnaná.
+     * Velikost tlačítek v liště (filtr, řazení, lupa, jazyk). Stejně velký je i čtverec
+     * s logem, aby byla lišta na telefonu vyrovnaná. Ikony jsou tak velké, jak se vejdou
+     * na řádek s logem a názvem: 8vw je plynulé škálování, strop je původních 2.5rem.
      */
     .header {
-        --header-action-size: 2.5rem;
+        --header-action-size: clamp(1.85rem, 8vw, 2.5rem);
     }
 
     .header__container {
@@ -166,8 +178,9 @@
         padding: .65rem .9rem;
     }
 
+    /* Název zabírá jen tolik místa, kolik potřebuje, ikony jsou vpravo */
     .header__brand {
-        flex: 1;
+        flex: 0 1 auto;
         /* Název se nezalomí */
         min-width: max-content;
         padding: 0;
@@ -204,12 +217,16 @@
         max-width: none;
     }
 
-    /* Obal tlačítek vpravo vedle loga (odznak s verzí, filtr, řazení, lupa) */
+    /* Akce (ikony) drží pohromadě v pravé části lišty, mezery mezi nimi jsou
+     * pevné a stejné, ikony mají pevnou velikost */
     .header .header__actions {
         display: flex;
-        align-items: center;
-        gap: .45rem;
-        flex-shrink: 0;
+        flex: 0 0 auto;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: .25rem;
+        margin-left: auto;
+        padding-right: 0;
     }
 
     /* Verze se vedle názvu nevejde - na menších šířkách je vpravo u ikon */
@@ -336,9 +353,12 @@
 @media (max-width: 600px) {
     /* Menší odsazení, aby se větší název vlezl na jeden řádek */
     .header__container {
-        padding: .5rem .75rem .7rem;
+        gap: .35rem;
+        padding: .5rem .6rem .7rem;
     }
 
+    /* Užší mezery, aby se všechna tlačítka (včetně přepínače jazyka)
+     * vešla na jeden řádek s logem a názvem */
     .header__brand {
         gap: .55rem;
     }
@@ -348,16 +368,56 @@
         display: contents;
     }
 
-    /* Název je na telefonu menší než na tabletu */
+    /* Název je na telefonu menší než na tabletu (kvůli místu pro ikony) */
     .header__title {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
     }
 
-    /* Verze je na telefonu v pravém horním rohu nad ikonami (vedle nich se nevejde) */
+    .header__icon-row,
+    .header__quick-actions {
+        gap: .35rem;
+    }
+
+    /* Verze je na telefonu nad ikonami (vedle nich se nevejde). 
+     * Akce zabírají celý zbývající prostor vedle názvu a podtitulku. */
     .header .header__actions {
+        flex: 1;
         flex-direction: column;
-        align-items: flex-end;
-        gap: .3rem;
+        align-items: stretch;
+        justify-content: center;
+        gap: .25rem;
+        margin-left: 0;
+    }
+
+    .header .header__version--actions {
+        align-self: flex-end;
+    }
+
+    /* Mezery mezi ikonami jsou pevné a stejné, 
+     * ikony jsou stejně velké čtverce zarovnané doprava */
+    .header .header__icon-row {
+        flex: none;
+        gap: .35rem;
+        justify-content: flex-end;
+        width: 100%;
+    }
+
+    /* Filtr a řazení jsou přímo v řádku, aby měly stejnou velikost jako ostatní ikony */
+    .header .header__quick-actions {
+        display: contents;
+    }
+
+    .header .header__icon-row > .header__search-toggle,
+    .header .header__icon-row > .header__icon-button,
+    .header .header__icon-row > .language-switcher,
+    .header .header__quick-actions > .header__icon-button {
+        flex: 1 1 0;
+        min-width: 0;
+        /* Ikony jsou vždy čtverce, maximální šířka brání obřím ikonám (např. na detailu modelu) */
+        max-width: 3rem;
+        width: auto;
+        height: auto;
+        aspect-ratio: 1;
     }
 }
 
