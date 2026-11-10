@@ -2,6 +2,8 @@ import Fuse, { type IFuseOptions } from "fuse.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
+import { translate } from "@/i18n/translate";
+
 import { AIModel } from "../types";
 import { SEARCH_QUERY_PARAM, modelDetailUrl } from "@/routes/paths";
 import { createDescriptions, getModels, type ModelsPage } from "../api/modelsApi";
@@ -342,7 +344,7 @@ function useModelBrowser() {
                 const errorMessage =
                     error instanceof Error
                         ? error.message
-                        : "Nepodařilo se načíst modely.";
+                        : translate("models:errors.loadModels");
 
                 setError(errorMessage);
 
@@ -621,7 +623,7 @@ function useModelBrowser() {
 
             console.error("Nepodařilo se načíst další modely:", error);
 
-            setLoadMoreError("Další modely se nepodařilo načíst. Zkuste to prosím znovu.");
+            setLoadMoreError(translate("models:browser.loadMoreError"));
 
         } finally {
 

@@ -1,21 +1,25 @@
 import "./NotFound.css";
 
+import { useTranslation } from "react-i18next";
+
 import { LinkButton, PageContainer, PageMessage, PageTitle } from "@/ui";
 import { ROUTE_PATHS } from "@/routes";
 
 /** Stránka pro neznámé adresy (404). */
 function NotFound() {
+    const { t } = useTranslation("layout");
+
     return (
         <PageContainer>
-            <PageTitle centered>Stránka nebyla nalezena</PageTitle>
+            <PageTitle centered>{t("notFound.title")}</PageTitle>
 
             <PageMessage>
-                Tato adresa neexistuje nebo byla přesunuta.
+                {t("notFound.message")}
             </PageMessage>
 
             <div className="not-found__actions">
                 <LinkButton to={ROUTE_PATHS.home}>
-                    Zpět na hlavní stránku
+                    {t("notFound.backHome")}
                 </LinkButton>
             </div>
         </PageContainer>

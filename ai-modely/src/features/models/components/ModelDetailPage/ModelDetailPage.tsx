@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import "./ModelDetailPage.css";
 
@@ -8,6 +9,7 @@ import { Button, PageContainer, PageMessage } from "@/ui";
 
 /** Stránka s detailem modelu. */
 function ModelDetailPage() {
+    const { t } = useTranslation("models");
 
     const { modelId } = useParams<{
         modelId: string;
@@ -32,7 +34,7 @@ function ModelDetailPage() {
                 variant="outline"
                 onClick={handleBack}
             >
-                Zpět na výpis modelů
+                {t("detailPage.back")}
             </Button>
         </div>
     );
@@ -41,7 +43,7 @@ function ModelDetailPage() {
     if (loading) {
         return (
             <PageContainer>
-                <PageMessage>Načítání modelu...</PageMessage>
+                <PageMessage>{t("detailPage.loading")}</PageMessage>
             </PageContainer>
         );
     }
@@ -53,7 +55,7 @@ function ModelDetailPage() {
                     {backToolbar}
 
                     <PageMessage>
-                        {error ?? "Model nebyl nalezen."}
+                        {error ?? t("detailPage.notFound")}
                     </PageMessage>
                 </div>
             </PageContainer>

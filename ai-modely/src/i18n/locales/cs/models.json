@@ -52,8 +52,6 @@
         "title": "Filtry",
         "clearAll": "Vymazat vše",
         "apply": "Hotovo",
-        "showMore": "Zobrazit další ({{count}})",
-        "showLess": "Zobrazit méně",
         "categories": {
             "tasks": "Úloha",
             "languages": "Jazyk",
@@ -73,7 +71,8 @@
                 "translation": "překlad",
                 "summarization": "shrnutí",
                 "token-classification": "extrakce informací"
-            }
+            },
+            "genitive": "textu"
         },
         "images": {
             "label": "obrázky",
@@ -86,7 +85,8 @@
                 "image-to-image": "úprava",
                 "text-to-3d": "generování 3D",
                 "image-to-3d": "generování 3D"
-            }
+            },
+            "genitive": "obrázků"
         },
         "audio": {
             "label": "zvuk a řeč",
@@ -97,7 +97,8 @@
                 "text-to-audio": "generování zvuku",
                 "voice-activity-detection": "detekce řeči",
                 "audio-to-audio": "úprava zvuku"
-            }
+            },
+            "genitive": "zvuku a řeči"
         },
         "video": {
             "label": "video",
@@ -107,7 +108,8 @@
                 "video-text-to-text": "analýza",
                 "video-classification": "rozpoznávání",
                 "video-to-video": "úprava"
-            }
+            },
+            "genitive": "videa"
         },
         "documents": {
             "label": "dokumenty",
@@ -115,7 +117,8 @@
                 "document-question-answering": "otázky nad dokumenty",
                 "table-question-answering": "otázky nad dokumenty",
                 "visual-document-retrieval": "vyhledávání v dokumentech"
-            }
+            },
+            "genitive": "dokumentů"
         },
         "search-similarity": {
             "label": "vyhledávání a podobnost",
@@ -124,7 +127,8 @@
                 "sentence-similarity": "podobný obsah",
                 "text-ranking": "řazení výsledků",
                 "image-feature-extraction": "extrakce vlastností obrázků"
-            }
+            },
+            "genitive": "vyhledávání a podobnosti"
         },
         "multimodal": {
             "label": "multimodální",
@@ -135,7 +139,8 @@
                 "image-text-to-video": "obrázek a text",
                 "video-text-to-text": "video a text",
                 "any-to-any": "více typů obsahu"
-            }
+            },
+            "genitive": "multimodálního obsahu"
         },
         "data-prediction": {
             "label": "data a predikce",
@@ -143,20 +148,23 @@
                 "time-series-forecasting": "časové řady",
                 "tabular-classification": "klasifikace dat",
                 "tabular-regression": "predikce"
-            }
+            },
+            "genitive": "dat a predikcí"
         },
         "robotics": {
             "label": "robotika",
             "options": {
                 "reinforcement-learning": "posilované učení",
                 "robotics": "robotika"
-            }
+            },
+            "genitive": "robotiky"
         },
         "other": {
             "label": "ostatní",
             "options": {
                 "graph-ml": "grafová data"
-            }
+            },
+            "genitive": "ostatních"
         }
     },
     "languages": {
@@ -268,7 +276,10 @@
     },
     "errors": {
         "loadModels": "Modely se nepodařilo načíst. Zkuste to prosím znovu.",
-        "loadModel": "Nepodařilo se načíst model."
+        "loadModel": "Nepodařilo se načíst model.",
+        "loadAvatar": "Nepodařilo se načíst avatar.",
+        "loadInsights": "Nepodařilo se připravit přehledy z dokumentace.",
+        "createDescriptions": "Nepodařilo se vygenerovat popisky."
     },
     "summary": {
         "fallback": "AI model dostupný prostřednictvím Hugging Face."
@@ -289,5 +300,185 @@
         "nonCommercial": "Licence {{license}} nepovoluje komerční použití.",
         "largeModel": "Model má {{parameters}} parametrů, takže je náročnější na paměť a hardware.",
         "singleLanguage": "Dokumentace uvádí jen jazyk {{language}}, v dalších jazycích může být méně spolehlivý."
+    },
+    "license": {
+        "other": "jiná"
+    },
+    "modalities": {
+        "images": "obrázky",
+        "audio": "zvuk",
+        "video": "video"
+    },
+    "deployment": {
+        "python-sdk": "Knihovna, kterou model spustíte přímo ve svém programu v Pythonu.",
+        "python": "Spuštění modelu přímo v programu v Pythonu.",
+        "javascript": "Spuštění modelu přímo v prohlížeči nebo v aplikaci v JavaScriptu.",
+        "transformers": "Oficiální knihovna Hugging Face pro běh modelu v Pythonu.",
+        "pytorch": "Programová knihovna pro běh modelů v Pythonu.",
+        "tensorflow": "Programová knihovna pro běh modelů od Googlu.",
+        "onnx": "Univerzální formát, ve kterém model poběží v mnoha různých nástrojích.",
+        "onnx-runtime": "Nástroj pro rychlý běh modelů ve formátu ONNX.",
+        "safetensors": "Bezpečný formát pro uložení natrénovaných vah modelu.",
+        "bitsandbytes": "Nástroj pro úspornější běh modelu (kvantizace).",
+        "vllm": "Nástroj pro rychlé nasazení velkých jazykových modelů na serveru.",
+        "text-generation-inference": "Nástroj Hugging Face pro provoz modelu na serveru.",
+        "tgi": "Nástroj Hugging Face pro provoz modelu na serveru.",
+        "rest-api": "Rozhraní, přes které model volají jiné aplikace po síti.",
+        "api": "Rozhraní, přes které model volají jiné aplikace po síti.",
+        "inference-api": "Online služba, která model spustí na serveru za vás.",
+        "hugging-face-inference-api": "Online služba Hugging Face, která model spustí za vás.",
+        "laya-serve": "Vlastní server, přes který model nabídnete ostatním aplikacím.",
+        "jev-api": "Hostovaná služba, přes kterou model voláte po síti (stejné rozhraní jako laya-serve).",
+        "router": "Část, která pro každý dotaz sama vybere vhodnou variantu modelu.",
+        "llama-cpp": "Nástroj pro běh modelů i na běžném počítači bez výkonné grafiky.",
+        "ollama": "Nástroj pro snadné spuštění modelů na vlastním počítači.",
+        "docker": "Zabalené prostředí, ve kterém model běží stejně na jakémkoli počítači.",
+        "cli": "Ovládání modelu z příkazové řádky.",
+        "other": "Nástroj nebo služba, kterou můžete model spustit a používat."
+    },
+    "tags": {
+        "text2text-generation": "Převod a generování textu",
+        "unconditional-image-generation": "Generování obrázků bez zadání",
+        "fill-mask": "Doplňování chybějících slov",
+        "zero-shot-classification": "Klasifikace bez předchozích příkladů",
+        "multiple-choice": "Řešení otázek s výběrem odpovědi",
+        "zero-shot-image-classification": "Rozpoznávání obrázků bez předchozích příkladů",
+        "depth-estimation": "Odhad hloubky v obraze",
+        "mask-generation": "Vytváření obrazových masek",
+        "conversational": "Konverzace",
+        "reasoning": "Logické uvažování a řešení problémů",
+        "code": "Práce s programovacím kódem",
+        "coding": "Programování a práce s kódem",
+        "math": "Matematické úlohy",
+        "chat": "Chat a dialog",
+        "moe": "Směs specializovaných expertů",
+        "vision": "Porozumění obrazovým datům",
+        "multimodal": "Práce s více typy dat",
+        "multilingual": "Práce ve více jazycích",
+        "long-context": "Práce s dlouhým kontextem",
+        "tool-calling": "Používání externích nástrojů",
+        "function-calling": "Volání funkcí",
+        "instruction-following": "Dodržování pokynů",
+        "agents": "AI agenti",
+        "rag": "Vyhledávání informací a práce se znalostmi (RAG)",
+        "ocr": "Rozpoznávání textu z obrázků (OCR)",
+        "embeddings": "Převod dat na vektorové reprezentace",
+        "embedding": "Vektorové reprezentace dat",
+        "zero-shot": "Použití bez předchozích příkladů",
+        "distillation": "Přenos znalostí do menšího modelu",
+        "speculative-decoding": "Zrychlené generování pomocí predikce",
+        "uncensored": "Model bez dodatečných obsahových omezení",
+        "image-generation": "Generování obrázků",
+        "diffusion": "Difuzní generování",
+        "lora": "Efektivní přizpůsobení modelu (LoRA)",
+        "controlnet": "Řízení generování obrázků (ControlNet)",
+        "stable-diffusion": "Stable Diffusion",
+        "stable-diffusion-xl": "Stable Diffusion XL",
+        "sdxl": "Stable Diffusion XL",
+        "flux": "FLUX",
+        "inpainting": "Úprava a doplňování částí obrázku",
+        "style-transfer": "Přenos výtvarného stylu",
+        "upscaling": "Zvýšení rozlišení obrázku",
+        "photorealistic": "Fotorealistické obrázky",
+        "photography": "Fotografické obrázky",
+        "cinematic": "Filmový vzhled",
+        "portrait": "Portréty",
+        "realistic": "Realistický vzhled",
+        "illustration": "Ilustrace",
+        "anime": "Anime styl",
+        "art": "Umělecká tvorba",
+        "artistic": "Umělecký styl",
+        "audio": "Zvuk",
+        "speech": "Řeč",
+        "voice": "Hlas",
+        "tts": "Převod textu na řeč",
+        "asr": "Převod řeči na text",
+        "speech-synthesis": "Syntéza řeči z textu",
+        "speech-generation": "Generování řeči",
+        "speech-to-text": "Přepis řeči na text",
+        "voice-cloning": "Klonování hlasu",
+        "voice-clone": "Klonování hlasu",
+        "voice-conversion": "Převod jednoho hlasu na jiný",
+        "voice-design": "Tvorba a úprava hlasu",
+        "voice-agent": "Hlasový AI agent",
+        "speaker": "Mluvčí",
+        "speaker-diarization": "Rozlišení jednotlivých mluvčích",
+        "speaker-recognition": "Rozpoznávání mluvčích",
+        "speaker-verification": "Ověření identity mluvčího",
+        "speaker-identification": "Identifikace mluvčího",
+        "speaker-change-detection": "Rozpoznávání změn mluvčích",
+        "source-separation": "Oddělení jednotlivých zvukových zdrojů",
+        "emotion": "Rozpoznávání emocí",
+        "emotions": "Rozpoznávání emocí",
+        "emotion-control": "Ovládání emocí v řeči",
+        "expressive-speech": "Expresivní a emocionální řeč",
+        "forced-alignment": "Časové zarovnání řeči a textu",
+        "whisper": "Whisper",
+        "wav2vec2": "wav2vec 2.0",
+        "streaming": "Zpracování v reálném čase",
+        "low-latency": "Nízká odezva",
+        "realtime": "Zpracování v reálném čase",
+        "gguf": "Lokální běh (GGUF)",
+        "on-device": "Běh přímo v zařízení",
+        "4-bit": "Menší nároky na paměť",
+        "8-bit": "Menší nároky na paměť",
+        "2-bit": "Menší nároky na paměť",
+        "fp8": "Menší nároky na paměť",
+        "awq": "Menší nároky na paměť",
+        "ternary": "Menší nároky na paměť",
+        "imatrix": "Menší nároky na paměť",
+        "compressed-tensors": "Menší nároky na paměť",
+        "apple-silicon": "Optimalizováno pro Apple Silicon",
+        "cuda": "Zrychlení na grafické kartě",
+        "metal": "Zrychlení na grafické kartě",
+        "comfyui": "ComfyUI",
+        "llama-cpp": "llama.cpp",
+        "unsloth": "Unsloth",
+        "pyannote": "pyannote",
+        "pyannote-audio": "pyannote",
+        "pyannote-audio-pipeline": "pyannote",
+        "vision-language": "Porozumění obrázkům a textu",
+        "text-to-audio": "Generování zvuku",
+        "voice-activity-detection": "Detekce řeči v nahrávce",
+        "agentic": "Agentní postupy",
+        "abliterated": "Model bez dodatečných obsahových omezení",
+        "image-editing": "Úprava obrázků",
+        "creative-writing": "Kreativní psaní",
+        "stable-diffusion-diffusers": "Stable Diffusion",
+        "causal-lm": "Jazykový model",
+        "bert": "BERT",
+        "distilbert": "DistilBERT",
+        "roberta": "RoBERTa",
+        "xlm-roberta": "XLM-RoBERTa",
+        "electra": "ELECTRA",
+        "t5": "T5",
+        "clip": "CLIP",
+        "vit": "ViT",
+        "yolo": "YOLO",
+        "sam": "SAM",
+        "llama": "Llama",
+        "mistral": "Mistral",
+        "gemma": "Gemma",
+        "phi": "Phi",
+        "qwen": "Qwen",
+        "deepseek": "DeepSeek",
+        "granite": "Granite",
+        "hubert": "HuBERT",
+        "mms": "MMS",
+        "kokoro": "Kokoro",
+        "piper": "Piper",
+        "gpt2": "GPT-2",
+        "gpt-neox": "GPT-NeoX",
+        "opt": "OPT",
+        "pythia": "Pythia",
+        "coqui": "Coqui",
+        "qwen2": "Qwen",
+        "qwen3": "Qwen",
+        "qwen3-8": "Qwen",
+        "qwen3-5": "Qwen",
+        "qwen3-5-moe": "Qwen",
+        "gemma2": "Gemma",
+        "gemma3": "Gemma",
+        "gemma4": "Gemma"
     }
 }

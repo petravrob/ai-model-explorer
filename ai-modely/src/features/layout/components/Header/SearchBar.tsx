@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import {
@@ -27,6 +28,7 @@ interface SearchBarProps {
  * Vyhledávání modelů v hlavičce.
  */
 function SearchBar({ autoFocus = false, onRequestOpen }: SearchBarProps) {
+    const { t } = useTranslation("layout");
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const location = useLocation();
@@ -125,8 +127,8 @@ function SearchBar({ autoFocus = false, onRequestOpen }: SearchBarProps) {
             className="header__search"
             inputRef={inputRef}
             value={value}
-            placeholder="Hledat modely, autory nebo tagy…"
-            ariaLabel="Hledat modely"
+            placeholder={t("search.placeholder")}
+            ariaLabel={t("search.ariaLabel")}
             onChange={handleChange}
             onSubmit={() => applySearch(value)}
             onClear={handleClear}

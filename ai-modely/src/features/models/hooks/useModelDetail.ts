@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { translate } from "@/i18n/translate";
+
 import { AIModel, ModelInsights } from "../types";
 import { ROUTE_PATHS } from "@/routes/paths";
 import { getModel, getModelInsights } from "../api/modelsApi";
@@ -62,7 +64,7 @@ function useModelDetail(modelId: string | undefined) {
                 const errorMessage =
                     error instanceof Error
                         ? error.message
-                        : "Nepodařilo se načíst model.";
+                        : translate("models:errors.loadModel");
 
                 setError(errorMessage);
 

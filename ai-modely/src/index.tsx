@@ -4,11 +4,12 @@ import { BrowserRouter } from "react-router-dom";
 
 import App from "./App";
 import "./i18n";
+import { translate } from "./i18n/translate";
 
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {
-    throw new Error("Nepodařilo se najít kořenový element aplikace.");
+    throw new Error(translate("common:errors.rootElement"));
 }
 
 createRoot(rootElement).render(

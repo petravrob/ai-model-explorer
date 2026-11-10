@@ -48,8 +48,7 @@ function ModelDetail({ model, insights }: {
     // Přehledy z dokumentace (mohou dorazit později, nebo vůbec)
     insights: ModelInsights | null;
 }) {
-    // Odběr změny jazyka: čísla a data (Intl) se po přepnutí jazyka přeformátují
-    useTranslation("models");
+    const { t } = useTranslation("models");
 
     const tags = getModelTagList(model);
 
@@ -95,7 +94,7 @@ function ModelDetail({ model, insights }: {
     // U modelů typu MoE se rozlišují celkové a aktivní parametry
     const totalParameters = model.parameters === null ? null : formatParameters(model.parameters);
     const parameterNote = totalParameters && insights?.activeParameters
-        ? `aktivně ${insights.activeParameters}`
+        ? t("modelDetail.activeParametersNote", { value: insights.activeParameters })
         : undefined;
 
     // Druhy vstupů a výstupů modelu jako odznaky s ikonou
@@ -105,9 +104,11 @@ function ModelDetail({ model, insights }: {
     // když dokumentace způsob zpracování uvádí
     const flowSteps = insights?.architecture
         ? [
-            insights.modalities?.length ? `Vstup: ${insights.modalities.join(", ")}` : null,
+            insights.modalities?.length
+                ? t("modelDetail.flowInput", { value: insights.modalities.join(", ") })
+                : null,
             insights.architecture,
-            tags.primary ? `Výstup: ${tags.primary}` : null,
+            tags.primary ? t("modelDetail.flowOutput", { value: tags.primary }) : null,
         ].filter((step): step is string => Boolean(step))
         : [];
 
@@ -115,55 +116,59 @@ function ModelDetail({ model, insights }: {
     // U každé položky je krátké vysvětlení, co údaj znamená pro běžného uživatele
     const technical = [
         {
-            label: "Úloha",
+            label: t("modelDetail.facts.task.label"),
             value: tags.primary ?? null,
-            description: "Co model umí, tedy jaký výsledek vrací uživateli.",
+            description: t("modelDetail.facts.task.description"),
         },
         {
-            label: "Vstup",
+            label: t("modelDetail.facts.input.label"),
             value: modalityBadges.length > 0 ? modalityBadges.join(", ") : null,
-            description: "Co všechno dokáže model zpracovat.",
+            description: t("modelDetail.facts.input.description"),
         },
         {
-            label: "Parametry",
-            value: totalParameters ?? (insights?.activeParameters ? `${insights.activeParameters} aktivně` : null),
+            label: t("modelDetail.facts.parameters.label"),
+            value: totalParameters ?? (
+                insights?.activeParameters
+                    ? t("modelDetail.activeParametersOnly", { value: insights.activeParameters })
+                    : null
+            ),
             note: parameterNote,
-            description: "Jak je model velký. Větší modely obvykle umí víc, ale jsou náročnější na provoz.",
+            description: t("modelDetail.facts.parameters.description"),
         },
         {
-            label: "Architektura / zpracování",
+            label: t("modelDetail.facts.architecture.label"),
             value: insights?.architecture ?? null,
-            description: "Z čeho se model skládá a jakým způsobem zpracovává data.",
+            description: t("modelDetail.facts.architecture.description"),
         },
         {
-            label: "Kontext",
+            label: t("modelDetail.facts.context.label"),
             value: insights?.contextLength ?? null,
-            description: "Kolik textu si model najednou dokáže přečíst a vzít v úvahu.",
+            description: t("modelDetail.facts.context.description"),
         },
         {
-            label: "Verze",
+            label: t("modelDetail.facts.version.label"),
             value: insights?.version ?? null,
-            description: "Označení vydání modelu pro rozlišení novější a starší podoby.",
+            description: t("modelDetail.facts.version.description"),
         },
         {
-            label: "Knihovna",
+            label: t("modelDetail.facts.library.label"),
             value: model.library,
-            description: "Programová knihovna, ve které se model nejčastěji spouští.",
+            description: t("modelDetail.facts.library.description"),
         },
         {
-            label: "Licence",
+            label: t("modelDetail.facts.license.label"),
             value: model.license ? getModelLicense(model.license) : null,
-            description: "Za jakých podmínek můžete model používat.",
+            description: t("modelDetail.facts.license.description"),
         },
         {
-            label: "Jazyky",
+            label: t("modelDetail.facts.languages.label"),
             value: model.languages?.length ? formatLanguages(model.languages, 12) : null,
-            description: "Jazyky, kterým model rozumí.",
+            description: t("modelDetail.facts.languages.description"),
         },
         {
-            label: "Aktualizace",
+            label: t("modelDetail.facts.updated.label"),
             value: model.lastModified ? formatDate(model.lastModified) : null,
-            description: "Kdy byl model naposledy upraven.",
+            description: t("modelDetail.facts.updated.description"),
         },
     ].filter((item): item is ModelFactItem => Boolean(item.value));
 
@@ -174,9 +179,11 @@ function ModelDetail({ model, insights }: {
     // Původ a varianty modelu: jen vztahy, které dokumentace nebo data skutečně uvádějí;
     // varianty se vypíšou přímo jako součást posledního kroku (oddělené čárkou)
     const familySteps = [
-        insights?.baseModel ? `Vychází z: ${insights.baseModel}` : null,
+        insights?.baseModel ? t("modelDetail.familyBasedOn", { value: insights.baseModel }) : null,
         model.name,
-        variants.length > 0 ? `Varianty: ${variants.join(", ")}` : null,
+        variants.length > 0
+            ? t("modelDetail.familyVariants", { value: variants.join(", ") })
+            : null,
     ].filter((step): step is string => Boolean(step));
 
     // Boční panel se vykreslí jen tehdy, když je co ukázat
@@ -229,13 +236,13 @@ function ModelDetail({ model, insights }: {
                                 <Stat
                                     icon={DOWNLOAD_ICON}
                                     value={formatCount(model.downloads)}
-                                    label="stažení"
+                                    label={t("modelDetail.downloads")}
                                 />
 
                                 <Stat
                                     icon={LIKE_ICON}
                                     value={formatCount(model.likes)}
-                                    label="oblíbení"
+                                    label={t("modelDetail.likes")}
                                 />
                             </div>
                         </div>
@@ -252,7 +259,7 @@ function ModelDetail({ model, insights }: {
                     </a>
 
                     {showBestFor && (
-                        <Section title="Nejvhodnější pro" className="model-detail__best-for">
+                        <Section title={t("modelDetail.sections.bestFor")} className="model-detail__best-for">
                             <ChipList items={bestFor} />
 
                         </Section>
@@ -270,13 +277,13 @@ function ModelDetail({ model, insights }: {
                 {(highlights.length > 0 || limitations.length > 0) && (
                     <div className="model-detail__split">
                         {highlights.length > 0 && (
-                            <Section title="Proč tento model?">
+                            <Section title={t("modelDetail.sections.whyThisModel")}>
                                 <BulletList variant="check" items={highlights} />
                             </Section>
                         )}
 
                         {limitations.length > 0 && (
-                            <Section title="Omezení">
+                            <Section title={t("modelDetail.sections.limitations")}>
                                 <BulletList items={limitations} />
                             </Section>
                         )}
@@ -284,7 +291,7 @@ function ModelDetail({ model, insights }: {
                 )}
 
                 {(videos.length > 0 || images.length > 0) && (
-                    <Section title="Obrázky z Hugging Face" className="model-detail__gallery">
+                    <Section title={t("modelDetail.sections.gallery")} className="model-detail__gallery">
                         {videos.length > 0 && (
                             <div className="model-detail__images">
                                 {videos.map((video) => (
@@ -319,10 +326,10 @@ function ModelDetail({ model, insights }: {
             {hasSidebar && (
                 <aside className="model-detail__sidebar">
                     {showFlow && (
-                        <Section title="Jak model pracuje">
+                        <Section title={t("modelDetail.sections.howItWorks")}>
                             <FlowDiagram
                                 steps={flowSteps}
-                                description="Schéma znázorňuje cestu dat: co model dostane na vstup, jak je zpracuje a co vrátí."
+                                description={t("modelDetail.flowDescription")}
                             />
                         </Section>
                     )}
@@ -330,22 +337,22 @@ function ModelDetail({ model, insights }: {
                     {showTechnical && <ModelFacts items={technical} />}
 
                     {showFamily && (
-                        <Section title="Původ a varianty modelu">
+                        <Section title={t("modelDetail.sections.family")}>
                             <FlowDiagram
                                 steps={familySteps}
-                                description="Schéma znázorňuje původ modelu: ze kterého modelu vychází a jaké má odvozené varianty."
+                                description={t("modelDetail.familyDescription")}
                             />
                         </Section>
                     )}
 
                     {showHardware && (
-                        <Section title="Nároky na hardware">
+                        <Section title={t("modelDetail.sections.hardware")}>
                             <BulletList items={hardware} />
                         </Section>
                     )}
 
                     {showDeployment && (
-                        <Section title="Nasazení a použití">
+                        <Section title={t("modelDetail.sections.deployment")}>
                             {deployment.length > 0 && (
                                 <ChipList
                                     items={deployment}
@@ -356,7 +363,7 @@ function ModelDetail({ model, insights }: {
                             )}
 
                             {settings.length > 0 && (
-                                <FieldGroup label="Doporučené nastavení">
+                                <FieldGroup label={t("modelDetail.recommendedSettings")}>
                                     <BulletList items={settings} />
                                 </FieldGroup>
                             )}
@@ -364,13 +371,13 @@ function ModelDetail({ model, insights }: {
                     )}
 
                     {showCompatibility && (
-                        <Section title="Kompatibilita">
+                        <Section title={t("modelDetail.sections.compatibility")}>
                             <BulletList items={compatibility} />
                         </Section>
                     )}
 
                     {showQuantization && (
-                        <Section title="Kvantizace a formáty">
+                        <Section title={t("modelDetail.sections.quantization")}>
                             <BulletList items={quantization} />
                         </Section>
                     )}

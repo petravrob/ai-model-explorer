@@ -144,7 +144,7 @@ function Header() {
 
                     <span className="header__brand-text">
                         <span className="header__title-row">
-                            <span className="header__title">AI model explorer</span>
+                            <span className="header__title">{t("header.title")}</span>
 
                             {/* Na široké liště je verze vedle názvu, na menších šířkách je vpravo u ikon */}
                             <span className="header__version header__version--title">{t("header.version", { version: APP_VERSION })}</span>

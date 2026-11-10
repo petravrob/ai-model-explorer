@@ -52,8 +52,6 @@
         "title": "Filters",
         "clearAll": "Clear all",
         "apply": "Done",
-        "showMore": "Show more ({{count}})",
-        "showLess": "Show less",
         "categories": {
             "tasks": "Task",
             "languages": "Language",
@@ -73,7 +71,8 @@
                 "translation": "translation",
                 "summarization": "summarization",
                 "token-classification": "information extraction"
-            }
+            },
+            "genitive": "of text"
         },
         "images": {
             "label": "images",
@@ -86,7 +85,8 @@
                 "image-to-image": "editing",
                 "text-to-3d": "3D generation",
                 "image-to-3d": "3D generation"
-            }
+            },
+            "genitive": "of images"
         },
         "audio": {
             "label": "audio & speech",
@@ -97,7 +97,8 @@
                 "text-to-audio": "audio generation",
                 "voice-activity-detection": "speech detection",
                 "audio-to-audio": "audio editing"
-            }
+            },
+            "genitive": "of audio and speech"
         },
         "video": {
             "label": "video",
@@ -107,7 +108,8 @@
                 "video-text-to-text": "analysis",
                 "video-classification": "recognition",
                 "video-to-video": "editing"
-            }
+            },
+            "genitive": "of video"
         },
         "documents": {
             "label": "documents",
@@ -115,7 +117,8 @@
                 "document-question-answering": "document Q&A",
                 "table-question-answering": "document Q&A",
                 "visual-document-retrieval": "document search"
-            }
+            },
+            "genitive": "of documents"
         },
         "search-similarity": {
             "label": "search & similarity",
@@ -124,7 +127,8 @@
                 "sentence-similarity": "similar content",
                 "text-ranking": "result ranking",
                 "image-feature-extraction": "image feature extraction"
-            }
+            },
+            "genitive": "of search and similarity"
         },
         "multimodal": {
             "label": "multimodal",
@@ -135,7 +139,8 @@
                 "image-text-to-video": "image & text",
                 "video-text-to-text": "video & text",
                 "any-to-any": "multiple content types"
-            }
+            },
+            "genitive": "of multimodal content"
         },
         "data-prediction": {
             "label": "data & prediction",
@@ -143,20 +148,23 @@
                 "time-series-forecasting": "time series",
                 "tabular-classification": "data classification",
                 "tabular-regression": "prediction"
-            }
+            },
+            "genitive": "of data and prediction"
         },
         "robotics": {
             "label": "robotics",
             "options": {
                 "reinforcement-learning": "reinforcement learning",
                 "robotics": "robotics"
-            }
+            },
+            "genitive": "of robotics"
         },
         "other": {
             "label": "other",
             "options": {
                 "graph-ml": "graph data"
-            }
+            },
+            "genitive": "of other"
         }
     },
     "languages": {
@@ -268,7 +276,10 @@
     },
     "errors": {
         "loadModels": "Failed to load models. Please try again.",
-        "loadModel": "Failed to load the model."
+        "loadModel": "Failed to load the model.",
+        "loadAvatar": "Failed to load the avatar.",
+        "loadInsights": "Failed to prepare the overviews from the documentation.",
+        "createDescriptions": "Failed to generate the descriptions."
     },
     "summary": {
         "fallback": "An AI model available through Hugging Face."
@@ -287,5 +298,185 @@
         "nonCommercial": "The {{license}} license does not allow commercial use.",
         "largeModel": "The model has {{parameters}} parameters, so it is more demanding on memory and hardware.",
         "singleLanguage": "The documentation lists only {{language}}; it may be less reliable in other languages."
+    },
+    "license": {
+        "other": "other"
+    },
+    "modalities": {
+        "images": "images",
+        "audio": "audio",
+        "video": "video"
+    },
+    "deployment": {
+        "python-sdk": "A library that lets you run the model directly in your Python program.",
+        "python": "Running the model directly in a Python program.",
+        "javascript": "Running the model directly in a browser or a JavaScript application.",
+        "transformers": "The official Hugging Face library for running the model in Python.",
+        "pytorch": "A software library for running models in Python.",
+        "tensorflow": "Google's software library for running models.",
+        "onnx": "A universal format that lets the model run in many different tools.",
+        "onnx-runtime": "A tool for running ONNX models quickly.",
+        "safetensors": "A safe format for storing trained model weights.",
+        "bitsandbytes": "A tool for more memory-efficient model inference (quantization).",
+        "vllm": "A tool for fast deployment of large language models on a server.",
+        "text-generation-inference": "A Hugging Face tool for serving the model on a server.",
+        "tgi": "A Hugging Face tool for serving the model on a server.",
+        "rest-api": "An interface that lets other applications call the model over the network.",
+        "api": "An interface that lets other applications call the model over the network.",
+        "inference-api": "An online service that runs the model on a server for you.",
+        "hugging-face-inference-api": "A Hugging Face online service that runs the model for you.",
+        "laya-serve": "A custom server that exposes the model to other applications.",
+        "jev-api": "A hosted service for calling the model over the network (same interface as laya-serve).",
+        "router": "A component that picks the right model variant for each request.",
+        "llama-cpp": "A tool for running models even on a regular computer without a powerful GPU.",
+        "ollama": "A tool for running models easily on your own computer.",
+        "docker": "A packaged environment in which the model runs the same on any machine.",
+        "cli": "Controlling the model from the command line.",
+        "other": "A tool or service you can use to run and use the model."
+    },
+    "tags": {
+        "text2text-generation": "Text conversion and generation",
+        "unconditional-image-generation": "Unprompted image generation",
+        "fill-mask": "Filling in missing words",
+        "zero-shot-classification": "Classification without prior examples",
+        "multiple-choice": "Multiple-choice question answering",
+        "zero-shot-image-classification": "Image recognition without prior examples",
+        "depth-estimation": "Depth estimation in an image",
+        "mask-generation": "Image mask generation",
+        "conversational": "Conversation",
+        "reasoning": "Logical reasoning and problem solving",
+        "code": "Working with source code",
+        "coding": "Programming and code",
+        "math": "Mathematical tasks",
+        "chat": "Chat and dialogue",
+        "moe": "Mixture of specialised experts",
+        "vision": "Understanding visual data",
+        "multimodal": "Handling multiple data types",
+        "multilingual": "Working in multiple languages",
+        "long-context": "Working with long context",
+        "tool-calling": "Using external tools",
+        "function-calling": "Function calling",
+        "instruction-following": "Following instructions",
+        "agents": "AI agents",
+        "rag": "Information retrieval and knowledge use (RAG)",
+        "ocr": "Text recognition from images (OCR)",
+        "embeddings": "Converting data into vector representations",
+        "embedding": "Vector representations of data",
+        "zero-shot": "Use without prior examples",
+        "distillation": "Transferring knowledge into a smaller model",
+        "speculative-decoding": "Faster generation through prediction",
+        "uncensored": "Model without additional content restrictions",
+        "image-generation": "Image generation",
+        "diffusion": "Diffusion generation",
+        "lora": "Efficient model adaptation (LoRA)",
+        "controlnet": "Controlling image generation (ControlNet)",
+        "stable-diffusion": "Stable Diffusion",
+        "stable-diffusion-xl": "Stable Diffusion XL",
+        "sdxl": "Stable Diffusion XL",
+        "flux": "FLUX",
+        "inpainting": "Editing and filling in parts of an image",
+        "style-transfer": "Artistic style transfer",
+        "upscaling": "Image upscaling",
+        "photorealistic": "Photorealistic images",
+        "photography": "Photographic images",
+        "cinematic": "Cinematic look",
+        "portrait": "Portraits",
+        "realistic": "Realistic look",
+        "illustration": "Illustration",
+        "anime": "Anime style",
+        "art": "Artistic creation",
+        "artistic": "Artistic style",
+        "audio": "Audio",
+        "speech": "Speech",
+        "voice": "Voice",
+        "tts": "Text to speech",
+        "asr": "Speech to text",
+        "speech-synthesis": "Speech synthesis from text",
+        "speech-generation": "Speech generation",
+        "speech-to-text": "Speech transcription",
+        "voice-cloning": "Voice cloning",
+        "voice-clone": "Voice cloning",
+        "voice-conversion": "Converting one voice into another",
+        "voice-design": "Creating and editing a voice",
+        "voice-agent": "Voice AI agent",
+        "speaker": "Speaker",
+        "speaker-diarization": "Telling speakers apart",
+        "speaker-recognition": "Speaker recognition",
+        "speaker-verification": "Speaker verification",
+        "speaker-identification": "Speaker identification",
+        "speaker-change-detection": "Detecting speaker changes",
+        "source-separation": "Separating individual audio sources",
+        "emotion": "Emotion recognition",
+        "emotions": "Emotion recognition",
+        "emotion-control": "Controlling emotion in speech",
+        "expressive-speech": "Expressive and emotional speech",
+        "forced-alignment": "Time alignment of speech and text",
+        "whisper": "Whisper",
+        "wav2vec2": "wav2vec 2.0",
+        "streaming": "Real-time processing",
+        "low-latency": "Low latency",
+        "realtime": "Real-time processing",
+        "gguf": "Local run (GGUF)",
+        "on-device": "Runs directly on the device",
+        "4-bit": "Lower memory requirements",
+        "8-bit": "Lower memory requirements",
+        "2-bit": "Lower memory requirements",
+        "fp8": "Lower memory requirements",
+        "awq": "Lower memory requirements",
+        "ternary": "Lower memory requirements",
+        "imatrix": "Lower memory requirements",
+        "compressed-tensors": "Lower memory requirements",
+        "apple-silicon": "Optimised for Apple Silicon",
+        "cuda": "GPU acceleration",
+        "metal": "GPU acceleration",
+        "comfyui": "ComfyUI",
+        "llama-cpp": "llama.cpp",
+        "unsloth": "Unsloth",
+        "pyannote": "pyannote",
+        "pyannote-audio": "pyannote",
+        "pyannote-audio-pipeline": "pyannote",
+        "vision-language": "Understanding images and text",
+        "text-to-audio": "Audio generation",
+        "voice-activity-detection": "Speech detection in a recording",
+        "agentic": "Agentic workflows",
+        "abliterated": "Model without additional content restrictions",
+        "image-editing": "Image editing",
+        "creative-writing": "Creative writing",
+        "stable-diffusion-diffusers": "Stable Diffusion",
+        "causal-lm": "Language model",
+        "bert": "BERT",
+        "distilbert": "DistilBERT",
+        "roberta": "RoBERTa",
+        "xlm-roberta": "XLM-RoBERTa",
+        "electra": "ELECTRA",
+        "t5": "T5",
+        "clip": "CLIP",
+        "vit": "ViT",
+        "yolo": "YOLO",
+        "sam": "SAM",
+        "llama": "Llama",
+        "mistral": "Mistral",
+        "gemma": "Gemma",
+        "phi": "Phi",
+        "qwen": "Qwen",
+        "deepseek": "DeepSeek",
+        "granite": "Granite",
+        "hubert": "HuBERT",
+        "mms": "MMS",
+        "kokoro": "Kokoro",
+        "piper": "Piper",
+        "gpt2": "GPT-2",
+        "gpt-neox": "GPT-NeoX",
+        "opt": "OPT",
+        "pythia": "Pythia",
+        "coqui": "Coqui",
+        "qwen2": "Qwen",
+        "qwen3": "Qwen",
+        "qwen3-8": "Qwen",
+        "qwen3-5": "Qwen",
+        "qwen3-5-moe": "Qwen",
+        "gemma2": "Gemma",
+        "gemma3": "Gemma",
+        "gemma4": "Gemma"
     }
 }

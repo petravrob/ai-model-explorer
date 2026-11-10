@@ -1,7 +1,9 @@
 import "./ModelSort.css";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
+import { translate } from "@/i18n/translate";
 import { PageTitle } from "@/ui";
 
 import { MODEL_SORTS_CONFIG, type ModelSortKey } from "../../modelSortsConfig";
@@ -18,6 +20,7 @@ interface ModelSortProps {
 
 /** Výběr řazení modelů nad výpisem. */
 function ModelSort({ value, onChange, isOpen: controlledOpen, onOpenChange, className }: ModelSortProps) {
+    const { t } = useTranslation("models");
 
     const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
 
@@ -106,13 +109,13 @@ function ModelSort({ value, onChange, isOpen: controlledOpen, onOpenChange, clas
             ref={sortRef}
             className={`model-sort${isOpen ? " model-sort--open" : ""}${className ? ` ${className}` : ""}`}
         >
-            {isOpen && <PageTitle compact>Řazení</PageTitle>}
+            {isOpen && <PageTitle compact>{t("sort.title")}</PageTitle>}
 
             <label
                 className="model-sort__label"
                 htmlFor="model-sort-select"
             >
-                Seřadit:
+                {t("sort.label")}
             </label>
 
             <div
@@ -127,9 +130,9 @@ function ModelSort({ value, onChange, isOpen: controlledOpen, onOpenChange, clas
                     aria-expanded={isOpen}
                     onClick={() => setIsOpen((open) => !open)}
                 >
-                    <span className="model-sort__value">{selectedSort.label}</span>
+                    <span className="model-sort__value">{translate(`models:sort.${selectedSort.value}`)}</span>
 
-                    <span className="model-sort__button-label">Seřadit</span>
+                    <span className="model-sort__button-label">{t("sort.buttonLabel")}</span>
 
                     <span className="model-sort__chevron" aria-hidden="true" />
                 </button>
@@ -138,7 +141,7 @@ function ModelSort({ value, onChange, isOpen: controlledOpen, onOpenChange, clas
                     <div
                         className="model-sort__menu"
                         role="listbox"
-                        aria-label="Možnosti řazení"
+                        aria-label={t("sort.optionsAriaLabel")}
                     >
                         {MODEL_SORTS_CONFIG.map((sortOption) => (
                             <button
@@ -153,7 +156,7 @@ function ModelSort({ value, onChange, isOpen: controlledOpen, onOpenChange, clas
                                 }`}
                                 onClick={() => handleOptionClick(sortOption.value)}
                             >
-                                <span>{sortOption.label}</span>
+                                <span>{translate(`models:sort.${sortOption.value}`)}</span>
                                 {sortOption.value === value && (
                                     <span className="model-sort__check" aria-hidden="true">
                                         ✓

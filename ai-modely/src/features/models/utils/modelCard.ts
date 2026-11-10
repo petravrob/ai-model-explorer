@@ -1,6 +1,8 @@
-import { MISSING_VALUE } from "@/ui";
 import type { AIModel } from "../types";
 import { AUTHOR_FILTER_OPTIONS, TASK_FILTER_OPTIONS } from "../filters/filterOptions";
+import { translate } from "@/i18n/translate";
+
+import { getIntlLocale } from "./formatters";
 
 /** Odvozené údaje pro kartu modelu. */
 
@@ -9,202 +11,44 @@ const PROVIDER_LABELS = new Map(
     AUTHOR_FILTER_OPTIONS.map((option) => [option.value.toLowerCase(), option.label] as const)
 );
 
-// Čitelné názvy úloh
-const TASK_LABELS = new Map<string, string>();
+// Skupina úlohy podle její hodnoty (na jazyce nezávisí)
 const TASK_GROUPS = new Map<string, string>();
-const taskLabelGroups = new Map<string, Set<string>>();
 
 TASK_FILTER_OPTIONS.forEach((group) => {
-    group.children.forEach((task) => {
-        TASK_LABELS.set(task.value, task.label);
-        TASK_GROUPS.set(task.value, group.label);
-
-        taskLabelGroups.set(
-            task.label,
-            (taskLabelGroups.get(task.label) ?? new Set()).add(group.label)
-        );
-    });
+    group.children.forEach((task) => TASK_GROUPS.set(task.value, group.value));
 });
 
-// Názvy skupin v druhém pádu
-const GROUP_GENITIVES = new Map<string, string>([
-    ["text", "textu"],
-    ["obrázky", "obrázků"],
-    ["zvuk a řeč", "zvuku a řeči"],
-    ["video", "videa"],
-    ["dokumenty", "dokumentů"],
-    ["vyhledávání a podobnost", "vyhledávání a podobnosti"],
-    ["data a predikce", "dat a predikcí"],
-    ["robotika", "robotiky"],
-    ["ostatní", "ostatních"],
-]);
+/**
+ * Popisky úloh se mezi skupinami opakují (např. "generování"), proto se u nich
+ * doplňuje druhý pád skupiny. Mapy se sestavují pro aktuální jazyk a drží v paměti.
+ */
+type TaskLabelGroups = Map<string, Set<string>>;
+
+let taskLabelGroupsCache: { locale: string; groups: TaskLabelGroups } | null = null;
+
+const getTaskLabelGroups = (): TaskLabelGroups => {
+    const locale = getIntlLocale();
+
+    if (taskLabelGroupsCache?.locale === locale) {
+        return taskLabelGroupsCache.groups;
+    }
+
+    const groups: TaskLabelGroups = new Map();
+
+    TASK_FILTER_OPTIONS.forEach((group) => {
+        group.children.forEach((task) => {
+            const label = translate(`models:tasks.${group.value}.options.${task.value}`);
+
+            groups.set(label, (groups.get(label) ?? new Set()).add(group.value));
+        });
+    });
+
+    taskLabelGroupsCache = { locale, groups };
+
+    return groups;
+};
 
 const MAX_SECONDARY_TAGS = 6;
-
-/**
- * České názvy štítků, které nabídka filtrů nezná.
- * Neznámé štítky se do karty nepřidávají.
- */
-const TAG_LABELS = new Map<string, string>([
-    // Úlohy
-    ["text2text-generation", "Převod a generování textu"],
-    ["unconditional-image-generation", "Generování obrázků bez zadání"],
-    ["fill-mask", "Doplňování chybějících slov"],
-    ["zero-shot-classification", "Klasifikace bez předchozích příkladů"],
-    ["multiple-choice", "Řešení otázek s výběrem odpovědi"],
-    ["zero-shot-image-classification", "Rozpoznávání obrázků bez předchozích příkladů"],
-    ["depth-estimation", "Odhad hloubky v obraze"],
-    ["mask-generation", "Vytváření obrazových masek"],
-
-    // Schopnosti a oblasti použití
-    ["conversational", "Konverzace"],
-    ["reasoning", "Logické uvažování a řešení problémů"],
-    ["code", "Práce s programovacím kódem"],
-    ["coding", "Programování a práce s kódem"],
-    ["math", "Matematické úlohy"],
-    ["chat", "Chat a dialog"],
-    ["moe", "Směs specializovaných expertů"],
-    ["vision", "Porozumění obrazovým datům"],
-    ["multimodal", "Práce s více typy dat"],
-    ["multilingual", "Práce ve více jazycích"],
-    ["long-context", "Práce s dlouhým kontextem"],
-    ["tool-calling", "Používání externích nástrojů"],
-    ["function-calling", "Volání funkcí"],
-    ["instruction-following", "Dodržování pokynů"],
-    ["agents", "AI agenti"],
-    ["rag", "Vyhledávání informací a práce se znalostmi (RAG)"],
-    ["ocr", "Rozpoznávání textu z obrázků (OCR)"],
-    ["embeddings", "Převod dat na vektorové reprezentace"],
-    ["embedding", "Vektorové reprezentace dat"],
-    ["zero-shot", "Použití bez předchozích příkladů"],
-    ["distillation", "Přenos znalostí do menšího modelu"],
-    ["speculative-decoding", "Zrychlené generování pomocí predikce"],
-    ["uncensored", "Model bez dodatečných obsahových omezení"],
-
-    // Obrázky
-    ["image-generation", "Generování obrázků"],
-    ["diffusion", "Difuzní generování"],
-    ["lora", "Efektivní přizpůsobení modelu (LoRA)"],
-    ["controlnet", "Řízení generování obrázků (ControlNet)"],
-    ["stable-diffusion", "Stable Diffusion"],
-    ["stable-diffusion-xl", "Stable Diffusion XL"],
-    ["sdxl", "Stable Diffusion XL"],
-    ["flux", "FLUX"],
-    ["inpainting", "Úprava a doplňování částí obrázku"],
-    ["style-transfer", "Přenos výtvarného stylu"],
-    ["upscaling", "Zvýšení rozlišení obrázku"],
-    ["photorealistic", "Fotorealistické obrázky"],
-    ["photography", "Fotografické obrázky"],
-    ["cinematic", "Filmový vzhled"],
-    ["portrait", "Portréty"],
-    ["realistic", "Realistický vzhled"],
-    ["illustration", "Ilustrace"],
-    ["anime", "Anime styl"],
-    ["art", "Umělecká tvorba"],
-    ["artistic", "Umělecký styl"],
-
-    // Zvuk a řeč
-    ["audio", "Zvuk"],
-    ["speech", "Řeč"],
-    ["voice", "Hlas"],
-    ["tts", "Převod textu na řeč"],
-    ["asr", "Převod řeči na text"],
-    ["speech-synthesis", "Syntéza řeči z textu"],
-    ["speech-generation", "Generování řeči"],
-    ["speech-to-text", "Přepis řeči na text"],
-    ["voice-cloning", "Klonování hlasu"],
-    ["voice-clone", "Klonování hlasu"],
-    ["voice-conversion", "Převod jednoho hlasu na jiný"],
-    ["voice-design", "Tvorba a úprava hlasu"],
-    ["voice-agent", "Hlasový AI agent"],
-    ["speaker", "Mluvčí"],
-    ["speaker-diarization", "Rozlišení jednotlivých mluvčích"],
-    ["speaker-recognition", "Rozpoznávání mluvčích"],
-    ["speaker-verification", "Ověření identity mluvčího"],
-    ["speaker-identification", "Identifikace mluvčího"],
-    ["speaker-change-detection", "Rozpoznávání změn mluvčích"],
-    ["source-separation", "Oddělení jednotlivých zvukových zdrojů"],
-    ["emotion", "Rozpoznávání emocí"],
-    ["emotions", "Rozpoznávání emocí"],
-    ["emotion-control", "Ovládání emocí v řeči"],
-    ["expressive-speech", "Expresivní a emocionální řeč"],
-    ["forced-alignment", "Časové zarovnání řeči a textu"],
-    ["whisper", "Whisper"],
-    ["wav2vec2", "wav2vec 2.0"],
-    ["streaming", "Zpracování v reálném čase"],
-    ["low-latency", "Nízká odezva"],
-    ["realtime", "Zpracování v reálném čase"],
-
-    // Kvantizace a lokální běh
-    ["gguf", "Lokální běh (GGUF)"],
-    ["on-device", "Běh přímo v zařízení"],
-    ["4-bit", "Menší nároky na paměť"],
-    ["8-bit", "Menší nároky na paměť"],
-    ["2-bit", "Menší nároky na paměť"],
-    ["fp8", "Menší nároky na paměť"],
-    ["awq", "Menší nároky na paměť"],
-    ["ternary", "Menší nároky na paměť"],
-    ["imatrix", "Menší nároky na paměť"],
-    ["compressed-tensors", "Menší nároky na paměť"],
-    ["apple-silicon", "Optimalizováno pro Apple Silicon"],
-    ["cuda", "Zrychlení na grafické kartě"],
-    ["metal", "Zrychlení na grafické kartě"],
-
-    // Nástroje a prostředí
-    ["comfyui", "ComfyUI"],
-    ["llama.cpp", "llama.cpp"],
-    ["unsloth", "Unsloth"],
-    ["pyannote", "pyannote"],
-    ["pyannote-audio", "pyannote"],
-    ["pyannote-audio-pipeline", "pyannote"],
-
-    // Další schopnosti
-    ["vision-language", "Porozumění obrázkům a textu"],
-    ["text-to-audio", "Generování zvuku"],
-    ["voice-activity-detection", "Detekce řeči v nahrávce"],
-    ["agentic", "Agentní postupy"],
-    ["abliterated", "Model bez dodatečných obsahových omezení"],
-    ["image-editing", "Úprava obrázků"],
-    ["creative-writing", "Kreativní psaní"],
-    ["stable-diffusion-diffusers", "Stable Diffusion"],
-    ["causal-lm", "Jazykový model"],
-
-    // Známé rodiny a architektury
-    ["bert", "BERT"],
-    ["distilbert", "DistilBERT"],
-    ["roberta", "RoBERTa"],
-    ["xlm-roberta", "XLM-RoBERTa"],
-    ["electra", "ELECTRA"],
-    ["t5", "T5"],
-    ["clip", "CLIP"],
-    ["vit", "ViT"],
-    ["yolo", "YOLO"],
-    ["sam", "SAM"],
-    ["llama", "Llama"],
-    ["mistral", "Mistral"],
-    ["gemma", "Gemma"],
-    ["phi", "Phi"],
-    ["qwen", "Qwen"],
-    ["deepseek", "DeepSeek"],
-    ["granite", "Granite"],
-    ["hubert", "HuBERT"],
-    ["mms", "MMS"],
-    ["kokoro", "Kokoro"],
-    ["piper", "Piper"],
-    ["gpt2", "GPT-2"],
-    ["gpt_neox", "GPT-NeoX"],
-    ["opt", "OPT"],
-    ["pythia", "Pythia"],
-    ["coqui", "Coqui"],
-    ["qwen2", "Qwen"],
-    ["qwen3", "Qwen"],
-    ["qwen3.8", "Qwen"],
-    ["qwen3_5", "Qwen"],
-    ["qwen3_5_moe", "Qwen"],
-    ["gemma2", "Gemma"],
-    ["gemma3", "Gemma"],
-    ["gemma4", "Gemma"],
-]);
 
 // Běžné licence
 const LICENSE_LABELS = new Map<string, string>([
@@ -230,7 +74,6 @@ const LICENSE_LABELS = new Map<string, string>([
     ["llama3", "Llama 3"],
     ["llama3.1", "Llama 3.1"],
     ["gemma", "Gemma"],
-    ["other", "jiná"],
 ]);
 
 /** Převede technickou hodnotu na čitelný popisek. */
@@ -240,24 +83,34 @@ const toLabel = (value: string): string => {
     return label.charAt(0).toUpperCase() + label.slice(1);
 };
 
-/** Najde český název štítku. */
+/** Klíč štítku v překladech: malá písmena, vše kromě písmen a číslic jako pomlčka. */
+const toTagKey = (value: string): string =>
+    value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+/** Najde název štítku v aktuálním jazyce (neznámý štítek se na kartu nepřidá). */
 const toTagLabel = (tag: string): string | null => {
     const value = tag.toLowerCase();
-    const taskLabel = TASK_LABELS.get(value);
+    const group = TASK_GROUPS.get(value);
 
-    if (!taskLabel) {
-        return TAG_LABELS.get(value) ?? null;
+    if (group) {
+        const taskLabel = translate(`models:tasks.${group}.options.${value}`);
+
+        // Stejný popisek ve více skupinách se rozliší druhým pádem skupiny
+        const needsGroup = (getTaskLabelGroups().get(taskLabel)?.size ?? 0) > 1;
+
+        if (!needsGroup) {
+            return toLabel(taskLabel);
+        }
+
+        const genitive = translate(`models:tasks.${group}.genitive`);
+
+        return toLabel(`${taskLabel} ${genitive}`);
     }
 
-    const needsGroup = (taskLabelGroups.get(taskLabel)?.size ?? 0) > 1;
+    // Štítky mimo nabídku filtrů mají vlastní překlad, neznámé se vynechají
+    const label = translate(`models:tags.${toTagKey(value)}`, { defaultValue: "" });
 
-    if (!needsGroup) {
-        return toLabel(taskLabel);
-    }
-
-    const group = TASK_GROUPS.get(value) ?? "";
-
-    return toLabel(`${taskLabel} ${GROUP_GENITIVES.get(group) ?? group}`);
+    return label || null;
 };
 
 export interface ModelTagList {
@@ -271,8 +124,17 @@ export const getModelProvider = (author: string): string =>
     PROVIDER_LABELS.get(author.toLowerCase()) ?? author;
 
 /** Čitelný název licence. */
-export const getModelLicense = (license: string | null): string =>
-    license ? (LICENSE_LABELS.get(license.toLowerCase()) ?? license) : MISSING_VALUE;
+export const getModelLicense = (license: string | null): string => {
+    if (!license) {
+        return translate("common:missingValue");
+    }
+
+    const value = license.toLowerCase();
+
+    return value === "other"
+        ? translate("models:license.other")
+        : (LICENSE_LABELS.get(value) ?? license);
+};
 
 /** Poskládá štítky karty z hlavní úlohy a doplňkových štítků. */
 export const getModelTagList = (model: AIModel): ModelTagList => {
@@ -380,11 +242,9 @@ export const toSentenceCase = (label: string): string =>
         ? label
         : label.charAt(0).toLowerCase() + label.slice(1);
 
-/** Spojí několik popisků českou spojkou. */
-export const joinCzech = (items: string[]): string =>
-    items.length < 2
-        ? (items[0] ?? "")
-        : `${items.slice(0, -1).join(", ")} a ${items[items.length - 1]}`;
+/** Spojí několik popisků spojkou podle aktuálního jazyka (česky "a", anglicky "and"). */
+export const joinList = (items: string[]): string => 
+    new Intl.ListFormat(getIntlLocale(), { style: "long", type: "conjunction" }).format(items);
 
 /**
  * Vrátí popis modelu.
@@ -408,12 +268,12 @@ export const getModelSummary = (model: AIModel): string => {
     const parts = [tags.primary, ...capabilities].filter(Boolean) as string[];
 
     if (parts.length === 0) {
-        return "AI model dostupný prostřednictvím Hugging Face.";
+        return translate("models:summary.fallback");
     }
 
     // Úloha a schopnosti se vypíšou (Generování textu a konverzace).
     // Když úloha obsahuje "a" (např. Obrázek a text), oddělí se zbytek čárkou.
-    const joined = parts[0].includes(" a ") ? parts.join(", ") : joinCzech(parts);
+    const joined = parts[0].includes(" a ") ? parts.join(", ") : joinList(parts);
 
     return `${joined}.`;
 };

@@ -14,9 +14,7 @@
     },
     "search": {
         "placeholder": "Search models, authors or tags…",
-        "ariaLabel": "Search models",
-        "submit": "Search",
-        "clear": "Clear search"
+        "ariaLabel": "Search models"
     },
     "notFound": {
         "title": "Page not found",

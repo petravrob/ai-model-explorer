@@ -1,5 +1,6 @@
 import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
+import { translate } from "@/i18n/translate";
 import { AIModel, ModelFilters, ModelInsights } from "@/features/models";
 import { MODELS_PER_PAGE } from "../modelPagingConfig";
 import type { ModelSortKey } from "../modelSortsConfig";
@@ -74,7 +75,7 @@ export const getModels = async (
 
     const data = await handleApiResponse<AIModel[]>(
         response,
-        "Nepodařilo se načíst modely."
+        translate("models:errors.loadModels")
     );
 
     const models = data.data as AIModel[];
@@ -114,7 +115,7 @@ export const getAuthorAvatar = async (
 
             const data = await handleApiResponse<{ avatarUrl: string | null }>(
                 response,
-                "Nepodařilo se načíst avatar."
+                translate("models:errors.loadAvatar")
             );
 
             return (data.data as { avatarUrl: string | null }).avatarUrl;
@@ -146,7 +147,7 @@ export const getModel = async (
 
     const data = await handleApiResponse<AIModel>(
         response,
-        "Nepodařilo se načíst model."
+        translate("models:errors.loadModel")
     );
 
     return data.data as AIModel;
@@ -166,7 +167,7 @@ export const getModelInsights = async (
 
     const data = await handleApiResponse<{ modelId: string; insights: ModelInsights | null }>(
         response,
-        "Nepodařilo se připravit přehledy z dokumentace."
+        translate("models:errors.loadInsights")
     );
 
     return (data.data as { insights: ModelInsights | null }).insights;
@@ -185,7 +186,7 @@ export const createDescriptions = async (
 
     const data = await handleApiResponse<{ modelId: string; description: string }[]>(
         response,
-        "Nepodařilo se vygenerovat popisky."
+        translate("models:errors.createDescriptions")
     );
 
     return data.data as { modelId: string; description: string }[];

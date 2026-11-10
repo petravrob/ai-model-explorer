@@ -1,4 +1,5 @@
 import type { CheckboxGroupDisplayOption, CheckboxGroupOption } from "./checkboxGroupTypes";
+import { translate } from "@/i18n/translate";
 
 /**
  * Počet hodnot podkategorie, které se ukážou ve zkrácené nabídce (mají se ukázat nejpoužívanější).
@@ -16,9 +17,9 @@ export function countSelected(options: readonly CheckboxGroupOption[], selected:
     );
 }
 
-/** Popisek počtu zvolených hodnot se správným českým tvarem (např. "aktivní" nebo "7 aktivních"). */
+/** Popisek počtu zvolených hodnot se správným tvarem podle jazyka (např. "7 aktivních"). */
 export function formatSelectedCount(count: number): string {
-    return count >= 5 ? `${count} aktivních` : `${count} aktivní`;
+    return translate("common:checkboxGroup.selectedCount", { count });
 }
 
 /** Počet hodnot filtru. */

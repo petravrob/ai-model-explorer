@@ -14,9 +14,7 @@
     },
     "search": {
         "placeholder": "Hledat modely, autory nebo tagy…",
-        "ariaLabel": "Hledat modely",
-        "submit": "Vyhledat",
-        "clear": "Vymazat hledání"
+        "ariaLabel": "Hledat modely"
     },
     "notFound": {
         "title": "Stránka nebyla nalezena",

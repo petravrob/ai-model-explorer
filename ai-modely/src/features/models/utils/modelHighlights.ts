@@ -1,5 +1,6 @@
 import type { AIModel, ModelInsights } from "../types";
-import { getModelLicense, joinCzech } from "./modelCard";
+import { translate } from "@/i18n/translate";
+import { getModelLicense, joinList } from "./modelCard";
 
 /**
  * Vlastnosti, které model odlišují od ostatních.
@@ -20,9 +21,9 @@ const BROAD_LANGUAGE_COUNT = 10;
 
 // Druhy vstupů a výstupů, které se dají poznat ze štítků a úlohy, když je dokumentace neuvádí
 const MODALITY_GROUPS = [
-    { pattern: /(vision|image|multimodal|visual|ocr)/i, label: "obrázky" },
-    { pattern: /(audio|speech|asr|voice|tts)/i, label: "zvuk" },
-    { pattern: /video/i, label: "video" },
+    { pattern: /(vision|image|multimodal|visual|ocr)/i, labelKey: "models:modalities.images" },
+    { pattern: /(audio|speech|asr|voice|tts)/i, labelKey: "models:modalities.audio" },
+    { pattern: /video/i, labelKey: "models:modalities.video" },
 ];
 
 /** Odvodí z doložených údajů vlastnosti, které model odlišují. */
@@ -37,7 +38,7 @@ export const getModelHighlights = (model: AIModel, insights: ModelInsights | nul
 
     const fromTags = MODALITY_GROUPS
         .filter((group) => group.pattern.test([model.task, ...(model.tags ?? [])].join(" ")))
-        .map((group) => group.label);
+        .map((group) => translate(group.labelKey));
 
     const beyondText = [...new Set([...fromDocs, ...fromTags])]
         .filter((item) => !/^text(ov[ýy])?$/i.test(item))
@@ -47,29 +48,30 @@ export const getModelHighlights = (model: AIModel, insights: ModelInsights | nul
         // Když dokumentace uvádí jen tyto druhy, text se nepředpokládá
         const onlyThese = fromDocs.length > 0 && fromDocs.every((item) => beyondText.includes(item));
 
-        highlights.push(onlyThese
-            ? `Zvládá ${joinCzech(beyondText)}.`
-            : `Kromě textu zvládá i ${joinCzech(beyondText)}.`);
+        highlights.push(translate(
+            onlyThese ? "models:highlights.handlesOnly" : "models:highlights.handlesBesidesText",
+            { modalities: joinList(beyondText) }
+        ));
     }
 
     if (insights?.architecture) {
-        highlights.push(`Architektura podle dokumentace: ${insights.architecture}.`);
+        highlights.push(translate("models:highlights.architecture", { value: insights.architecture }));
     }
 
     if (insights?.trainingMethod) {
-        highlights.push(`Způsob tréninku podle dokumentace: ${insights.trainingMethod}.`);
+        highlights.push(translate("models:highlights.trainingMethod", { value: insights.trainingMethod }));
     }
 
     if (model.license && PERMISSIVE_LICENSE.test(model.license)) {
-        highlights.push(`Otevřená licence ${getModelLicense(model.license)} umožňuje i komerční použití.`);
+        highlights.push(translate("models:highlights.openLicense", { license: getModelLicense(model.license) }));
     }
 
     if (insights?.contextLength) {
-        highlights.push(`Zvládne kontext až ${insights.contextLength}.`);
+        highlights.push(translate("models:highlights.contextLength", { value: insights.contextLength }));
     }
 
     if ((model.languages?.length ?? 0) >= BROAD_LANGUAGE_COUNT) {
-        highlights.push(`Podporuje ${model.languages.length} jazyků.`);
+        highlights.push(translate("models:highlights.languageCount", { count: model.languages.length }));
     }
 
     return highlights.slice(0, MAX_HIGHLIGHTS);
