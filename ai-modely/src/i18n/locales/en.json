@@ -1,0 +1,329 @@
+{
+    "common": {
+        "version": "Version: {{version}}",
+        "missingValue": "not specified",
+        "loadingModels": "Loading models",
+        "updatingModels": "Updating models",
+        "listConjunction": "and"
+    },
+    "header": {
+        "title": "AI model explorer",
+        "subtitleMain": "Browse AI models",
+        "subtitleSourcePrefix": "from",
+        "searchToggle": "Search",
+        "showFilters": "Show filters",
+        "hideFilters": "Hide filters",
+        "filterSelectedCount": "({{count}} selected)",
+        "showSort": "Show sorting",
+        "hideSort": "Hide sorting",
+        "languageSwitcher": "Interface language"
+    },
+    "search": {
+        "placeholder": "Search models, authors or tags…",
+        "ariaLabel": "Search models",
+        "submit": "Search",
+        "clear": "Clear search"
+    },
+    "notFound": {
+        "title": "Page not found",
+        "message": "This address does not exist or has been moved.",
+        "backHome": "Back to the home page"
+    },
+    "browser": {
+        "fuzzyNote": "No exact match found, showing the most similar models.",
+        "loadMore": "Load more models",
+        "loadMoreLoading": "Loading more models…",
+        "loadMoreError": "Failed to load more models. Please try again.",
+        "empty": {
+            "search": "No models found for “{{query}}”.",
+            "filters": "No models match the selected filters.",
+            "tab": "No models found for the “{{tab}}” tab.",
+            "default": "No models found."
+        }
+    },
+    "tabs": {
+        "ariaLabel": "Model list tabs",
+        "all": {
+            "label": "All",
+            "description": "Browsing all available models."
+        },
+        "recommended": {
+            "label": "Recommended",
+            "description": "Proven models with a clear license, known size and library."
+        },
+        "new": {
+            "label": "New",
+            "description": "Models published on Hugging Face in the last two months."
+        },
+        "trending": {
+            "label": "Trending",
+            "description": "The most popular models currently gaining traction (Hugging Face trending score)."
+        },
+        "local": {
+            "label": "Run locally",
+            "description": "Models with a quantized variant (GGUF, AWQ, GPTQ) or up to 1B parameters that can run on a regular computer."
+        },
+        "server": {
+            "label": "Server-grade",
+            "description": "Models over 13B parameters that need a powerful server or GPU."
+        }
+    },
+    "sort": {
+        "title": "Sorting",
+        "label": "Sort by:",
+        "buttonLabel": "Sort",
+        "optionsAriaLabel": "Sort options",
+        "popularity": "Popularity",
+        "downloads": "Downloads",
+        "likes": "Likes",
+        "created": "Date added"
+    },
+    "filters": {
+        "title": "Filters",
+        "clearAll": "Clear all",
+        "apply": "Done",
+        "showMore": "Show more ({{count}})",
+        "showLess": "Show less",
+        "categories": {
+            "tasks": "Task",
+            "languages": "Language",
+            "library": "Library",
+            "license": "License",
+            "parameters": "Model size",
+            "author": "Author"
+        }
+    },
+
+    "tasks": {
+        "text": {
+            "label": "text",
+            "options": {
+                "text-generation": "generation",
+                "text-classification": "classification",
+                "question-answering": "question answering",
+                "translation": "translation",
+                "summarization": "summarization",
+                "token-classification": "information extraction"
+            }
+        },
+        "images": {
+            "label": "images",
+            "options": {
+                "text-to-image": "generation",
+                "image-classification": "recognition",
+                "image-to-text": "image captioning",
+                "object-detection": "object detection",
+                "image-segmentation": "segmentation",
+                "image-to-image": "editing",
+                "text-to-3d": "3D generation",
+                "image-to-3d": "3D generation"
+            }
+        },
+        "audio": {
+            "label": "audio & speech",
+            "options": {
+                "automatic-speech-recognition": "speech transcription",
+                "text-to-speech": "text to speech",
+                "audio-classification": "sound recognition",
+                "text-to-audio": "audio generation",
+                "voice-activity-detection": "speech detection",
+                "audio-to-audio": "audio editing"
+            }
+        },
+        "video": {
+            "label": "video",
+            "options": {
+                "text-to-video": "generation",
+                "image-to-video": "generation",
+                "video-text-to-text": "analysis",
+                "video-classification": "recognition",
+                "video-to-video": "editing"
+            }
+        },
+        "documents": {
+            "label": "documents",
+            "options": {
+                "document-question-answering": "document Q&A",
+                "table-question-answering": "document Q&A",
+                "visual-document-retrieval": "document search"
+            }
+        },
+        "search-similarity": {
+            "label": "search & similarity",
+            "options": {
+                "feature-extraction": "feature extraction",
+                "sentence-similarity": "similar content",
+                "text-ranking": "result ranking",
+                "image-feature-extraction": "image feature extraction"
+            }
+        },
+        "multimodal": {
+            "label": "multimodal",
+            "options": {
+                "image-text-to-text": "image & text",
+                "visual-question-answering": "image Q&A",
+                "image-text-to-image": "image & text",
+                "image-text-to-video": "image & text",
+                "video-text-to-text": "video & text",
+                "any-to-any": "multiple content types"
+            }
+        },
+        "data-prediction": {
+            "label": "data & prediction",
+            "options": {
+                "time-series-forecasting": "time series",
+                "tabular-classification": "data classification",
+                "tabular-regression": "prediction"
+            }
+        },
+        "robotics": {
+            "label": "robotics",
+            "options": {
+                "reinforcement-learning": "reinforcement learning",
+                "robotics": "robotics"
+            }
+        },
+        "other": {
+            "label": "other",
+            "options": {
+                "graph-ml": "graph data"
+            }
+        }
+    },
+    "languages": {
+        "cs": "Czech",
+        "zh": "Chinese",
+        "en": "English",
+        "fr": "French",
+        "ja": "Japanese",
+        "ko": "Korean",
+        "de": "German",
+        "ru": "Russian",
+        "es": "Spanish"
+    },
+    "parameterRanges": {
+        "0-1B": "Up to 1 B parameters",
+        "1-7B": "1–7 B",
+        "7-13B": "7–13 B",
+        "13-30B": "13–30 B",
+        "30-70B": "30–70 B",
+        "70B+": "More than 70 B"
+    },
+
+    "modelList": {
+        "task": "Task",
+        "parameters": "Parameters",
+        "library": "Library",
+        "license": "License",
+        "languages": "Languages",
+        "updated": "Updated",
+        "downloads": "downloads",
+        "likes": "likes",
+        "moreTags": "More model tags"
+    },
+    "modelDetail": {
+        "downloads": "downloads",
+        "likes": "likes",
+        "recommendedSettings": "Recommended settings",
+        "sections": {
+            "bestFor": "Best for",
+            "whyThisModel": "Why this model?",
+            "limitations": "Limitations",
+            "gallery": "Images from Hugging Face",
+            "howItWorks": "How the model works",
+            "facts": "Technical details",
+            "family": "Model origin and variants",
+            "hardware": "Hardware requirements",
+            "deployment": "Deployment and usage",
+            "compatibility": "Compatibility",
+            "quantization": "Quantization and formats"
+        },
+        "facts": {
+            "task": {
+                "label": "Task",
+                "description": "What the model does, i.e. the result it returns to the user."
+            },
+            "input": {
+                "label": "Input",
+                "description": "Everything the model can process."
+            },
+            "parameters": {
+                "label": "Parameters",
+                "description": "How big the model is. Larger models usually do more, but are more demanding to run."
+            },
+            "architecture": {
+                "label": "Architecture / processing",
+                "description": "What the model consists of and how it processes data."
+            },
+            "context": {
+                "label": "Context",
+                "description": "How much text the model can read and take into account at once."
+            },
+            "version": {
+                "label": "Version",
+                "description": "Release identifier distinguishing newer and older model revisions."
+            },
+            "library": {
+                "label": "Library",
+                "description": "The software library most commonly used to run the model."
+            },
+            "license": {
+                "label": "License",
+                "description": "The terms under which you can use the model."
+            },
+            "languages": {
+                "label": "Languages",
+                "description": "Languages the model understands."
+            },
+            "updated": {
+                "label": "Updated",
+                "description": "When the model was last modified."
+            }
+        },
+        "flowInput": "Input: {{value}}",
+        "flowOutput": "Output: {{value}}",
+        "flowDescription": "The diagram shows the data path: what the model takes as input, how it processes it and what it returns.",
+        "familyBasedOn": "Based on: {{value}}",
+        "familyVariants": "Variants: {{value}}",
+        "familyDescription": "The diagram shows the model's origin: which model it is based on and which derived variants it has.",
+        "activeParametersNote": "{{value}} active",
+        "activeParametersOnly": "{{value}} active"
+    },
+    "readme": {
+        "title": "Description from Hugging Face",
+        "sourceNote": "The text is taken from the model card on Hugging Face, links point to the original sources."
+    },
+    "detailPage": {
+        "back": "Back to model list",
+        "loading": "Loading model...",
+        "notFound": "Model not found."
+    },
+    "errors": {
+        "loadModels": "Failed to load models. Please try again.",
+        "loadModel": "Failed to load the model."
+    },
+    "image": {
+        "zoom": "Enlarge image",
+        "zoomWithLabel": "Enlarge image: {{label}}",
+        "zoomedDefault": "Enlarged image",
+        "closeZoom": "Close enlarged image"
+    },
+    "summary": {
+        "fallback": "An AI model available through Hugging Face."
+    },
+    "highlights": {
+        "handlesOnly": "Handles {{modalities}}.",
+        "handlesBesidesText": "Besides text, it also handles {{modalities}}.",
+        "architecture": "Architecture according to the documentation: {{value}}.",
+        "trainingMethod": "Training method according to the documentation: {{value}}.",
+        "openLicense": "The open {{license}} license also allows commercial use.",
+        "contextLength": "Handles context up to {{value}}.",
+        "languageCount_one": "Supports {{count}} language.",
+        "languageCount_other": "Supports {{count}} languages."
+    },
+    "limitations": {
+        "nonCommercial": "The {{license}} license does not allow commercial use.",
+        "largeModel": "The model has {{parameters}} parameters, so it is more demanding on memory and hardware.",
+        "singleLanguage": "The documentation lists only {{language}}; it may be less reliable in other languages."
+    }
+}

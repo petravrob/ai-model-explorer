@@ -1,0 +1,331 @@
+{
+    "common": {
+        "version": "Verze: {{version}}",
+        "missingValue": "neuvedeno",
+        "loadingModels": "Načítání modelů",
+        "updatingModels": "Aktualizace modelů",
+        "listConjunction": "a"
+    },
+    "header": {
+        "title": "AI model explorer",
+        "subtitleMain": "Prohlížení AI modelů",
+        "subtitleSourcePrefix": "z",
+        "searchToggle": "Vyhledávání",
+        "showFilters": "Zobrazit filtry",
+        "hideFilters": "Skrýt filtry",
+        "filterSelectedCount": "(zvoleno {{count}})",
+        "showSort": "Zobrazit řazení",
+        "hideSort": "Skrýt řazení",
+        "languageSwitcher": "Jazyk rozhraní"
+    },
+    "search": {
+        "placeholder": "Hledat modely, autory nebo tagy…",
+        "ariaLabel": "Hledat modely",
+        "submit": "Vyhledat",
+        "clear": "Vymazat hledání"
+    },
+    "notFound": {
+        "title": "Stránka nebyla nalezena",
+        "message": "Tato adresa neexistuje nebo byla přesunuta.",
+        "backHome": "Zpět na hlavní stránku"
+    },
+    "browser": {
+        "fuzzyNote": "Přesná shoda nenalezena, zobrazují se nejpodobnější modely.",
+        "loadMore": "Načíst další modely",
+        "loadMoreLoading": "Načítám další modely…",
+        "loadMoreError": "Další modely se nepodařilo načíst. Zkuste to prosím znovu.",
+        "empty": {
+            "search": "Pro hledaný výraz „{{query}}“ nebyly nalezeny žádné modely.",
+            "filters": "Podle zvolených filtrů nebyly nalezeny žádné modely.",
+            "tab": "Pro štítek „{{tab}}“ nebyly nalezeny žádné modely.",
+            "default": "Nebyly nalezeny žádné modely."
+        }
+    },
+    "tabs": {
+        "ariaLabel": "Štítky výpisu modelů",
+        "all": {
+            "label": "Vše",
+            "description": "Prohlížení všech dostupných modelů."
+        },
+        "recommended": {
+            "label": "Doporučené",
+            "description": "Osvědčené modely s jasnou licencí, známou velikostí i knihovnou."
+        },
+        "new": {
+            "label": "Nové",
+            "description": "Modely zveřejněné na Hugging Face za poslední dva měsíce."
+        },
+        "trending": {
+            "label": "Trendující",
+            "description": "Nejoblíbenější modely, které právě nabírají na popularitě (skóre trendů Hugging Face)."
+        },
+        "local": {
+            "label": "Lokální běh",
+            "description": "Modely s kvantizovanou variantou (GGUF, AWQ, GPTQ) nebo do 1 mld. parametrů, které lze spustit i na běžném počítači."
+        },
+        "server": {
+            "label": "Na serveru",
+            "description": "Modely nad 13 mld. parametrů, které potřebují výkonný server nebo GPU."
+        }
+    },
+    "sort": {
+        "title": "Řazení",
+        "label": "Seřadit:",
+        "buttonLabel": "Seřadit",
+        "optionsAriaLabel": "Možnosti řazení",
+        "popularity": "Popularita",
+        "downloads": "Počet stažení",
+        "likes": "Počet oblíbených",
+        "created": "Datum přidání"
+    },
+    "filters": {
+        "title": "Filtry",
+        "clearAll": "Vymazat vše",
+        "apply": "Hotovo",
+        "showMore": "Zobrazit další ({{count}})",
+        "showLess": "Zobrazit méně",
+        "categories": {
+            "tasks": "Úloha",
+            "languages": "Jazyk",
+            "library": "Knihovna",
+            "license": "Licence",
+            "parameters": "Velikost modelu",
+            "author": "Autor"
+        }
+    },
+
+    "tasks": {
+        "text": {
+            "label": "text",
+            "options": {
+                "text-generation": "generování",
+                "text-classification": "klasifikace",
+                "question-answering": "otázky a odpovědi",
+                "translation": "překlad",
+                "summarization": "shrnutí",
+                "token-classification": "extrakce informací"
+            }
+        },
+        "images": {
+            "label": "obrázky",
+            "options": {
+                "text-to-image": "generování",
+                "image-classification": "rozpoznávání",
+                "image-to-text": "popis obrázků",
+                "object-detection": "detekce objektů",
+                "image-segmentation": "segmentace",
+                "image-to-image": "úprava",
+                "text-to-3d": "generování 3D",
+                "image-to-3d": "generování 3D"
+            }
+        },
+        "audio": {
+            "label": "zvuk a řeč",
+            "options": {
+                "automatic-speech-recognition": "přepis řeči",
+                "text-to-speech": "převod textu na řeč",
+                "audio-classification": "rozpoznávání zvuků",
+                "text-to-audio": "generování zvuku",
+                "voice-activity-detection": "detekce řeči",
+                "audio-to-audio": "úprava zvuku"
+            }
+        },
+        "video": {
+            "label": "video",
+            "options": {
+                "text-to-video": "generování",
+                "image-to-video": "generování",
+                "video-text-to-text": "analýza",
+                "video-classification": "rozpoznávání",
+                "video-to-video": "úprava"
+            }
+        },
+        "documents": {
+            "label": "dokumenty",
+            "options": {
+                "document-question-answering": "otázky nad dokumenty",
+                "table-question-answering": "otázky nad dokumenty",
+                "visual-document-retrieval": "vyhledávání v dokumentech"
+            }
+        },
+        "search-similarity": {
+            "label": "vyhledávání a podobnost",
+            "options": {
+                "feature-extraction": "extrakce vlastností",
+                "sentence-similarity": "podobný obsah",
+                "text-ranking": "řazení výsledků",
+                "image-feature-extraction": "extrakce vlastností obrázků"
+            }
+        },
+        "multimodal": {
+            "label": "multimodální",
+            "options": {
+                "image-text-to-text": "obrázek a text",
+                "visual-question-answering": "otázky k obrázku",
+                "image-text-to-image": "obrázek a text",
+                "image-text-to-video": "obrázek a text",
+                "video-text-to-text": "video a text",
+                "any-to-any": "více typů obsahu"
+            }
+        },
+        "data-prediction": {
+            "label": "data a predikce",
+            "options": {
+                "time-series-forecasting": "časové řady",
+                "tabular-classification": "klasifikace dat",
+                "tabular-regression": "predikce"
+            }
+        },
+        "robotics": {
+            "label": "robotika",
+            "options": {
+                "reinforcement-learning": "posilované učení",
+                "robotics": "robotika"
+            }
+        },
+        "other": {
+            "label": "ostatní",
+            "options": {
+                "graph-ml": "grafová data"
+            }
+        }
+    },
+    "languages": {
+        "cs": "čeština",
+        "zh": "čínština",
+        "en": "angličtina",
+        "fr": "francouzština",
+        "ja": "japonština",
+        "ko": "korejština",
+        "de": "němčina",
+        "ru": "ruština",
+        "es": "španělština"
+    },
+    "parameterRanges": {
+        "0-1B": "Do 1 B parametrů",
+        "1-7B": "1–7 B",
+        "7-13B": "7–13 B",
+        "13-30B": "13–30 B",
+        "30-70B": "30–70 B",
+        "70B+": "Více než 70 B"
+    },
+
+    "modelList": {
+        "task": "Úloha",
+        "parameters": "Parametry",
+        "library": "Knihovna",
+        "license": "Licence",
+        "languages": "Jazyky",
+        "updated": "Aktualizace",
+        "downloads": "stažení",
+        "likes": "oblíbení",
+        "moreTags": "Další štítky modelu"
+    },
+    "modelDetail": {
+        "downloads": "stažení",
+        "likes": "oblíbení",
+        "recommendedSettings": "Doporučené nastavení",
+        "sections": {
+            "bestFor": "Nejvhodnější pro",
+            "whyThisModel": "Proč tento model?",
+            "limitations": "Omezení",
+            "gallery": "Obrázky z Hugging Face",
+            "howItWorks": "Jak model pracuje",
+            "facts": "Technické údaje",
+            "family": "Původ a varianty modelu",
+            "hardware": "Nároky na hardware",
+            "deployment": "Nasazení a použití",
+            "compatibility": "Kompatibilita",
+            "quantization": "Kvantizace a formáty"
+        },
+        "facts": {
+            "task": {
+                "label": "Úloha",
+                "description": "Co model umí, tedy jaký výsledek vrací uživateli."
+            },
+            "input": {
+                "label": "Vstup",
+                "description": "Co všechno dokáže model zpracovat."
+            },
+            "parameters": {
+                "label": "Parametry",
+                "description": "Jak je model velký. Větší modely obvykle umí víc, ale jsou náročnější na provoz."
+            },
+            "architecture": {
+                "label": "Architektura / zpracování",
+                "description": "Z čeho se model skládá a jakým způsobem zpracovává data."
+            },
+            "context": {
+                "label": "Kontext",
+                "description": "Kolik textu si model najednou dokáže přečíst a vzít v úvahu."
+            },
+            "version": {
+                "label": "Verze",
+                "description": "Označení vydání modelu pro rozlišení novější a starší podoby."
+            },
+            "library": {
+                "label": "Knihovna",
+                "description": "Programová knihovna, ve které se model nejčastěji spouští."
+            },
+            "license": {
+                "label": "Licence",
+                "description": "Za jakých podmínek můžete model používat."
+            },
+            "languages": {
+                "label": "Jazyky",
+                "description": "Jazyky, kterým model rozumí."
+            },
+            "updated": {
+                "label": "Aktualizace",
+                "description": "Kdy byl model naposledy upraven."
+            }
+        },
+        "flowInput": "Vstup: {{value}}",
+        "flowOutput": "Výstup: {{value}}",
+        "flowDescription": "Schéma znázorňuje cestu dat: co model dostane na vstup, jak je zpracuje a co vrátí.",
+        "familyBasedOn": "Vychází z: {{value}}",
+        "familyVariants": "Varianty: {{value}}",
+        "familyDescription": "Schéma znázorňuje původ modelu: ze kterého modelu vychází a jaké má odvozené varianty.",
+        "activeParametersNote": "aktivně {{value}}",
+        "activeParametersOnly": "{{value}} aktivně"
+    },
+    "readme": {
+        "title": "Popis z Hugging Face",
+        "sourceNote": "Text přebíráme z model card na Hugging Face, odkazy míří na původní zdroje."
+    },
+    "detailPage": {
+        "back": "Zpět na výpis modelů",
+        "loading": "Načítání modelu...",
+        "notFound": "Model nebyl nalezen."
+    },
+    "errors": {
+        "loadModels": "Modely se nepodařilo načíst. Zkuste to prosím znovu.",
+        "loadModel": "Nepodařilo se načíst model."
+    },
+    "image": {
+        "zoom": "Zvětšit obrázek",
+        "zoomWithLabel": "Zvětšit obrázek: {{label}}",
+        "zoomedDefault": "Zvětšený obrázek",
+        "closeZoom": "Zavřít zvětšený obrázek"
+    },
+    "summary": {
+        "fallback": "AI model dostupný prostřednictvím Hugging Face."
+    },
+    "highlights": {
+        "handlesOnly": "Zvládá {{modalities}}.",
+        "handlesBesidesText": "Kromě textu zvládá i {{modalities}}.",
+        "architecture": "Architektura podle dokumentace: {{value}}.",
+        "trainingMethod": "Způsob tréninku podle dokumentace: {{value}}.",
+        "openLicense": "Otevřená licence {{license}} umožňuje i komerční použití.",
+        "contextLength": "Zvládne kontext až {{value}}.",
+        "languageCount_one": "Podporuje {{count}} jazyk.",
+        "languageCount_few": "Podporuje {{count}} jazyky.",
+        "languageCount_many": "Podporuje {{count}} jazyků.",
+        "languageCount_other": "Podporuje {{count}} jazyků."
+    },
+    "limitations": {
+        "nonCommercial": "Licence {{license}} nepovoluje komerční použití.",
+        "largeModel": "Model má {{parameters}} parametrů, takže je náročnější na paměť a hardware.",
+        "singleLanguage": "Dokumentace uvádí jen jazyk {{language}}, v dalších jazycích může být méně spolehlivý."
+    }
+}
