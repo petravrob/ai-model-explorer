@@ -2,6 +2,7 @@ import "./DocumentImage.css";
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 
 import Icon from "../Icon/Icon";
 import { CLOSE_ICON } from "../Icon/icons";
@@ -18,6 +19,7 @@ interface DocumentImageProps {
  * Kliknutím se obrázek zvětší přes celou.
  */
 function DocumentImage({ src, alt, caption }: DocumentImageProps) {
+    const { t } = useTranslation();
     const [failed, setFailed] = useState(false);
     const [isZoomed, setIsZoomed] = useState(false);
 
@@ -54,7 +56,7 @@ function DocumentImage({ src, alt, caption }: DocumentImageProps) {
                 type="button"
                 className="document-image__trigger"
                 onClick={() => setIsZoomed(true)}
-                aria-label={label ? `Zvětšit obrázek: ${label}` : "Zvětšit obrázek"}
+                aria-label={label ? t("image.zoomWithLabel", { label }) : t("image.zoom")}
             >
                 <img
                     className="document-image__img"
@@ -73,7 +75,7 @@ function DocumentImage({ src, alt, caption }: DocumentImageProps) {
                     className="document-image__lightbox"
                     role="dialog"
                     aria-modal="true"
-                    aria-label={label || "Zvětšený obrázek"}
+                    aria-label={label || t("image.zoomedDefault")}
                     onClick={() => setIsZoomed(false)}
                 >
                     <img className="document-image__lightbox-img" src={src} alt={alt} />
@@ -82,7 +84,7 @@ function DocumentImage({ src, alt, caption }: DocumentImageProps) {
                         type="button"
                         className="document-image__lightbox-close"
                         onClick={() => setIsZoomed(false)}
-                        aria-label="Zavřít zvětšený obrázek"
+                        aria-label={t("image.closeZoom")}
                         autoFocus
                     >
                         <Icon path={CLOSE_ICON} />

@@ -1,8 +1,19 @@
+import { getCurrentLanguage } from "@/i18n";
+import type { AppLanguage } from "@/i18n";
 import { MISSING_VALUE } from "@/ui";
 
-/** Zformuje velké číslo do kompaktní podoby (např. „251 mil.“). */
+// Regionální podoba jazyka pro Intl (formát čísel a dat podle zvoleného jazyka rozhraní)
+const INTL_LOCALES: Record<AppLanguage, string> = {
+    cs: "cs-CZ",
+    en: "en-GB",
+};
+
+/** Locale pro Intl odvozené z aktuálního jazyka rozhraní. */
+const getLocale = (): string => INTL_LOCALES[getCurrentLanguage()];
+
+/** Zformuje velké číslo do kompaktní podoby (např. „251 mil.“ nebo „251M“). */
 export const formatCount = (value: number): string =>
-    new Intl.NumberFormat("cs-CZ", {
+    new Intl.NumberFormat(getLocale(), {
         notation: "compact",
         maximumFractionDigits: 1,
     }).format(value);
@@ -11,9 +22,9 @@ export const formatCount = (value: number): string =>
 export const formatParameters = (value: number | null): string =>
     value === null ? MISSING_VALUE : formatCount(value);
 
-/** Zformuje datum do české podoby (např. „25. 9. 2024“). */
+/** Zformuje datum podle jazyka rozhraní (např. „25. 9. 2024“ nebo „25/09/2024“). */
 export const formatDate = (value: string | null): string =>
-    value === null ? MISSING_VALUE : new Date(value).toLocaleDateString("cs-CZ");
+    value === null ? MISSING_VALUE : new Intl.DateTimeFormat(getLocale()).format(new Date(value));
 
 /** Zkrátí seznam jazyků na několik kódů a zbytek shrne počtem (např. „EN, ZH, +8“). */
 export const formatLanguages = (languages: string[] = [], maxVisible = 2): string => {

@@ -3,6 +3,7 @@ import "./LanguageSwitcher.css";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { getCurrentLanguage } from "@/i18n";
 import type { AppLanguage } from "@/i18n";
 
 import { CzechFlag, EnglishFlag } from "./flags";
@@ -19,11 +20,11 @@ const LANGUAGE_OPTIONS = [
  * Volba se uloží do localStorage (řeší i18next detektor), takže přežije návštěvy.
  */
 function LanguageSwitcher() {
-    const { t, i18n } = useTranslation();
+    const { t, i18n } = useTranslation("layout");
     const [isOpen, setIsOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
 
-    const currentLanguage = (i18n.resolvedLanguage ?? "en") as AppLanguage;
+    const currentLanguage = getCurrentLanguage();
     const currentOption =
         LANGUAGE_OPTIONS.find((option) => option.code === currentLanguage) ??
         LANGUAGE_OPTIONS[1];

@@ -1,0 +1,12 @@
+{
+    "missingValue": "neuvedeno",
+    "loadingModels": "Načítání modelů",
+    "updatingModels": "Aktualizace modelů",
+    "listConjunction": "a",
+    "image": {
+        "zoom": "Zvětšit obrázek",
+        "zoomWithLabel": "Zvětšit obrázek: {{label}}",
+        "zoomedDefault": "Zvětšený obrázek",
+        "closeZoom": "Zavřít zvětšený obrázek"
+    }
+}

@@ -1,5 +1,7 @@
 import "./ModelDetail.css";
 
+import { useTranslation } from "react-i18next";
+
 import { AIModel, ModelInsights } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
 import { getModelLicense, getModelProvider, getModelSummary, getModelTagList, isModelItself } from "../../utils/modelCard";
@@ -46,6 +48,9 @@ function ModelDetail({ model, insights }: {
     // Přehledy z dokumentace (mohou dorazit později, nebo vůbec)
     insights: ModelInsights | null;
 }) {
+    // Odběr změny jazyka: čísla a data (Intl) se po přepnutí jazyka přeformátují
+    useTranslation("models");
+
     const tags = getModelTagList(model);
 
     // Souvislý popis modelu v hlavičce: přednost má český text, jinak popisek modelu

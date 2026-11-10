@@ -1,5 +1,7 @@
 import "./ModelList.css";
 
+import { useTranslation } from "react-i18next";
+
 import { ModelListProps } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
 import { getModelCardPreview, getModelLicense, getModelProvider, getModelSummary, getModelTagList } from "../../utils/modelCard";
@@ -23,6 +25,10 @@ function SummaryPlaceholder() {
 
 /** Zobrazuje seznam modelů */
 function ModelList({ models, onModelClick, pendingDescriptionIds = [] }: ModelListProps) {
+
+    // Odběr změny jazyka: čísla a data (Intl) se po přepnutí jazyka přeformátují
+    useTranslation("models");
+
     return (
         <ul className="model-list">
             {models.map((model) => {

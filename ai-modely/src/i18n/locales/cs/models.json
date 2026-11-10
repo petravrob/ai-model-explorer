@@ -1,34 +1,4 @@
 {
-    "common": {
-        "version": "Verze: {{version}}",
-        "missingValue": "neuvedeno",
-        "loadingModels": "Načítání modelů",
-        "updatingModels": "Aktualizace modelů",
-        "listConjunction": "a"
-    },
-    "header": {
-        "title": "AI model explorer",
-        "subtitleMain": "Prohlížení AI modelů",
-        "subtitleSourcePrefix": "z",
-        "searchToggle": "Vyhledávání",
-        "showFilters": "Zobrazit filtry",
-        "hideFilters": "Skrýt filtry",
-        "filterSelectedCount": "(zvoleno {{count}})",
-        "showSort": "Zobrazit řazení",
-        "hideSort": "Skrýt řazení",
-        "languageSwitcher": "Jazyk rozhraní"
-    },
-    "search": {
-        "placeholder": "Hledat modely, autory nebo tagy…",
-        "ariaLabel": "Hledat modely",
-        "submit": "Vyhledat",
-        "clear": "Vymazat hledání"
-    },
-    "notFound": {
-        "title": "Stránka nebyla nalezena",
-        "message": "Tato adresa neexistuje nebo byla přesunuta.",
-        "backHome": "Zpět na hlavní stránku"
-    },
     "browser": {
         "fuzzyNote": "Přesná shoda nenalezena, zobrazují se nejpodobnější modely.",
         "loadMore": "Načíst další modely",
@@ -93,7 +63,6 @@
             "author": "Autor"
         }
     },
-
     "tasks": {
         "text": {
             "label": "text",
@@ -209,7 +178,6 @@
         "30-70B": "30–70 B",
         "70B+": "Více než 70 B"
     },
-
     "modelList": {
         "task": "Úloha",
         "parameters": "Parametry",
@@ -301,12 +269,6 @@
     "errors": {
         "loadModels": "Modely se nepodařilo načíst. Zkuste to prosím znovu.",
         "loadModel": "Nepodařilo se načíst model."
-    },
-    "image": {
-        "zoom": "Zvětšit obrázek",
-        "zoomWithLabel": "Zvětšit obrázek: {{label}}",
-        "zoomedDefault": "Zvětšený obrázek",
-        "closeZoom": "Zavřít zvětšený obrázek"
     },
     "summary": {
         "fallback": "AI model dostupný prostřednictvím Hugging Face."

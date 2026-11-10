@@ -1,34 +1,4 @@
 {
-    "common": {
-        "version": "Version: {{version}}",
-        "missingValue": "not specified",
-        "loadingModels": "Loading models",
-        "updatingModels": "Updating models",
-        "listConjunction": "and"
-    },
-    "header": {
-        "title": "AI model explorer",
-        "subtitleMain": "Browse AI models",
-        "subtitleSourcePrefix": "from",
-        "searchToggle": "Search",
-        "showFilters": "Show filters",
-        "hideFilters": "Hide filters",
-        "filterSelectedCount": "({{count}} selected)",
-        "showSort": "Show sorting",
-        "hideSort": "Hide sorting",
-        "languageSwitcher": "Interface language"
-    },
-    "search": {
-        "placeholder": "Search models, authors or tags…",
-        "ariaLabel": "Search models",
-        "submit": "Search",
-        "clear": "Clear search"
-    },
-    "notFound": {
-        "title": "Page not found",
-        "message": "This address does not exist or has been moved.",
-        "backHome": "Back to the home page"
-    },
     "browser": {
         "fuzzyNote": "No exact match found, showing the most similar models.",
         "loadMore": "Load more models",
@@ -93,7 +63,6 @@
             "author": "Author"
         }
     },
-
     "tasks": {
         "text": {
             "label": "text",
@@ -209,7 +178,6 @@
         "30-70B": "30–70 B",
         "70B+": "More than 70 B"
     },
-
     "modelList": {
         "task": "Task",
         "parameters": "Parameters",
@@ -301,12 +269,6 @@
     "errors": {
         "loadModels": "Failed to load models. Please try again.",
         "loadModel": "Failed to load the model."
-    },
-    "image": {
-        "zoom": "Enlarge image",
-        "zoomWithLabel": "Enlarge image: {{label}}",
-        "zoomedDefault": "Enlarged image",
-        "closeZoom": "Close enlarged image"
     },
     "summary": {
         "fallback": "An AI model available through Hugging Face."
