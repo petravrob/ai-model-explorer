@@ -119,6 +119,19 @@ npm run generate:content -- --lang=en   # doplní jen chybějící anglické tex
 npm run generate:content -- --lang=cs   # doplní jen chybějící české texty
 ```
 
+### Doplnění anglických překladů k hotovému českému obsahu
+
+Pro rychlé zprovoznění anglické verze bez přegenerování češtiny slouží samostatný skript. Bere jen modely, které už mají hotový český popisek nebo české přehledy, a doplní k nim anglický překlad – přednostně podle popularity. Generuje přímo, mimo frontu `GenerationJob`, takže je bezpečný i tehdy, když stejnou databázi sdílí nasazený backend na starší verzi kódu (jeho worker by jinak úkoly z fronty spotřeboval, aniž by anglické texty uložil).
+
+```bash
+npm run prewarm:english -- --dry-run
+npm run prewarm:english -- --limit=500
+```
+
+`--limit` omezí počet modelů od každého typu a `--dry-run` jen vypíše plán. Skript je idempotentní – hotové překlady přeskočí, takže se dá kdykoli přerušit a spustit znovu. Zpracovává dávky po 6 modelech s pauzou 2,5 s a po třech chybách v řadě se sám zastaví.
+
+Bezplatné tarify poskytovatelů mají denní limit tokenů (např. Groq 200 000 TPD na model). Při vyčerpání se skript zastaví a zbytek se doplní dalším spuštěním po obnovení limitu, nebo lze do `.env` přidat dalšího poskytovatele (`SUMMARY_API_URL_4`, `SUMMARY_API_KEY_4`, `SUMMARY_MODEL_4`, …) s vlastní kvótou.
+
 
 ### Probuzení hostingu
 

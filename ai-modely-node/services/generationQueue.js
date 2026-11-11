@@ -114,7 +114,9 @@ async function enqueueJobs(type, modelIds) {
 
         return (result.upsertedCount ?? 0) + (result.modifiedCount ?? 0);
     } catch (error) {
-        // Souběžné požadavky zařazují stejné úkoly - duplicitní vložení se ignoruje
+        // Souběžné požadavky zařazují stejné úkoly - duplicitní vložení se ignoruje.
+        // BulkWrite kvůli duplicitě vyhodí chybu, i když se část úkolů vložila,
+        // proto se počty berou z částečného výsledku.
         const onlyDuplicates = error?.code === 11000
             || (error?.writeErrors?.length > 0 && error.writeErrors.every((item) => item.err?.code === 11000));
 
@@ -122,7 +124,9 @@ async function enqueueJobs(type, modelIds) {
             throw error;
         }
 
-        return 0;
+        const partial = error?.result ?? {};
+
+        return (partial.upsertedCount ?? 0) + (partial.modifiedCount ?? 0);
     }
 }
 

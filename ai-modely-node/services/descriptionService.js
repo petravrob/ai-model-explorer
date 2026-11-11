@@ -218,7 +218,8 @@ async function translateDescriptions(items) {
         system: TRANSLATION_SYSTEM_PROMPT,
         prompt: buildTranslationPrompt(items),
         temperature: 0.3,
-        maxTokens: Math.min(1100 * items.length, 6400),
+        // Strop 950 tokenů na položku kvůli poskytovatelům s limitem výstupu 1000 tokenů/min
+        maxTokens: Math.min(950 * items.length, 6400),
     });
 
     const parsed = parseBatchResponse(data?.choices?.[0]?.message?.content);

@@ -10,7 +10,8 @@
         "create:indexes": "node scripts/createIndexes.js",
         "generate:content": "node scripts/generateContent.js",
         "prewarm:descriptions": "node scripts/prewarmDescriptions.js",
-        "prewarm:recent": "node scripts/prewarmDescriptions.js --updated-days=7 --sort=updated --all"
+        "prewarm:recent": "node scripts/prewarmDescriptions.js --updated-days=7 --sort=updated --all",
+        "prewarm:english": "node scripts/prewarmEnglish.js"
     },
     "author": "Petra Vrobelová",
     "license": "ISC",
