@@ -193,6 +193,9 @@ async function translateInsights(insights) {
         prompt: buildTranslationPrompt(insights),
         temperature: 0.2,
         maxTokens: 3500,
+        validate: (response) => Boolean(
+            parseInsights(response?.choices?.[0]?.message?.content, { localizeCategories: false })
+        ),
     });
 
     return parseInsights(data?.choices?.[0]?.message?.content, { localizeCategories: false });
@@ -733,6 +736,9 @@ async function generateInsights(modelId) {
                 prompt: buildPrompt(excerpt),
                 temperature: 0.3,
                 maxTokens: 3500,
+                validate: (response) => Boolean(
+                    parseInsights(response?.choices?.[0]?.message?.content)
+                ),
             });
 
             insights = parseInsights(data?.choices?.[0]?.message?.content);

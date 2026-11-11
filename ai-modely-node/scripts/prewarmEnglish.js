@@ -18,8 +18,8 @@ const AIModel = require("../models/AIModel");
 const { DESCRIPTION_VERSION, generateDescriptions } = require("../services/descriptionService");
 const { PROMPT_VERSION, generateInsights } = require("../services/insightsService");
 
-const BATCH_SIZE = 6;
-const PAUSE_MS = 2500;
+const BATCH_SIZE = 1;
+const PAUSE_MS = 5000;
 
 const args = Object.fromEntries(
     process.argv.slice(2).map((item) => item.replace(/^--/, "").split("="))
@@ -57,15 +57,34 @@ async function loadCandidates() {
     };
 }
 
-/** Přeloží dávku popisků a uloží výsledky. */
-async function translateDescriptions(batch) {
-    const models = await AIModel.find(
+/** Uloží přeložený popisek. */
+const saveDescription = ({ modelId, description, descriptionEn }) =>
+    AIModel.updateOne(
+        { modelId },
         {
-            modelId: { $in: batch.map((model) => model.modelId) },
-            "description.version": DESCRIPTION_VERSION,
-            "description.text": { $nin: [null, ""] },
-            "description.textEn": { $in: [null, ""] },
-        },
+            $set: {
+                description: {
+                    text: description,
+                    textEn: descriptionEn,
+                    version: DESCRIPTION_VERSION,
+                    status: "ok",
+                    generatedAt: new Date(),
+                },
+            },
+        }
+    );
+
+/** Přeloží dávku popisků a uloží výsledky; když dávka selže, zkusí modely po jednom. */
+async function translateDescriptions(batch) {
+    const filter = {
+        "description.version": DESCRIPTION_VERSION,
+        "description.text": { $nin: [null, ""] },
+        "description.textEn": { $in: [null, ""] },
+    };
+    const modelIds = batch.map((model) => model.modelId);
+
+    const models = await AIModel.find(
+        { modelId: { $in: modelIds }, ...filter },
         { modelId: 1, description: 1 }
     ).lean();
 
@@ -73,28 +92,44 @@ async function translateDescriptions(batch) {
         return 0;
     }
 
-    const results = await generateDescriptions(models);
+    try {
+        const results = await generateDescriptions(models);
 
-    await Promise.all(results.map((item) => AIModel.updateOne(
-        { modelId: item.modelId },
-        {
-            $set: {
-                description: {
-                    text: item.description,
-                    textEn: item.descriptionEn,
-                    version: DESCRIPTION_VERSION,
-                    status: "ok",
-                    generatedAt: new Date(),
-                },
-            },
+        await Promise.all(results.map(saveDescription));
+
+        // Když část dávky neprošla, zbytek se zkusí po jednom
+        if (results.length === models.length) {
+            return results.length;
         }
-    )));
-
-    if (results.length < models.length) {
-        throw new Error(`Přeloženo jen ${results.length}/${models.length} popisků.`);
+    } catch {
+        // Dávka selhala (limit nebo nevalidní odpověď) - zkusí se po jednom
     }
 
-    return results.length;
+    const remaining = await AIModel.find(
+        { modelId: { $in: modelIds }, ...filter },
+        { modelId: 1, description: 1 }
+    ).lean();
+
+    let done = 0;
+
+    for (const model of remaining) {
+        try {
+            const results = await generateDescriptions([model]);
+
+            await Promise.all(results.map(saveDescription));
+            done += results.length;
+        } catch {
+            // Model se doplní při dalším spuštění
+        }
+
+        await pause();
+    }
+
+    if (done === 0 && remaining.length > 0) {
+        throw new Error(`Nepodařilo se přeložit žádný z ${remaining.length} modelů v dávce.`);
+    }
+
+    return done;
 }
 
 /** Přeloží přehledy jednoho modelu (ukládání řeší insightsService). */
@@ -104,7 +139,14 @@ async function translateInsights([model]) {
     return 1;
 }
 
-/** Projde položky po dávkách, po třech chybách v řadě se zastaví (limit poskytovatele). */
+/**
+ * Projde položky po dávkách a po dlouhé sérii chyb se zastaví.
+ *
+ * Padesát chyb v řadě při dávce 1 a minutové pauze znamená přibližně 50 minut
+ * bez jediného úspěchu - to už je spolehlivý signál, že jsou kvóty vyčerpané.
+ * Kratší limit (3-10) zastavoval běh i při přechodných 429, kdy se limit obnoví
+ * během několika minut.
+ */
 async function processItems(items, worker, label, step) {
     let done = 0;
     let streak = 0;
@@ -117,8 +159,8 @@ async function processItems(items, worker, label, step) {
             streak += 1;
             console.error(`${label}: ${error.message.slice(0, 160)}`);
 
-            if (streak >= 3) {
-                console.error(`${label}: tři chyby v řadě, končím.`);
+            if (streak >= 50) {
+                console.error(`${label}: padesát chyb v řadě, končím.`);
                 break;
             }
         }
@@ -127,7 +169,8 @@ async function processItems(items, worker, label, step) {
             console.log(`${label}: ${done} hotovo, zbývá ${Math.max(0, items.length - index - step)}.`);
         }
 
-        await pause();
+        // Po chybě se čeká déle, aby se stihl obnovit limit poskytovatele
+        await new Promise((resolve) => setTimeout(resolve, streak > 0 ? 60000 : PAUSE_MS));
     }
 
     return done;

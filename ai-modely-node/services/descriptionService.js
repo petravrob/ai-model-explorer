@@ -218,8 +218,15 @@ async function translateDescriptions(items) {
         system: TRANSLATION_SYSTEM_PROMPT,
         prompt: buildTranslationPrompt(items),
         temperature: 0.3,
-        // Strop 950 tokenů na položku kvůli poskytovatelům s limitem výstupu 1000 tokenů/min
-        maxTokens: Math.min(950 * items.length, 6400),
+        // Strop 950 tokenů na položku a 4000 celkem kvůli poskytovatelům s nižším limitem výstupu
+        maxTokens: Math.min(950 * items.length, 4000),
+        validate: (response) => {
+            try {
+                return parseBatchResponse(response?.choices?.[0]?.message?.content).length > 0;
+            } catch {
+                return false;
+            }
+        },
     });
 
     const parsed = parseBatchResponse(data?.choices?.[0]?.message?.content);
@@ -255,7 +262,7 @@ function cleanSummary(text) {
         .replace(/\r\n?/g, "\n")
         .split(/\n{2,}/)
         .map((paragraph) => paragraph
-            .replace(/^\s*(?:popis|description|popisy)\s*:\s*/i, "")
+            .replace(/^\s*(?:popis|popisy|description|descriptions|translation|překlad|anglicky|english)\s*:\s*/i, "")
             .replace(/^#{1,6}\s*/, "")
             .replace(/^[-*•]\s*/, "")
             .replace(/^\*\*(.*?)\*\*$/, "$1")
@@ -299,7 +306,13 @@ async function generateDescription(model) {
 
     // Český popisek aktuální verze se znovu negeneruje, jen se k němu doplní překlad
     if (!description) {
-        const data = await requestCompletion({ system: SYSTEM_PROMPT, prompt: buildPrompt(model) });
+        const data = await requestCompletion({
+            system: SYSTEM_PROMPT,
+            prompt: buildPrompt(model),
+            validate: (response) => (
+                String(response?.choices?.[0]?.message?.content ?? "").trim().length >= MIN_DESCRIPTION_LENGTH
+            ),
+        });
 
         description = cleanSummary(data?.choices?.[0]?.message?.content);
         tokens = data?.usage?.total_tokens ?? 0;
@@ -398,6 +411,13 @@ async function generateDescriptions(models) {
             // Delší odpověď musí pokrýt všechny popisky z dávky, rezervované tokeny se ale počítají
             // do minutového limitu poskytovatele, proto se drží co nejníž
             maxTokens: Math.min(1100 * missingCzech.length, 6400),
+            validate: (response) => {
+                try {
+                    return parseBatchResponse(response?.choices?.[0]?.message?.content).length > 0;
+                } catch {
+                    return false;
+                }
+            },
         });
 
         const items = parseBatchResponse(data?.choices?.[0]?.message?.content);

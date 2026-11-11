@@ -118,6 +118,11 @@ async function callProvider(provider, { system, prompt, temperature, maxTokens }
             throw error;
         }
 
+        // Příliš velký požadavek na model s nízkým limitem - opakování nepomůže, zkusí se další poskytovatel
+        if (/request too large|expected output tokens exceed/i.test(detail)) {
+            throw providerError(`má nízký limit pro tento požadavek: ${detail}`, false);
+        }
+
         // Přechodné omezení rychlosti - poskytovatel často píše, za jak dlouho to zkusit znovu
         const error = providerError(`omezuje počet požadavků (429): ${detail}`, true);
         error.rateLimited = true;
@@ -140,8 +145,11 @@ async function callProvider(provider, { system, prompt, temperature, maxTokens }
  * Poskytovatelé z .env se zkoušejí popořadě (SUMMARY_API_URL, SUMMARY_API_URL_2, …).
  * U přechodných chyb se požadavek opakuje, u vyčerpaného limitu nebo chyby
  * v nastavení se hned přechází na dalšího poskytovatele.
+ *
+ * Volitelný `validate` dostane odpověď a rozhodne, zda je použitelná. Když ne,
+ * zkusí se další poskytovatel (např. model vrátí prázdný obsah nebo nevalidní JSON).
  */
-async function requestCompletion({ system, prompt, temperature = 0.8, maxTokens = 1000 }) {
+async function requestCompletion({ system, prompt, temperature = 0.8, maxTokens = 1000, validate }) {
     if (SUMMARY_PROVIDERS.length === 0) {
         throw new Error("Chybí SUMMARY_API_KEY nebo GROQ_API_KEY v souboru ai-modely-node/.env.");
     }
@@ -159,7 +167,25 @@ async function requestCompletion({ system, prompt, temperature = 0.8, maxTokens 
 
         for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             try {
-                return await callProvider(provider, { system, prompt, temperature, maxTokens });
+                const result = await callProvider(provider, { system, prompt, temperature, maxTokens });
+
+                // Nevalidní odpověď (prázdný text, poškozený JSON) znamená zkusit dalšího poskytovatele
+                let isValid = true;
+
+                if (validate) {
+                    try {
+                        isValid = validate(result);
+                    } catch {
+                        isValid = false;
+                    }
+                }
+
+                if (!isValid) {
+                    problems.set(label, "vrátil nepoužitelnou odpověď");
+                    break;
+                }
+
+                return result;
             } catch (error) {
                 problems.set(label, describeFailure(error));
 
@@ -175,8 +201,10 @@ async function requestCompletion({ system, prompt, temperature = 0.8, maxTokens 
                     }
                 }
 
-                // Vyčerpaný limit i chyba v nastavení znamenají, že opakování nemá smysl
-                if (error.retryable === false || attempt === MAX_ATTEMPTS) {
+                // Vyčerpaný limit i chyba v nastavení znamenají, že opakování nemá smysl.
+                // U rate limitu se také rovnou přechází na dalšího poskytovatele - opakování
+                // ve stejné sekundě obvykle narazí znovu a zbytečně zdržuje.
+                if (error.retryable === false || error.rateLimited || attempt === MAX_ATTEMPTS) {
                     break;
                 }
 
