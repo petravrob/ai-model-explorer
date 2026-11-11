@@ -7,8 +7,19 @@ import { MODELS_PER_PAGE } from "../modelPagingConfig";
 import type { ModelSortKey } from "../modelSortsConfig";
 import type { ModelTabKey } from "../modelTabsConfig";
 
-/** Parametr jazyka pro generované texty (popisky a přehledy). */
-const languageParam = (): string => `lang=${encodeURIComponent(getCurrentLanguage())}`;
+/**
+ * Adresa API s aktuálním jazykem rozhraní.
+ *
+ * Server podle `lang` vrací popisky a přehledy v češtině nebo angličtině,
+ * takže každý požadavek na data modelů musí parametr nést.
+ */
+const apiUrl = (path: string, params: URLSearchParams = new URLSearchParams()): string => {
+    params.set("lang", getCurrentLanguage());
+
+    const query = params.toString();
+
+    return `${API_URL}${path}${query ? `?${query}` : ""}`;
+};
 
 /** Jedna stránka výpisu a informace, jestli jsou na serveru další. */
 export interface ModelsPage {
@@ -64,16 +75,13 @@ export const getModels = async (
     params.set("offset", String(paging.offset ?? 0));
     params.set("limit", String(paging.limit ?? MODELS_PER_PAGE));
 
-    // Popisky modelů se vrací ve zvoleném jazyce rozhraní
-    params.set("lang", getCurrentLanguage());
-
     // Kurzor z předchozí odpovědi má přednost, server ho pošle jen u jednoho výpisu
     if (paging.cursor) {
         params.set("cursor", paging.cursor);
     }
 
     const response = await fetch(
-        `${API_URL}/api/models?${params.toString()}`,
+        apiUrl("/api/models", params),
         {
             method: "GET",
             signal,
@@ -116,7 +124,7 @@ export const getAuthorAvatar = async (
         try {
 
             const response = await fetch(
-                `${API_URL}/api/models/avatar/${encodeURIComponent(author)}?${languageParam()}`,
+                apiUrl(`/api/models/avatar/${encodeURIComponent(author)}`),
                 { method: "GET" }
             );
 
@@ -146,7 +154,7 @@ export const getModel = async (
 ): Promise<AIModel> => {
 
     const response = await fetch(
-        `${API_URL}/api/models/${encodeURIComponent(modelId)}?${languageParam()}`,
+        apiUrl(`/api/models/${encodeURIComponent(modelId)}`),
         {
             method: "GET",
         }
@@ -160,13 +168,13 @@ export const getModel = async (
     return data.data as AIModel;
 };
 
-/** Připraví české přehledy z dokumentace modelu (jednou na verzi dokumentace). */
+/** Připraví přehledy z dokumentace modelu (jednou na verzi dokumentace). */
 export const getModelInsights = async (
     modelId: string
 ): Promise<ModelInsights | null> => {
 
     const response = await fetch(
-        `${API_URL}/api/models/${encodeURIComponent(modelId)}/insights?${languageParam()}`,
+        apiUrl(`/api/models/${encodeURIComponent(modelId)}/insights`),
         {
             method: "POST",
         }
@@ -185,7 +193,7 @@ export const createDescriptions = async (
     models: AIModel[]
 ): Promise<{ modelId: string; description: string }[]> => {
 
-    const response = await fetch(`${API_URL}/api/models/descriptions?${languageParam()}`, {
+    const response = await fetch(apiUrl("/api/models/descriptions"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ models }),
