@@ -1,5 +1,6 @@
 import Fuse, { type IFuseOptions } from "fuse.js";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { translate } from "@/i18n/translate";
@@ -124,6 +125,17 @@ function useModelBrowser() {
     const [searchParams, setSearchParams] = useSearchParams();
     const latestRequestIdRef = useRef(0);
 
+    // Jazyk rozhraní: popisky modelů se načítají v něm a po přepnutí se obnoví
+    const { i18n } = useTranslation("models");
+    const language = i18n.resolvedLanguage === "en" ? "en" : "cs";
+
+    // Aktuální jazyk v referenci - odpověď na popisky z předchozího jazyka se nesmí propsat do nového
+    const languageRef = useRef(language);
+
+    useEffect(() => {
+        languageRef.current = language;
+    }, [language]);
+
     // Hledaný výraz z URL (např. /?q=gpt), oříznutý o okrajové mezery
     const searchQuery = (searchParams.get(SEARCH_QUERY_PARAM) ?? "").trim();
 
@@ -131,10 +143,10 @@ function useModelBrowser() {
     const tab = readTabFromParams(searchParams);
     const sort = readSortFromParams(searchParams);
 
-    // Klíč výpisu v paměti podle štítku, řazení a filtrů
+    // Klíč výpisu v paměti podle jazyka, štítku, řazení a filtrů
     const modelsCacheKey = useMemo(
-        () => buildModelsCacheKey(readFiltersFromParams(searchParams), sort, tab),
-        [buildFiltersParamsKey(searchParams), sort, tab]
+        () => buildModelsCacheKey(readFiltersFromParams(searchParams), sort, tab, language),
+        [buildFiltersParamsKey(searchParams), sort, tab, language]
     );
 
     // Po návratu z detailu se místo načítací animace ukáže poslední výpis z paměti
@@ -438,6 +450,19 @@ function useModelBrowser() {
         }
     }, []);
 
+    // Po přepnutí jazyka se popisky načítají znovu - staré pokusy i hotové texty platí pro jiný jazyk
+    useEffect(() => {
+        if (descriptionRetryTimerRef.current) {
+            clearTimeout(descriptionRetryTimerRef.current);
+            descriptionRetryTimerRef.current = null;
+        }
+
+        descriptionAttemptsRef.current.clear();
+        descriptionCooldownIdsRef.current.clear();
+        setFinishedDescriptionIds([]);
+        setDescriptionRetryToken((current) => current + 1);
+    }, [language]);
+
     // Popisky se doplňují postupně po menších dávkách. Server odpovídá hned - vrátí hotové popisky
     // a chybějící si zařadí ke generování na pozadí, takže se o ně po pauze zkusí znovu.
     useEffect(() => {
@@ -471,10 +496,16 @@ function useModelBrowser() {
         void (async () => {
 
             let receivedIds = new Set<string>();
+            const requestLanguage = languageRef.current;
 
             try {
 
                 const generated = await createDescriptions(missing);
+
+                // Mezitím se přepnul jazyk - odpověď patří starému jazyku a zahazuje se
+                if (requestLanguage !== languageRef.current) {
+                    return;
+                }
 
                 receivedIds = new Set(generated.map((item) => item.modelId));
 
@@ -496,44 +527,48 @@ function useModelBrowser() {
 
                 missingIds.forEach((modelId) => requestedIds.delete(modelId));
 
-                // Hotové popisky příště netřeba řešit
-                receivedIds.forEach((modelId) => descriptionAttemptsRef.current.delete(modelId));
+                // Po přepnutí jazyka se pokusy nepočítají - odpověď patřila starému jazyku
+                if (requestLanguage === languageRef.current) {
 
-                const exhaustedIds: string[] = [];
-                const retryIds: string[] = [];
+                    // Hotové popisky příště netřeba řešit
+                    receivedIds.forEach((modelId) => descriptionAttemptsRef.current.delete(modelId));
 
-                // Prázdná odpověď znamená, že se popisek teprve generuje na pozadí
-                for (const modelId of missingIds.filter((id) => !receivedIds.has(id))) {
-                    const attempt = (descriptionAttemptsRef.current.get(modelId) ?? 0) + 1;
+                    const exhaustedIds: string[] = [];
+                    const retryIds: string[] = [];
 
-                    descriptionAttemptsRef.current.set(modelId, attempt);
+                    // Prázdná odpověď znamená, že se popisek teprve generuje na pozadí
+                    for (const modelId of missingIds.filter((id) => !receivedIds.has(id))) {
+                        const attempt = (descriptionAttemptsRef.current.get(modelId) ?? 0) + 1;
 
-                    if (attempt >= MAX_DESCRIPTION_ATTEMPTS) {
-                        exhaustedIds.push(modelId);
-                    } else {
-                        retryIds.push(modelId);
-                        cooldownIds.add(modelId);
+                        descriptionAttemptsRef.current.set(modelId, attempt);
+
+                        if (attempt >= MAX_DESCRIPTION_ATTEMPTS) {
+                            exhaustedIds.push(modelId);
+                        } else {
+                            retryIds.push(modelId);
+                            cooldownIds.add(modelId);
+                        }
                     }
-                }
 
-                // Karty, které pokusy vyčerpaly, už na popisek nečekají
-                // (místo kostry se u nich zobrazí zástupný text)
-                if (exhaustedIds.length > 0) {
-                    setFinishedDescriptionIds((current) => [...new Set([...current, ...exhaustedIds])]);
-                }
+                    // Karty, které pokusy vyčerpaly, už na popisek nečekají
+                    // (místo kostry se u nich zobrazí zástupný text)
+                    if (exhaustedIds.length > 0) {
+                        setFinishedDescriptionIds((current) => [...new Set([...current, ...exhaustedIds])]);
+                    }
 
-                // Odložený pokus se plánuje jen jeden - až doběhne, uvolní z pauzy všechny
-                // čekající popisky a efekt se spustí znovu
-                if (retryIds.length > 0 && !descriptionRetryTimerRef.current) {
-                    descriptionRetryTimerRef.current = setTimeout(() => {
-                        descriptionRetryTimerRef.current = null;
-                        descriptionCooldownIdsRef.current.clear();
-                        setDescriptionRetryToken((current) => current + 1);
-                    }, DESCRIPTION_RETRY_DELAY_MS);
-                }
+                    // Odložený pokus se plánuje jen jeden - až doběhne, uvolní z pauzy všechny
+                    // čekající popisky a efekt se spustí znovu
+                    if (retryIds.length > 0 && !descriptionRetryTimerRef.current) {
+                        descriptionRetryTimerRef.current = setTimeout(() => {
+                            descriptionRetryTimerRef.current = null;
+                            descriptionCooldownIdsRef.current.clear();
+                            setDescriptionRetryToken((current) => current + 1);
+                        }, DESCRIPTION_RETRY_DELAY_MS);
+                    }
 
-                // Dokud jsou další chybějící popisky mimo pauzu, vyžádá se hned další dávka
-                setDescriptionRetryToken((current) => current + 1);
+                    // Dokud jsou další chybějící popisky mimo pauzu, vyžádá se hned další dávka
+                    setDescriptionRetryToken((current) => current + 1);
+                }
 
             }
 

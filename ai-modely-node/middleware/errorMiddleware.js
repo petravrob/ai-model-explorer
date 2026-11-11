@@ -1,7 +1,9 @@
+const { apiMessage, readLanguage } = require("../services/apiMessages");
+
 const notFound = (req, res) => {
     return res.status(404).json({
         status: "error",
-        error: "Adresa nebyla nalezena.",
+        error: apiMessage("notFound", readLanguage(req)),
     });
 };
 
@@ -10,7 +12,7 @@ const errorHandler = (error, req, res, next) => {
 
     return res.status(500).json({
         status: "error",
-        error: "Došlo k chybě serveru.",
+        error: apiMessage("serverError", readLanguage(req)),
     });
 };
 

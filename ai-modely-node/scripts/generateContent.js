@@ -1,8 +1,13 @@
 /**
- * Hromadné předgenerování českých popisků a přehledů (npm run generate:content).
+ * Hromadné předgenerování popisků a přehledů v češtině i angličtině
+ * (npm run generate:content).
  *
- * Zařadí do fronty všechny modely, kterým chybí popisek aktuální verze nebo
- * přehledy z dokumentace, spustí se a běží, dokud se fronta nevyprázdní.
+ * Zařadí do fronty všechny modely, kterým chybí popisek aktuální verze v některém
+ * jazyce nebo přehledy z dokumentace, spustí se a běží, dokud se fronta nevyprázdní.
+ *
+ * Volitelně lze omezit kontrolu jen na jeden jazyk:
+ *   npm run generate:content -- --lang=en   (jen chybějící anglické texty)
+ *   npm run generate:content -- --lang=cs   (jen chybějící české texty)
  *
  * Fronta je v databázi, takže skript lze kdykoli přerušit a spustit znovu.
  */
@@ -20,22 +25,74 @@ const { PROMPT_VERSION } = require("../services/insightsService");
 // Jak často skript hlásí, kolik úkolů ještě zbývá
 const PROGRESS_INTERVAL_MS = 10000;
 
-/** Zařadí do fronty všechny modely bez aktuálního popisku a bez přehledů. */
+// Podporované hodnoty přepínače --lang
+const LANGUAGES = new Set(["all", "cs", "en"]);
+
+/** Jazyk z argumentu --lang (all = obě verze, cs/en = jen chybějící daná verze). */
+function readLanguageArg() {
+    const argument = process.argv.slice(2).find((value) => value.startsWith("--lang="));
+    const value = argument ? argument.slice("--lang=".length).trim().toLowerCase() : "all";
+
+    return LANGUAGES.has(value) ? value : "all";
+}
+
+/** Má model popisek aktuální verze v požadovaném jazyce (all = v obou)? */
+function hasCurrentDescription(model, language) {
+    const isCurrentVersion = model.description?.version === DESCRIPTION_VERSION;
+    const czech = Boolean(model.description?.text?.trim());
+    const english = Boolean(model.description?.textEn?.trim());
+
+    if (language === "cs") {
+        return isCurrentVersion && czech;
+    }
+
+    if (language === "en") {
+        return isCurrentVersion && english;
+    }
+
+    return isCurrentVersion && czech && english;
+}
+
+/** Má model přehledy z aktuální dokumentace v požadovaném jazyce (all = v obou)? */
+function hasCurrentInsights(model, language) {
+    const isCurrent = (doc) => Boolean(doc?.sourceFingerprint && doc.promptVersion === PROMPT_VERSION);
+    const czech = isCurrent(model.insights);
+    const english = isCurrent(model.insightsEn);
+
+    if (language === "cs") {
+        return czech;
+    }
+
+    if (language === "en") {
+        return english;
+    }
+
+    return czech && english;
+}
+
+/** Zařadí do fronty všechny modely bez aktuálního obsahu v požadovaném jazyce. */
 async function enqueueMissingContent() {
-    const models = await AIModel.find({}, { modelId: 1, description: 1, insights: 1 }).lean();
+    const language = readLanguageArg();
+
+    const models = await AIModel.find(
+        {},
+        { modelId: 1, description: 1, insights: 1, insightsEn: 1 }
+    ).lean();
 
     const missingDescriptions = models
-        .filter((model) => !(model.description?.version === DESCRIPTION_VERSION && model.description?.text?.trim()))
+        .filter((model) => !hasCurrentDescription(model, language))
         .map((model) => model.modelId);
 
     const missingInsights = models
-        .filter((model) => !model.insights?.sourceFingerprint || model.insights?.promptVersion !== PROMPT_VERSION)
+        .filter((model) => !hasCurrentInsights(model, language))
         .map((model) => model.modelId);
 
     const enqueuedDescriptions = await enqueueJobs("description", missingDescriptions);
     const enqueuedInsights = await enqueueJobs("insights", missingInsights);
 
-    console.log(`V databázi je ${models.length} modelů.`);
+    const languageLabel = language === "all" ? "čeština i angličtina" : language;
+
+    console.log(`V databázi je ${models.length} modelů (kontrolovaný jazyk: ${languageLabel}).`);
     console.log(`Do fronty zařazeno ${enqueuedDescriptions} popisků a ${enqueuedInsights} přehledů.`);
 }
 

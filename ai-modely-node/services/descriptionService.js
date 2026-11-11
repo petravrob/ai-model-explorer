@@ -1,8 +1,9 @@
 /**
- * Generování českých popisů AI modelů.
+ * Generování popisů AI modelů (česky a anglicky).
  *
  * Popis je delší text o modelu, který má uživatele zaujmout,
  * srozumitelně vysvětlit, co model umí, jak funguje a k čemu jej lze použít.
+ * Český text vzniká z údajů o modelu, anglický je jeho překladem.
  * Hotové popisy se ukládají do databáze, takže se stejná verze zadání nezpracovává víckrát.
  */
 
@@ -14,7 +15,11 @@ const MAX_DESCRIPTION_LENGTH = 2200;
 
 const MIN_DESCRIPTION_LENGTH = 600;
 
+// Kratší překlad už nestačí na to, aby popisek dával smysl
+const MIN_TRANSLATION_LENGTH = 300;
+
 // Verze zadání popisu - při změně pravidel se popisy ze staré verze vygenerují znovu
+// (anglický překlad se doplňuje i k popiskům z aktuální verze, nemění to jejich češtinu)
 const DESCRIPTION_VERSION = "v4";
 
 // Jak se má model chovat (píše popis modelu, nic si nevymýšlí)
@@ -159,6 +164,90 @@ function buildBatchPrompt(models) {
     ].join("\n");
 }
 
+// Anglický popis vzniká překladem hotového českého textu, aby obě verze říkaly totéž
+const TRANSLATION_SYSTEM_PROMPT = [
+    "Jsi zkušený překladatel technických textů z češtiny do angličtiny.",
+    "Překládáš popisy AI modelů pro anglickou verzi katalogu.",
+    "Překlad musí znít přirozeně, jako by ho psal rodilý mluvčí - ne jako strojový překlad.",
+    "Zachovej význam, strukturu odstavců, tón i všechny konkrétní údaje.",
+    "Názvy modelů, knihoven, nástrojů, benchmarků, čísla, jednotky a identifikátory",
+    "nech v původní podobě.",
+    "Nic nepřidávej, nic nevynechávej a nic nevysvětluj.",
+].join(" ");
+
+const TRANSLATION_RULES = [
+    "- zachovej odstavce oddělené prázdným řádkem i přibližnou délku textu",
+    "- překládej jen text, ne názvy modelů, knihoven, nástrojů ani benchmarků",
+    "- nepřidávej ani neubírej informace a nic nedomýšlej",
+    "- nevkládej nadpisy, odrážky ani poznámky překladatele",
+];
+
+/** Sestaví zadání pro překlad popisků do angličtiny (dávka modelů v jedné odpovědi). */
+function buildTranslationPrompt(items) {
+    return [
+        `Přelož do angličtiny popisy ${items.length} AI modelů uvedených níže.`,
+        "",
+        "FORMÁT ODPOVĚDI:",
+        "- odpověz pouze JSON polem, kde každá položka má tvar",
+        '  {"model": "identifikátor modelu", "en": "anglický překlad popisu"}',
+        "- pole obsahuje přesně jednu položku za každý model, ve stejném pořadí",
+        "- identifikátor modelu převezmi přesně z podkladů, nic jiného kolem JSON nepiš",
+        "",
+        "PRAVIDLA PŘEKLADU:",
+        ...TRANSLATION_RULES,
+        "",
+        "POPISKY:",
+        JSON.stringify(
+            items.map(({ modelId, description }) => ({ model: modelId, cs: description })),
+            null,
+            2
+        ),
+    ].join("\n");
+}
+
+/**
+ * Přeloží české popisky do angličtiny jedním voláním AI.
+ * Vrací mapu identifikátor - anglický text (chybějící překlady v mapě nejsou).
+ */
+async function translateDescriptions(items) {
+    if (items.length === 0) {
+        return new Map();
+    }
+
+    const data = await requestCompletion({
+        system: TRANSLATION_SYSTEM_PROMPT,
+        prompt: buildTranslationPrompt(items),
+        temperature: 0.3,
+        maxTokens: Math.min(1100 * items.length, 6400),
+    });
+
+    const parsed = parseBatchResponse(data?.choices?.[0]?.message?.content);
+    const translations = new Map();
+    const usedModelIds = new Set();
+
+    parsed.forEach((item, index) => {
+        const text = cleanSummary(item?.en ?? item?.popis ?? item?.text ?? item?.translation);
+
+        if (text.length < MIN_TRANSLATION_LENGTH) {
+            return;
+        }
+
+        // Stejná záloha pořadí jako u českých popisků, kdyby AI poškodilo identifikátor
+        let modelId = typeof item?.model === "string" ? item.model.trim() : "";
+
+        if (!items.some((entry) => entry.modelId === modelId) && parsed.length === items.length) {
+            modelId = items[index]?.modelId ?? "";
+        }
+
+        if (modelId && !usedModelIds.has(modelId)) {
+            usedModelIds.add(modelId);
+            translations.set(modelId, text);
+        }
+    });
+
+    return translations;
+}
+
 /** Vyčistí odpověď AI tak, aby se dala uložit a zobrazit (odstavce se zachovají). */
 function cleanSummary(text) {
     const cleaned = String(text ?? "")
@@ -195,19 +284,42 @@ function cleanSummary(text) {
     return shortened.replace(/\s+\S*$/, "").trim();
 }
 
-/** Vygeneruje český popis jednoho modelu (vrací i počet spotřebovaných tokenů). */
-async function generateDescription(model) {
-    const data = await requestCompletion({ system: SYSTEM_PROMPT, prompt: buildPrompt(model) });
-    const description = cleanSummary(data?.choices?.[0]?.message?.content);
+/** Uložený český popisek aktuální verze (jinak null). */
+function storedDescriptionText(model) {
+    return model.description?.version === DESCRIPTION_VERSION
+        ? (model.description?.text?.trim() || null)
+        : null;
+}
 
-    if (description.length < MIN_DESCRIPTION_LENGTH) {
-        // V chybě je i náhled odpovědi, aby bylo vidět, co poskytovatel skutečně vrátil
-        throw new Error(`Model vrátil příliš krátký popisek: „${description}“ (${JSON.stringify(data).slice(0, 250)}).`);
+/** Vygeneruje popis jednoho modelu v češtině i angličtině (vrací i počet spotřebovaných tokenů). */
+async function generateDescription(model) {
+    let description = storedDescriptionText(model);
+    let tokens = 0;
+
+    // Český popisek aktuální verze se znovu negeneruje, jen se k němu doplní překlad
+    if (!description) {
+        const data = await requestCompletion({ system: SYSTEM_PROMPT, prompt: buildPrompt(model) });
+
+        description = cleanSummary(data?.choices?.[0]?.message?.content);
+        tokens = data?.usage?.total_tokens ?? 0;
+
+        if (description.length < MIN_DESCRIPTION_LENGTH) {
+            // V chybě je i náhled odpovědi, aby bylo vidět, co poskytovatel skutečně vrátil
+            throw new Error(`Model vrátil příliš krátký popisek: „${description}“ (${JSON.stringify(data).slice(0, 250)}).`);
+        }
+    }
+
+    const translations = await translateDescriptions([{ modelId: model.modelId, description }]);
+    const descriptionEn = translations.get(model.modelId);
+
+    if (!descriptionEn) {
+        throw new Error(`Model „${model.modelId}“ nemá použitelný anglický překlad popisku.`);
     }
 
     return {
         description,
-        tokens: data?.usage?.total_tokens ?? 0,
+        descriptionEn,
+        tokens,
     };
 }
 
@@ -268,66 +380,111 @@ function parseBatchResponse(content) {
 }
 
 /**
- * Vygeneruje české popisky několika modelů v jednom volání AI.
- * Vrací jen popisky, které přišly a prošly kontrolou - ostatní fronta zkusí znovu.
+ * Doplní popisky několika modelů: chybějící české texty vygeneruje v jednom volání AI,
+ * existující české popisky jen přeloží do angličtiny.
+ * Vrací jen modely, pro které vznikly obě verze - ostatní fronta zkusí znovu.
  */
 async function generateDescriptions(models) {
-    const data = await requestCompletion({
-        system: SYSTEM_PROMPT,
-        prompt: buildBatchPrompt(models),
-        // Delší odpověď musí pokrýt všechny popisky z dávky, rezervované tokeny se ale počítají
-        // do minutového limitu poskytovatele, proto se drží co nejníž
-        maxTokens: Math.min(1100 * models.length, 6400),
+    const czechById = new Map();
+
+    // Modely bez aktuálního českého popisku se vygenerují v jedné dávce
+    const missingCzech = models.filter((model) => !storedDescriptionText(model));
+
+    if (missingCzech.length > 0) {
+        const data = await requestCompletion({
+            system: SYSTEM_PROMPT,
+            prompt: buildBatchPrompt(missingCzech),
+            // Delší odpověď musí pokrýt všechny popisky z dávky, rezervované tokeny se ale počítají
+            // do minutového limitu poskytovatele, proto se drží co nejníž
+            maxTokens: Math.min(1100 * missingCzech.length, 6400),
+        });
+
+        const items = parseBatchResponse(data?.choices?.[0]?.message?.content);
+        const usedModelIds = new Set();
+
+        items.forEach((item, index) => {
+            const description = cleanSummary(item?.popis);
+
+            if (description.length < MIN_DESCRIPTION_LENGTH) {
+                return;
+            }
+
+            // Položka se spáruje podle identifikátoru, když AI vrátí všechny položky ve stejném
+            // pořadí, ale s poškozeným identifikátorem, poslouží jako záloha pořadí v poli
+            let modelId = typeof item?.model === "string" ? item.model.trim() : "";
+
+            if (!missingCzech.some((model) => model.modelId === modelId) && items.length === missingCzech.length) {
+                modelId = missingCzech[index]?.modelId ?? "";
+            }
+
+            if (modelId && !usedModelIds.has(modelId)) {
+                usedModelIds.add(modelId);
+                czechById.set(modelId, description);
+            }
+        });
+    }
+
+    // K modelům s hotovým českým popiskem se jen doplní překlad, čeština zůstane stejná
+    models.forEach((model) => {
+        if (!czechById.has(model.modelId)) {
+            const description = storedDescriptionText(model);
+
+            if (description) {
+                czechById.set(model.modelId, description);
+            }
+        }
     });
 
-    const items = parseBatchResponse(data?.choices?.[0]?.message?.content);
-    const usedModelIds = new Set();
-    const results = [];
+    if (czechById.size === 0) {
+        return [];
+    }
 
-    items.forEach((item, index) => {
-        const description = cleanSummary(item?.popis);
+    // Překlad se dělá jedním voláním pro celou dávku
+    const translations = await translateDescriptions(
+        [...czechById].map(([modelId, description]) => ({ modelId, description }))
+    );
 
-        if (description.length < MIN_DESCRIPTION_LENGTH) {
-            return;
-        }
-
-        // Položka se spáruje podle identifikátoru, když AI vrátí všechny položky ve stejném
-        // pořadí, ale s poškozeným identifikátorem, poslouží jako záloha pořadí v poli
-        let modelId = typeof item?.model === "string" ? item.model.trim() : "";
-
-        if (!models.some((model) => model.modelId === modelId) && items.length === models.length) {
-            modelId = models[index]?.modelId ?? "";
-        }
-
-        if (modelId && !usedModelIds.has(modelId)) {
-            usedModelIds.add(modelId);
-            results.push({ modelId, description });
-        }
-    });
-
-    return results;
+    return [...czechById]
+        .map(([modelId, description]) => ({
+            modelId,
+            description,
+            descriptionEn: translations.get(modelId) ?? null,
+        }))
+        .filter((result) => Boolean(result.descriptionEn));
 }
 
 /**
- * Přečte hotové popisky z databáze (bez volání AI).
+ * Přečte hotové popisky z databáze (bez volání AI) v požadovaném jazyce.
  *
  * Vrací jen popisky z aktuální verze zadání; chybějící si požadavek
  * zařadí do fronty na pozadí (services/generationQueue).
  */
-async function getStoredDescriptions(modelIds) {
+async function getStoredDescriptions(modelIds, language = "cs") {
     const ids = [...new Set((modelIds ?? []).filter((id) => typeof id === "string" && id.trim().length > 0))];
 
     if (ids.length === 0) {
         return [];
     }
 
-    // Popisek ze starší verze zadání se klientovi neposílá - vygeneruje se znovu na pozadí
+    // Popisek ze starší verze zadání nebo bez překladu se klientovi neposílá -
+    // vygeneruje se znovu na pozadí
     return (await AIModel.find(
         { modelId: { $in: ids } },
         { modelId: 1, description: 1 }
     ).lean())
-        .filter((item) => item.description?.version === DESCRIPTION_VERSION && item.description?.text?.trim())
-        .map((item) => ({ modelId: item.modelId, description: item.description.text }));
+        .filter((item) => item.description?.version === DESCRIPTION_VERSION)
+        .map((item) => ({
+            modelId: item.modelId,
+            description: descriptionText(item.description, language),
+        }))
+        .filter((item) => Boolean(item.description));
+}
+
+/** Vrátí popis v požadovaném jazyce (anglický bez překladu zůstane prázdný). */
+function descriptionText(description, language) {
+    const text = language === "en" ? description?.textEn : description?.text;
+
+    return text?.trim() || null;
 }
 
 module.exports = {

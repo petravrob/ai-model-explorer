@@ -1,10 +1,14 @@
 import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
+import { getCurrentLanguage } from "@/i18n";
 import { translate } from "@/i18n/translate";
 import { AIModel, ModelFilters, ModelInsights } from "@/features/models";
 import { MODELS_PER_PAGE } from "../modelPagingConfig";
 import type { ModelSortKey } from "../modelSortsConfig";
 import type { ModelTabKey } from "../modelTabsConfig";
+
+/** Parametr jazyka pro generované texty (popisky a přehledy). */
+const languageParam = (): string => `lang=${encodeURIComponent(getCurrentLanguage())}`;
 
 /** Jedna stránka výpisu a informace, jestli jsou na serveru další. */
 export interface ModelsPage {
@@ -60,6 +64,9 @@ export const getModels = async (
     params.set("offset", String(paging.offset ?? 0));
     params.set("limit", String(paging.limit ?? MODELS_PER_PAGE));
 
+    // Popisky modelů se vrací ve zvoleném jazyce rozhraní
+    params.set("lang", getCurrentLanguage());
+
     // Kurzor z předchozí odpovědi má přednost, server ho pošle jen u jednoho výpisu
     if (paging.cursor) {
         params.set("cursor", paging.cursor);
@@ -109,7 +116,7 @@ export const getAuthorAvatar = async (
         try {
 
             const response = await fetch(
-                `${API_URL}/api/models/avatar/${encodeURIComponent(author)}`,
+                `${API_URL}/api/models/avatar/${encodeURIComponent(author)}?${languageParam()}`,
                 { method: "GET" }
             );
 
@@ -139,7 +146,7 @@ export const getModel = async (
 ): Promise<AIModel> => {
 
     const response = await fetch(
-        `${API_URL}/api/models/${encodeURIComponent(modelId)}`,
+        `${API_URL}/api/models/${encodeURIComponent(modelId)}?${languageParam()}`,
         {
             method: "GET",
         }
@@ -159,7 +166,7 @@ export const getModelInsights = async (
 ): Promise<ModelInsights | null> => {
 
     const response = await fetch(
-        `${API_URL}/api/models/${encodeURIComponent(modelId)}/insights`,
+        `${API_URL}/api/models/${encodeURIComponent(modelId)}/insights?${languageParam()}`,
         {
             method: "POST",
         }
@@ -178,7 +185,7 @@ export const createDescriptions = async (
     models: AIModel[]
 ): Promise<{ modelId: string; description: string }[]> => {
 
-    const response = await fetch(`${API_URL}/api/models/descriptions`, {
+    const response = await fetch(`${API_URL}/api/models/descriptions?${languageParam()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ models }),

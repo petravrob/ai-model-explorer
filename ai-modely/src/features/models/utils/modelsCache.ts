@@ -1,3 +1,5 @@
+import type { AppLanguage } from "@/i18n";
+
 import type { ModelFilters } from "../filters";
 import type { ModelSortKey } from "../modelSortsConfig";
 import type { ModelTabKey } from "../modelTabsConfig";
@@ -10,13 +12,15 @@ const MODELS_CACHE_LIMIT = 12;
 
 const modelsCache = new Map<string, AIModel[]>();
 
-/** Klíč výpisu podle štítku, řazení a filtrů. */
+/** Klíč výpisu podle jazyka, štítku, řazení a filtrů. */
 export const buildModelsCacheKey = (
     filters: ModelFilters,
     sort: ModelSortKey,
-    tab: ModelTabKey
+    tab: ModelTabKey,
+    language: AppLanguage
 ): string =>
     JSON.stringify({
+        language,
         sort,
         tab,
         filters: Object.entries(filters).sort(([a], [b]) => a.localeCompare(b)),
