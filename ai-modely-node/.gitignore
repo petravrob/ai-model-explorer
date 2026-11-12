@@ -1,2 +1,3 @@
 node_modules
 .env
+prewarm-english*.log

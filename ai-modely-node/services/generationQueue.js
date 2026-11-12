@@ -9,9 +9,10 @@
  * a funguje i při více instancích serveru, index zabraňuje duplicitnímu zařazení.
  */
 
-const { SUMMARY_ENABLED } = require("../config/env");
+const { SUMMARY_ENABLED, CONTENT_BULK_DAILY_LIMIT } = require("../config/env");
 const AIModel = require("../models/AIModel");
 const GenerationJob = require("../models/GenerationJob");
+const GenerationState = require("../models/GenerationState");
 const { DESCRIPTION_VERSION, generateDescription, generateDescriptions } = require("./descriptionService");
 const { generateInsights } = require("./insightsService");
 
@@ -21,6 +22,10 @@ const configuredConcurrency = Number(process.env.GENERATION_CONCURRENCY);
 const MAX_CONCURRENT_JOBS = Number.isInteger(configuredConcurrency) && configuredConcurrency > 0
     ? configuredConcurrency
     : 4;
+
+// Kolik hromadných úloh doplnění se smí denně zpracovat - zbytek denní kvóty
+// poskytovatelů zůstává vyhrazený pro požadavky uživatelů (0 = hromadné doplňování vypnuté)
+const BULK_DAILY_LIMIT = CONTENT_BULK_DAILY_LIMIT;
 
 // Jak často zpracovatel hledá nové úkoly
 const POLL_INTERVAL_MS = 1000;
@@ -69,7 +74,7 @@ function isQuotaFailure(error) {
  * Zařadí požadavky do fronty. Stejný model se stejným typem se nezařadí dvakrát (unikátní index).
  * Požadavek, který dříve selhal, se zkusí znovu.
  */
-async function enqueueJobs(type, modelIds) {
+async function enqueueJobs(type, modelIds, { bulk = false } = {}) {
     if (!SUMMARY_ENABLED) {
         return 0;
     }
@@ -80,21 +85,24 @@ async function enqueueJobs(type, modelIds) {
         return 0;
     }
 
-    // Čerstvě požadované úkoly dostanou nejvyšší prioritu, aby se popisky právě
-    // zobrazených modelů vygenerovaly před staršími požadavky z dřívějšího prohlížení
-    const priority = Date.now();
+    // Živý požadavek uživatele dostane nejvyšší prioritu a předběhne hromadné doplňování.
+    // Hromadné doplňování (bulk) má prioritu 0, takže ustoupí jakémukoli požadavku uživatele.
+    const priority = bulk ? 0 : Date.now();
 
-    // Čekajícím úkolům se priorita zvedne hned - při opakovaném dotazu klienta
-    await GenerationJob.updateMany(
-        { type, modelId: { $in: ids }, status: "pending" },
-        { $set: { priority } }
-    );
+    // Prioritu čekajícím úkolům zvedá jen živý požadavek (uživatel se k modelu vrátil).
+    // Hromadné doplňování čekající úkoly nemění, aby živý požadavek neponížilo.
+    if (!bulk) {
+        await GenerationJob.updateMany(
+            { type, modelId: { $in: ids }, status: "pending" },
+            { $set: { priority, isBulk: false } }
+        );
+    }
 
     try {
         const result = await GenerationJob.bulkWrite(
             ids.map((modelId) => ({
                 updateOne: {
-                    // Neúspěšný pokus se nastaví jako pending/processing 
+                    // Neúspěšný pokus se nastaví jako pending a zkusí se znovu
                     filter: { type, modelId, status: "failed" },
                     update: {
                         $set: {
@@ -104,6 +112,7 @@ async function enqueueJobs(type, modelIds) {
                             processingStartedAt: null,
                             lastError: null,
                             priority,
+                            isBulk: bulk,
                         },
                     },
                     upsert: true,
@@ -140,12 +149,12 @@ async function claimNextJob(filter = {}) {
 }
 
 /** Označí dávku čekajících požadavků jednoho typu (nejdřív podle priority, při shodě nejstarší). */
-async function claimNextJobs(type, limit, minPriority = 0) {
+async function claimNextJobs(type, limit, minPriority = 0, filter = {}) {
     const jobs = [];
 
     while (jobs.length < limit) {
         const job = await GenerationJob.findOneAndUpdate(
-            { type, status: "pending", runAt: { $lte: new Date() }, priority: { $gte: minPriority } },
+            { type, status: "pending", runAt: { $lte: new Date() }, priority: { $gte: minPriority }, ...filter },
             { $set: { status: "processing", processingStartedAt: new Date() } },
             { sort: { priority: -1, runAt: 1, createdAt: 1 }, new: true }
         );
@@ -387,6 +396,10 @@ async function runJob(job) {
     try {
         await PROCESSORS[job.type](job);
         await GenerationJob.deleteOne({ _id: job._id });
+
+        if (job.isBulk) {
+            await recordBulkJobDone(1);
+        }
     } catch (error) {
         await failJob(job, error);
     } finally {
@@ -401,6 +414,13 @@ async function runDescriptionBatch(jobs) {
 
         if (doneJobIds.length > 0) {
             await GenerationJob.deleteMany({ _id: { $in: doneJobIds } });
+        }
+
+        const doneIds = new Set(doneJobIds.map((id) => String(id)));
+        const doneBulkCount = jobs.filter((job) => job.isBulk && doneIds.has(String(job._id))).length;
+
+        if (doneBulkCount > 0) {
+            await recordBulkJobDone(doneBulkCount);
         }
 
         for (const { job, error } of failedJobs) {
@@ -418,6 +438,57 @@ async function runDescriptionBatch(jobs) {
 
 let lastReclaimAt = 0;
 
+/** Dnešní datum v čase serveru (např. "2026-11-12"). */
+function localDateKey() {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+
+    return `${now.getFullYear()}-${month}-${day}`;
+}
+
+// Stav denního rozpočtu držený v paměti, aby se databáze nečetla při každém kroku
+let bulkBudgetCache = { checkedAt: 0, date: "", exhausted: false };
+
+/** Zjistí, zda už je denní rozpočet hromadného doplňování vyčerpaný. */
+async function isBulkBudgetExhausted() {
+    const date = localDateKey();
+
+    if (bulkBudgetCache.date === date && Date.now() - bulkBudgetCache.checkedAt < 30000) {
+        return bulkBudgetCache.exhausted;
+    }
+
+    let exhausted;
+
+    if (BULK_DAILY_LIMIT <= 0) {
+        exhausted = true;
+    } else {
+        const state = await GenerationState.findById(`bulkDaily:${date}`).lean();
+
+        exhausted = Boolean(state && state.count >= BULK_DAILY_LIMIT);
+    }
+
+    bulkBudgetCache = { checkedAt: Date.now(), date, exhausted };
+
+    return exhausted;
+}
+
+/** Zapíše zpracované hromadné úlohy do denního rozpočtu. */
+async function recordBulkJobDone(count = 1) {
+    if (count <= 0 || BULK_DAILY_LIMIT <= 0) {
+        return;
+    }
+
+    const date = localDateKey();
+    const result = await GenerationState.findOneAndUpdate(
+        { _id: `bulkDaily:${date}` },
+        { $setOnInsert: { key: "bulkDaily", date }, $inc: { count } },
+        { upsert: true, new: true }
+    );
+
+    bulkBudgetCache = { checkedAt: Date.now(), date, exhausted: result?.count >= BULK_DAILY_LIMIT };
+}
+
 /** Jeden krok zpracovatele: uklidí zaseknuté požadavky a obsadí volná místa novými. */
 async function tick() {
     if (workerStopped || !SUMMARY_ENABLED || Date.now() < quotaCooldownUntil || Date.now() < rateCooldownUntil) {
@@ -430,17 +501,25 @@ async function tick() {
     }
 
     while (!workerStopped && runningJobs < MAX_CONCURRENT_JOBS) {
-        // Popisky se zpracovávají po dávkách v jednom volání AI - jedno volné místo
-        // tak obslouží několik modelů najednou. Právě prohlížené modely (vyšší
-        // priorita) jedou po malých dávkách, aby se první popisky ukázaly co nejdřív,
-        // starší požadavky z pozadí po velkých dávkách, které šetří limity poskytovatelů
         let batch = [];
 
         if (isTypeAllowed("description")) {
-            batch = await claimNextJobs("description", DESCRIPTION_HOT_BATCH_SIZE, Date.now() - HOT_JOB_MAX_AGE_MS);
+            // 1) Právě prohlížené modely (uživatel čeká) mají vždy přednost
+            batch = await claimNextJobs(
+                "description",
+                DESCRIPTION_HOT_BATCH_SIZE,
+                Date.now() - HOT_JOB_MAX_AGE_MS,
+                { isBulk: { $ne: true } }
+            );
 
+            // 2) Starší požadavky uživatelů - i ty mají přednost před hromadným doplňováním
             if (batch.length === 0) {
-                batch = await claimNextJobs("description", DESCRIPTION_BATCH_SIZE);
+                batch = await claimNextJobs("description", DESCRIPTION_BATCH_SIZE, 0, { isBulk: { $ne: true } });
+            }
+
+            // 3) Hromadné doplňování na pozadí - jen v rámci denního rozpočtu
+            if (batch.length === 0 && !(await isBulkBudgetExhausted())) {
+                batch = await claimNextJobs("description", DESCRIPTION_BATCH_SIZE, 0, { isBulk: true });
             }
         }
 
@@ -450,9 +529,15 @@ async function tick() {
             continue;
         }
 
-        // Když worker zpracovává jen některé typy, nesmí převzít jiný úkol
+        // Jednotlivé úkoly (přehledy i osamělé popisky): nejdřív požadavky uživatelů,
+        // teprve potom hromadné doplňování v rámci denního rozpočtu
         const typeFilter = workerTypes ? { type: { $in: [...workerTypes] } } : {};
-        const job = batch[0] ?? (await claimNextJob(typeFilter));
+
+        let job = batch[0] ?? (await claimNextJob({ ...typeFilter, isBulk: { $ne: true } }));
+
+        if (!job && !(await isBulkBudgetExhausted())) {
+            job = await claimNextJob({ ...typeFilter, isBulk: true });
+        }
 
         if (!job) {
             break;

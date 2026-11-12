@@ -259,6 +259,8 @@ npm run generate:content
 - `prewarm:recent` prepares descriptions for models updated in the last seven days.
 - `generate:content` processes all missing descriptions and insights until the queue is empty.
 
+The server also backfills content automatically without manual runs: shortly after startup (e.g. when the hosting wakes up) and then once a day at the configured time, it enqueues every model that is missing a description or insights. Configure it with the `CONTENT_SCHEDULE_*` variables in [Environment Variables](#environment-variables). Bulk backfill runs within a daily budget (`CONTENT_BULK_DAILY_LIMIT`), so a request for a specific model a user just opened always gets priority and keeps part of the daily quota available.
+
 The scripts support additional options, including selecting specific models or tasks and limiting the number of models. Generation depends on the provider's available quota, unfinished jobs remain in the queue and can be processed later.
 
 **Before running these scripts, check that `MONGO_URI` points to the intended database.** They write directly to it. Running them again is safe because up-to-date content is skipped.
@@ -290,8 +292,13 @@ The `.env.example` file lists the available variables and includes example confi
 | `SUMMARY_MODEL` | Model name used by the provider | For generation |
 | `SUMMARY_REASONING_EFFORT` | Optional reasoning effort setting for supported models | No |
 | `GENERATION_CONCURRENCY` | Number of jobs processed simultaneously; defaults to `4` | No |
+| `CONTENT_SCHEDULE_ENABLED` | Enables the daily content backfill scheduler; defaults to `true` | No |
+| `CONTENT_SCHEDULE_HOUR` | Hour of the daily backfill (0–23); defaults to `4` | No |
+| `CONTENT_SCHEDULE_MINUTE` | Minute of the daily backfill (0–59); defaults to `0` | No |
+| `CONTENT_SCHEDULE_STARTUP_DELAY_MS` | Delay in ms before the first backfill after server start; defaults to `30000` | No |
+| `CONTENT_BULK_DAILY_LIMIT` | Daily cap on bulk backfill jobs; the rest of the quota is reserved for user requests (defaults to `150`, `0` disables bulk backfill) | No |
 
-You can configure up to five providers using numbered variants such as `SUMMARY_API_KEY_2`, `SUMMARY_API_URL_2` and `SUMMARY_MODEL_2`. Providers are tried in order, allowing fallback when a provider reaches its quota or becomes unavailable.
+You can configure up to ten providers using numbered variants from `SUMMARY_API_KEY_2`, `SUMMARY_API_URL_2` and `SUMMARY_MODEL_2` through `SUMMARY_API_KEY_10`. Providers are tried in order, allowing fallback when a provider reaches its quota or becomes unavailable.
 
 The API uses an OpenAI-compatible chat completions interface. Supported options include Groq, Gemini, OpenRouter, Mistral and local Ollama instances. `GROQ_API_KEY` is also accepted for the first provider.
 

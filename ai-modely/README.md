@@ -130,7 +130,7 @@ npm run prewarm:english -- --limit=500
 
 `--limit` omezí počet modelů od každého typu a `--dry-run` jen vypíše plán. Skript je idempotentní – hotové překlady přeskočí, takže se dá kdykoli přerušit a spustit znovu. Zpracovává dávky po 6 modelech s pauzou 2,5 s a po třech chybách v řadě se sám zastaví.
 
-Bezplatné tarify poskytovatelů mají denní limit tokenů (např. Groq 200 000 TPD na model). Při vyčerpání se skript zastaví a zbytek se doplní dalším spuštěním po obnovení limitu, nebo lze do `.env` přidat dalšího poskytovatele (`SUMMARY_API_URL_4`, `SUMMARY_API_KEY_4`, `SUMMARY_MODEL_4`, …) s vlastní kvótou.
+Bezplatné tarify poskytovatelů mají denní limit tokenů (např. Groq 200 000 TPD na model). Při vyčerpání se skript zastaví a zbytek se doplní dalším spuštěním po obnovení limitu, nebo lze do `.env` přidat dalšího poskytovatele (`SUMMARY_API_URL_6`, `SUMMARY_API_KEY_6`, `SUMMARY_MODEL_6`, … až do `_10`) s vlastní kvótou.
 
 
 ### Probuzení hostingu

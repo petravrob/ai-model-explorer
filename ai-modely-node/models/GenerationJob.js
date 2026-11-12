@@ -41,6 +41,13 @@ const generationJobSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        // Hromadné doplňování na pozadí (bulk) má nižší prioritu než požadavky uživatelů
+        // a navíc se omezuje denním rozpočtem, aby zbyla kvóta pro modely,
+        // které si návštěvník právě prohlíží
+        isBulk: {
+            type: Boolean,
+            default: false,
+        },
         // Kdy úkol převzal zpracovatel - podle něj se pozná úkol uvízlý po pádu procesu
         processingStartedAt: {
             type: Date,

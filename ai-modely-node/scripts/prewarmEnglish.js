@@ -92,6 +92,8 @@ async function translateDescriptions(batch) {
         return 0;
     }
 
+    let lastError = null;
+
     try {
         const results = await generateDescriptions(models);
 
@@ -101,8 +103,9 @@ async function translateDescriptions(batch) {
         if (results.length === models.length) {
             return results.length;
         }
-    } catch {
+    } catch (error) {
         // Dávka selhala (limit nebo nevalidní odpověď) - zkusí se po jednom
+        lastError = error;
     }
 
     const remaining = await AIModel.find(
@@ -118,15 +121,28 @@ async function translateDescriptions(batch) {
 
             await Promise.all(results.map(saveDescription));
             done += results.length;
-        } catch {
+        } catch (error) {
             // Model se doplní při dalším spuštění
+            lastError = error;
         }
 
         await pause();
     }
 
     if (done === 0 && remaining.length > 0) {
-        throw new Error(`Nepodařilo se přeložit žádný z ${remaining.length} modelů v dávce.`);
+        const failure = new Error(`Nepodařilo se přeložit žádný z ${remaining.length} modelů v dávce.`);
+
+        // Zachová se informace, že selhání způsobily vyčerpané kvóty všech poskytovatelů
+        if (lastError?.quotaExhausted) {
+            failure.quotaExhausted = true;
+        }
+
+        if (lastError?.retryAfterMs) {
+            failure.retryAfterMs = lastError.retryAfterMs;
+        }
+
+        failure.cause = lastError;
+        throw failure;
     }
 
     return done;
@@ -140,18 +156,19 @@ async function translateInsights([model]) {
 }
 
 /**
- * Projde položky po dávkách a po dlouhé sérii chyb se zastaví.
+ * Projde položky po dávkách a zastaví se, když další pokus nemá smysl.
  *
- * Padesát chyb v řadě při dávce 1 a minutové pauze znamená přibližně 50 minut
- * bez jediného úspěchu - to už je spolehlivý signál, že jsou kvóty vyčerpané.
- * Kratší limit (3-10) zastavoval běh i při přechodných 429, kdy se limit obnoví
- * během několika minut.
+ * Když requestCompletion označí chybu jako quotaExhausted, jsou vyčerpané limity
+ * všech poskytovatelů a opakování během dne nepomůže. Přechodné 429 respektují
+ * retryAfterMs, po deseti chybách v řadě se běh zastaví, aby zbytečně nečekal.
  */
 async function processItems(items, worker, label, step) {
     let done = 0;
     let streak = 0;
 
     for (let index = 0; index < items.length; index += step) {
+        let waitMs = PAUSE_MS;
+
         try {
             done += await worker(items.slice(index, index + step));
             streak = 0;
@@ -159,18 +176,26 @@ async function processItems(items, worker, label, step) {
             streak += 1;
             console.error(`${label}: ${error.message.slice(0, 160)}`);
 
-            if (streak >= 50) {
-                console.error(`${label}: padesát chyb v řadě, končím.`);
+            if (error.quotaExhausted) {
+                console.error(`${label}: všichni poskytovatelé mají vyčerpaný limit, končím.`);
                 break;
             }
+
+            if (streak >= 10) {
+                console.error(`${label}: deset chyb v řadě, končím.`);
+                break;
+            }
+
+            // Přechodné omezení rychlosti: čeká se podle retryAfter, nejvýš pět minut
+            waitMs = Math.min(Math.max(error.retryAfterMs || 60000, 10000), 300000);
         }
 
         if (index % (step * 10) === 0) {
             console.log(`${label}: ${done} hotovo, zbývá ${Math.max(0, items.length - index - step)}.`);
         }
 
-        // Po chybě se čeká déle, aby se stihl obnovit limit poskytovatele
-        await new Promise((resolve) => setTimeout(resolve, streak > 0 ? 60000 : PAUSE_MS));
+        // Po úspěchu stačí krátká pauza, po chybě se čeká déle
+        await new Promise((resolve) => setTimeout(resolve, streak > 0 ? waitMs : PAUSE_MS));
     }
 
     return done;
