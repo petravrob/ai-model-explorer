@@ -20,5 +20,15 @@
         "title": "Stránka nebyla nalezena",
         "message": "Tato adresa neexistuje nebo byla přesunuta.",
         "backHome": "Zpět na hlavní stránku"
+    },
+    "devInfo": {
+        "button": "Vývoj",
+        "buttonAria": "Informace o vývoji aplikace",
+        "title": "Vývoj aplikace",
+        "updated": "Aktualizováno: {{date}}",
+        "statusTitle": "Aktuálně",
+        "plannedTitle": "Plánované funkce",
+        "issuesTitle": "Právě řešené problémy",
+        "close": "Zavřít okno s informacemi o vývoji"
     }
 }
