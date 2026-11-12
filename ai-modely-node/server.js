@@ -2,6 +2,7 @@ const app = require("./app");
 const connectDatabase = require("./config/database");
 const { PORT, SUMMARY_ENABLED, SUMMARY_PROVIDERS } = require("./config/env");
 const { startGenerationWorker } = require("./services/generationQueue");
+const { startContentScheduler } = require("./services/contentScheduler");
 const { getSortedModels } = require("./services/huggingFaceService");
 const { DEFAULT_PAGE_SIZE } = require("./config/paging");
 
@@ -11,6 +12,9 @@ const startServer = async () => {
 
         // Generování popisků a přehledů běží na pozadí mimo požadavky klientů
         startGenerationWorker();
+
+        // Pravidelně doplňuje do fronty modely, kterým chybí popisky/přehledy
+        startContentScheduler();
 
         // Nejoblíbenější výpis se natáhne už při startu, ať první návštěva nečeká na Hugging Face.
         // Musí jít o stejnou adresu, jakou si vyžádá klient, jinak se do paměti nechytí.

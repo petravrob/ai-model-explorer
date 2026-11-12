@@ -262,6 +262,8 @@ npm run generate:content
 - `prewarm:recent` připraví popisy pro modely aktualizované během posledních sedmi dnů.
 - `generate:content` zpracovává všechny modely, kterým chybí popisy nebo další informace, dokud není fronta prázdná.
 
+Bez ručního spouštění se o doplnění navíc stará sám server: krátce po startu (např. po probuzení hostingu) a poté každý den v nastavený čas zařadí do fronty všechny modely s chybějícím popiskem či přehledy. Nastavení viz `CONTENT_SCHEDULE_*` v části [Proměnné prostředí](#proměnné-prostředí). Hromadné doplňování jede v rámci denního rozpočtu (`CONTENT_BULK_DAILY_LIMIT`), takže požadavek na konkrétní model, který si uživatel právě otevřel, má vždy přednost a zbývá na něj část denní kvóty.
+
 Skripty podporují také další možnosti, například výběr konkrétních modelů nebo úloh a omezení počtu modelů. Rychlost generování závisí na dostupném limitu zvoleného poskytovatele. Nedokončené úlohy zůstávají ve frontě a lze je zpracovat později.
 
 **Před spuštěním těchto skriptů je nutné ověřit, že `MONGO_URI` odkazuje na správnou databázi.** Skripty do ní zapisují přímo. Opakované spuštění je bezpečné, protože již existující aktuální obsah se přeskočí.
@@ -293,8 +295,13 @@ Soubor `.env.example` obsahuje seznam dostupných proměnných a příklady konf
 | `SUMMARY_MODEL` | Název modelu používaného poskytovatelem | Pro generování |
 | `SUMMARY_REASONING_EFFORT` | Volitelné nastavení intenzity uvažování pro podporované modely | Ne |
 | `GENERATION_CONCURRENCY` | Počet současně zpracovávaných úloh, výchozí hodnota je `4` | Ne |
+| `CONTENT_SCHEDULE_ENABLED` | Zapíná denní plánovač doplňování chybějících textů, výchozí `true` | Ne |
+| `CONTENT_SCHEDULE_HOUR` | Hodina denního doplnění (0–23), výchozí `4` | Ne |
+| `CONTENT_SCHEDULE_MINUTE` | Minuta denního doplnění (0–59), výchozí `0` | Ne |
+| `CONTENT_SCHEDULE_STARTUP_DELAY_MS` | Prodleva prvního doplnění po startu serveru v ms, výchozí `30000` | Ne |
+| `CONTENT_BULK_DAILY_LIMIT` | Denní strop hromadných úloh doplňování; zbytek kvóty zůstává požadavkům uživatelů (výchozí `150`, `0` = hromadné doplňování vypnuto) | Ne |
 
-Lze nastavit až pět poskytovatelů pomocí očíslovaných variant, například `SUMMARY_API_KEY_2`, `SUMMARY_API_URL_2` a `SUMMARY_MODEL_2`. Poskytovatelé se zkoušejí v daném pořadí, takže při vyčerpání limitu nebo nedostupnosti jednoho z nich může systém přejít na dalšího.
+Lze nastavit až deset poskytovatelů pomocí očíslovaných variant, například `SUMMARY_API_KEY_2`, `SUMMARY_API_URL_2` a `SUMMARY_MODEL_2` až po `SUMMARY_API_KEY_10`. Poskytovatelé se zkoušejí v daném pořadí, takže při vyčerpání limitu nebo nedostupnosti jednoho z nich může systém přejít na dalšího.
 
 API používá rozhraní kompatibilní s OpenAI. Podporováni jsou například Groq, Gemini, OpenRouter, Mistral a lokální instance Ollama. Pro prvního poskytovatele lze použít také `GROQ_API_KEY`.
 

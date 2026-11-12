@@ -221,7 +221,7 @@ async function prewarmDescriptions() {
         }
 
         const modelIds = selected.map((model) => model.modelId);
-        const enqueued = await enqueueJobs("description", modelIds);
+        const enqueued = await enqueueJobs("description", modelIds, { bulk: true });
 
         console.log(`Do fronty zařazeno ${enqueued} popisků.`);
 

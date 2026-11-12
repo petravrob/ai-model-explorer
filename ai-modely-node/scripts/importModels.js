@@ -165,8 +165,8 @@ async function importModels() {
             .filter((doc) => !doc.insights?.sourceFingerprint || doc.insights?.promptVersion !== PROMPT_VERSION)
             .map((doc) => doc.modelId);
 
-        const enqueuedDescriptions = await enqueueJobs("description", missingDescriptions);
-        const enqueuedInsights = await enqueueJobs("insights", missingInsights);
+        const enqueuedDescriptions = await enqueueJobs("description", missingDescriptions, { bulk: true });
+        const enqueuedInsights = await enqueueJobs("insights", missingInsights, { bulk: true });
 
         console.log(
             `Do fronty generování zařazeno ${enqueuedDescriptions} popisků ` +

@@ -14,7 +14,7 @@ const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY || "";
 // takže vyčerpaný limit u jednoho provoz nezastaví. Přijímá se i název GROQ_API_KEY.
 const DEFAULT_API_URL = "https://api.groq.com/openai/v1";
 const DEFAULT_MODEL = "openai/gpt-oss-120b";
-const MAX_SUMMARY_PROVIDERS = 5;
+const MAX_SUMMARY_PROVIDERS = 10;
 
 /** Načte jednoho poskytovatele z prostředí (suffix je "" u prvního, jinak "_2", "_3"…). */
 function readSummaryProvider(suffix, defaults = {}) {
@@ -86,6 +86,36 @@ const SUMMARY_API_URL = SUMMARY_PROVIDERS[0]?.url || DEFAULT_API_URL;
 const SUMMARY_MODEL = SUMMARY_PROVIDERS[0]?.model || DEFAULT_MODEL;
 const SUMMARY_REASONING_EFFORT = SUMMARY_PROVIDERS[0]?.reasoningEffort || "";
 
+// Automatické doplňování chybějících textů (denní plánovač)
+// Vypne se proměnnou CONTENT_SCHEDULE_ENABLED=false. Čas denního běhu určují
+// CONTENT_SCHEDULE_HOUR a CONTENT_SCHEDULE_MINUTE (v čase serveru).
+const CONTENT_SCHEDULE_ENABLED = (process.env.CONTENT_SCHEDULE_ENABLED ?? "true").trim().toLowerCase() !== "false";
+
+/** Přečte celé číslo z prostředí, jinak vrátí výchozí hodnotu. */
+function readBoundedInt(name, fallback, min, max) {
+    const value = Number(process.env[name]);
+
+    if (!Number.isInteger(value)) {
+        return fallback;
+    }
+
+    return Math.min(max, Math.max(min, value));
+}
+
+const CONTENT_SCHEDULE_HOUR = readBoundedInt("CONTENT_SCHEDULE_HOUR", 4, 0, 23);
+const CONTENT_SCHEDULE_MINUTE = readBoundedInt("CONTENT_SCHEDULE_MINUTE", 0, 0, 59);
+const CONTENT_SCHEDULE_STARTUP_DELAY_MS = readBoundedInt(
+    "CONTENT_SCHEDULE_STARTUP_DELAY_MS",
+    30000,
+    0,
+    24 * 60 * 60 * 1000
+);
+
+// Kolik hromadných úloh doplnění se smí denně zpracovat, zbytek denní kvóty
+// poskytovatelů zůstává vyhrazený pro modely, které si uživatel právě prohlíží.
+// 0 = hromadné doplňování se nezpracovává.
+const CONTENT_BULK_DAILY_LIMIT = readBoundedInt("CONTENT_BULK_DAILY_LIMIT", 150, 0, 100000);
+
 if (!JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined.");
 }
@@ -105,4 +135,9 @@ module.exports = {
     SUMMARY_API_URL,
     SUMMARY_MODEL,
     SUMMARY_REASONING_EFFORT,
+    CONTENT_SCHEDULE_ENABLED,
+    CONTENT_SCHEDULE_HOUR,
+    CONTENT_SCHEDULE_MINUTE,
+    CONTENT_SCHEDULE_STARTUP_DELAY_MS,
+    CONTENT_BULK_DAILY_LIMIT,
 };
