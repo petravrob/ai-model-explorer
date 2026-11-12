@@ -1,5 +1,9 @@
 import "./ModelTabs.css";
 
+import { useTranslation } from "react-i18next";
+
+import { translate } from "@/i18n/translate";
+
 import { MODEL_TABS_CONFIG, type ModelTabKey } from "../../modelTabsConfig";
 
 interface ModelTabsProps {
@@ -9,8 +13,10 @@ interface ModelTabsProps {
 
 /** Štítky nad prohlížečem modelů, které rychle vyfiltrují podle podmínky, jaké modely se zobrazí. */
 function ModelTabs({ value, onChange }: ModelTabsProps) {
+    const { t } = useTranslation("models");
+
     return (
-        <div className="model-tabs" role="group" aria-label="Štítky výpisu modelů">
+        <div className="model-tabs" role="group" aria-label={t("tabs.ariaLabel")}>
             {MODEL_TABS_CONFIG.map((tabOption) => (
                 <button
                     key={tabOption.value}
@@ -18,11 +24,11 @@ function ModelTabs({ value, onChange }: ModelTabsProps) {
                     className={`model-tabs__tab${
                         tabOption.value === value ? " model-tabs__tab--active" : ""
                     }`}
-                    title={tabOption.description}
+                    title={translate(`models:tabs.${tabOption.value}.description`)}
                     aria-pressed={tabOption.value === value}
                     onClick={() => onChange(tabOption.value)}
                 >
-                    {tabOption.label}
+                    {translate(`models:tabs.${tabOption.value}.label`)}
                 </button>
             ))}
         </div>

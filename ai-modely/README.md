@@ -79,7 +79,7 @@ Modely se do databáze plní příkazem `npm run import:models`. Výpis se sklá
 
 ### Nová databáze
 
-Databáze má jedinou kolekci `models`, ve které je uložený model včetně vygenerovaného českého popisu a přehledů. Připojovací řetězec v `.env` musí obsahovat název databáze (`...mongodb.net/ai-model-explorer?appName=ai-model-explorer`), jinak by se data uložila do výchozí databáze `test`. Postup:
+Databáze má jedinou kolekci `models`, ve které je uložený model včetně vygenerovaného českého i anglického popisu a přehledů. Připojovací řetězec v `.env` musí obsahovat název databáze (`...mongodb.net/ai-model-explorer?appName=ai-model-explorer`), jinak by se data uložila do výchozí databáze `test`. Postup:
 
 ```bash
 npm run create:indexes                    # založí kolekce a indexy pro řazení a filtrování
@@ -87,11 +87,11 @@ npm run import:models                     # naplní katalog modely z Hugging Fac
 npm run import:models -- --per-task=100   # volitelně větší počet modelů na jednu úlohu
 ```
 
-Indexy se záměrně nevytvářejí při startu serveru (`autoIndex: false`), aby se nestavěly při každém spuštění. Vygenerované české texty zůstávají při dalším importu zachované, protože import zapisuje data modelu.
+Indexy se záměrně nevytvářejí při startu serveru (`autoIndex: false`), aby se nestavěly při každém spuštění. Vygenerované texty (české i anglické) zůstávají při dalším importu zachované, protože import zapisuje data modelu.
 
 ### Předgenerování popisků (rychlé první načtení)
 
-Popisky se generují na pozadí a ukládají do databáze. Aby aplikace při otevření nic negenerovala, lze je připravit předem:
+Popisky se generují na pozadí (česky i anglicky) a ukládají do databáze. Aby aplikace při otevření nic negenerovala, lze je připravit předem:
 
 ```bash
 npm run prewarm:descriptions -- --limit=100
@@ -100,7 +100,37 @@ npm run prewarm:descriptions -- --sort=created --limit=100
 npm run prewarm:descriptions -- --all
 ```
 
-Skript vybírá modely bez aktuálního popisku, přednostně ty nejsledovanější. `--from-api` omezí výběr na modely, které právě vrací běžící aplikace, `--sort` určí pořadí výběru (`downloads`, `likes`, `created`, `trending`), `--dry-run` jen vypíše, co by se generovalo, a `--timeout=20` nastaví limit čekání v minutách. Zapisuje do databáze uvedené v `MONGO_URI`, proto před spuštěním proti produkci zkontrolujte, že `.env` míří na správnou databázi.
+Skript vybírá modely bez aktuálního popisku v obou jazycích, přednostně ty nejsledovanější. `--from-api` omezí výběr na modely, které právě vrací běžící aplikace, `--sort` určí pořadí výběru (`downloads`, `likes`, `created`, `trending`), `--dry-run` jen vypíše, co by se generovalo, a `--timeout=20` nastaví limit čekání v minutách. Zapisuje do databáze uvedené v `MONGO_URI`, proto před spuštěním proti produkci zkontrolujte, že `.env` míří na správnou databázi.
+
+### Dvojjazyčný obsah a API
+
+
+```bash
+GET  /api/models?lang=en
+GET  /api/models/:modelId?lang=en
+POST /api/models/:modelId/insights?lang=en
+POST /api/models/descriptions?lang=en
+```
+
+Bez parametru (nebo s `lang=cs`) se vrací čeština. Chybí-li anglická verze, vrátí se `null` a server si text zařadí do fronty na pozadí – klient ho uvidí při dalším načtení. Chybové odpovědi API se řídí stejným parametrem. Hromadně lze obě verze doplnit přes `npm run generate:content`, případně jen chybějící jazyk:
+
+```bash
+npm run generate:content -- --lang=en   # doplní jen chybějící anglické texty
+npm run generate:content -- --lang=cs   # doplní jen chybějící české texty
+```
+
+### Doplnění anglických překladů k hotovému českému obsahu
+
+Pro rychlé zprovoznění anglické verze bez přegenerování češtiny slouží samostatný skript. Bere jen modely, které už mají hotový český popisek nebo české přehledy, a doplní k nim anglický překlad – přednostně podle popularity. Generuje přímo, mimo frontu `GenerationJob`, takže je bezpečný i tehdy, když stejnou databázi sdílí nasazený backend na starší verzi kódu (jeho worker by jinak úkoly z fronty spotřeboval, aniž by anglické texty uložil).
+
+```bash
+npm run prewarm:english -- --dry-run
+npm run prewarm:english -- --limit=500
+```
+
+`--limit` omezí počet modelů od každého typu a `--dry-run` jen vypíše plán. Skript je idempotentní – hotové překlady přeskočí, takže se dá kdykoli přerušit a spustit znovu. Zpracovává dávky po 6 modelech s pauzou 2,5 s a po třech chybách v řadě se sám zastaví.
+
+Bezplatné tarify poskytovatelů mají denní limit tokenů (např. Groq 200 000 TPD na model). Při vyčerpání se skript zastaví a zbytek se doplní dalším spuštěním po obnovení limitu, nebo lze do `.env` přidat dalšího poskytovatele (`SUMMARY_API_URL_4`, `SUMMARY_API_KEY_4`, `SUMMARY_MODEL_4`, …) s vlastní kvótou.
 
 
 ### Probuzení hostingu
@@ -114,8 +144,9 @@ Význam polí kolekce `models`:
 | `modelId` | identifikátor modelu na Hugging Face, podle něj se model dohledává a aktualizuje |
 | `publishedAt` | kdy model vznikl na Hugging Face (odlišné od `createdAt`, což je čas uložení v této aplikaci) |
 | `lastModified`, `statsUpdatedAt` | kdy se naposledy změnil model a kdy se obnovily statistiky |
-| `description` | vygenerovaný český popisek (`text`, `version`, `status`, `generatedAt`) |
-| `insights` | vygenerované české přehledy z dokumentace (`sourceFingerprint`, `status`, `generatedAt` a další pole) |
+| `description` | vygenerovaný popisek (`text` česky, `textEn` anglicky, `version`, `status`, `generatedAt`) |
+| `insights` | vygenerované přehledy z dokumentace v češtině (`sourceFingerprint`, `promptVersion`, `status`, `generatedAt` a další pole) |
+| `insightsEn` | anglický překlad přehledů (stejná struktura jako `insights`, obrázky a videa zůstávají společné) |
 | `avatarUrl` | adresa avataru autora, aby se nemusela dotahovat při zobrazení výpisu |
 
 ### Frontend

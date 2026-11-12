@@ -1,7 +1,7 @@
 /**
- * Předgenerování českých popisků do databáze (npm run prewarm:descriptions).
+ * Předgenerování popisků do databáze (npm run prewarm:descriptions).
  *
- * Na rozdíl od generate:content řeší jen popisky a umí vybrat pouze modely,
+ * Na rozdíl od generate:content řeší jen popisky (české i anglické) a umí vybrat pouze modely,
  * které aplikace zobrazuje jako první. Hotové popisky se uloží do databáze,
  * takže je aplikace při otevření jen přečte a nic negeneruje.
  *
@@ -66,9 +66,11 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/** Má model popisek aktuální verze? */
+/** Má model popisek aktuální verze v češtině i angličtině? */
 function hasCurrentDescription(model) {
-    return model.description?.version === DESCRIPTION_VERSION && Boolean(model.description?.text?.trim());
+    return model.description?.version === DESCRIPTION_VERSION
+        && Boolean(model.description?.text?.trim())
+        && Boolean(model.description?.textEn?.trim());
 }
 
 /**
@@ -162,6 +164,7 @@ async function waitForDescriptions(modelIds, timeoutMinutes) {
                 modelId: { $in: modelIds },
                 "description.version": DESCRIPTION_VERSION,
                 "description.text": { $nin: [null, ""] },
+                "description.textEn": { $nin: [null, ""] },
             }),
         ]);
 

@@ -1,9 +1,7 @@
 /** Jedna možnost řazení modelů ve výběru nad výpisem. */
 export interface SortOption {
-    // Hodnota řazení, posílá se do API jako parametr
+    // Hodnota řazení, posílá se do API jako parametr a odvozuje se z ní překlad
     value: string;
-    // Popisek zobrazený uživateli
-    label: string;
 }
 
 /**
@@ -12,22 +10,10 @@ export interface SortOption {
  * překlad na serveru v SORT_PARAMS v huggingFaceService.
  */
 export const MODEL_SORTS_CONFIG = [
-    {
-        value: "popularity",
-        label: "Popularita",
-    },
-    {
-        value: "downloads",
-        label: "Počet stažení",
-    },
-    {
-        value: "likes",
-        label: "Počet oblíbených",
-    },
-    {
-        value: "created",
-        label: "Datum přidání",
-    },
+    { value: "popularity" },
+    { value: "downloads" },
+    { value: "likes" },
+    { value: "created" },
 ] as const satisfies readonly SortOption[];
 
 

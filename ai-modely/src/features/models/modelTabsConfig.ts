@@ -2,12 +2,8 @@ import type { AIModel } from "./types";
 
 /** Jedna hodnota štítku nad výpisem modelů. */
 export interface ModelTabOption {
-    // Hodnota štítku, posílá se do API jako parametr
+    // Hodnota štítku, posílá se do API jako parametr a odvozuje se z ní překlad
     value: string;
-    // Popisek zobrazený uživateli
-    label: string;
-    // Vysvětlení významu štítku (zobrazí se jako nápověda i pod štítky nad výpisem)
-    description: string;
     // Vyfiltruje načtený výpis modelů na ty, které štítku odpovídají
     filter: (models: AIModel[]) => AIModel[];
 }
@@ -63,40 +59,28 @@ const isServerModel = (model: AIModel): boolean =>
 export const MODEL_TABS_CONFIG = [
     {
         value: "all",
-        label: "Vše",
-        description: "Prohlížení všech dostupných modelů.",
         filter: (models: AIModel[]) => models,
     },
     {
         value: "recommended",
-        label: "Doporučené",
-        description: "Osvědčené modely s jasnou licencí, známou velikostí i knihovnou.",
         filter: (models: AIModel[]) => models.filter(isRecommendedModel),
     },
     {
         value: "new",
-        label: "Nové",
-        description: "Modely zveřejněné na Hugging Face za poslední dva měsíce.",
         filter: (models: AIModel[]) =>
             models.filter((model) => isNewlyCreated(model.createdAt, NEW_MODEL_DAYS)),
     },
     {
         value: "trending",
-        label: "Trendující",
-        description: "Nejoblíbenější modely, které právě nabírají na popularitě (skóre trendů Hugging Face).",
         filter: (models: AIModel[]) =>
             models.filter((model) => (model.trendingScore ?? 0) > 0),
     },
     {
         value: "local",
-        label: "Lokální běh",
-        description: "Modely s kvantizovanou variantou (GGUF, AWQ, GPTQ) nebo do 1 mld. parametrů, které lze spustit i na běžném počítači.",
         filter: (models: AIModel[]) => models.filter(isLocalModel),
     },
     {
         value: "server",
-        label: "Na serveru",
-        description: "Modely nad 13 mld. parametrů, které potřebují výkonný server nebo GPU.",
         filter: (models: AIModel[]) => models.filter(isServerModel),
     },
 ] as const satisfies readonly ModelTabOption[];

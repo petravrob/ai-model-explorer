@@ -152,6 +152,55 @@ function buildPrompt(excerpt) {
     ].join("\n");
 }
 
+// Anglické přehledy vznikají překladem hotových českých hodnot, aby obě verze říkaly totéž
+const TRANSLATION_SYSTEM_PROMPT = [
+    "Jsi zkušený překladatel technických textů z češtiny do angličtiny.",
+    "Překládáš přehledy AI modelu pro anglickou verzi katalogu.",
+    "Překlad musí být přirozený a věcný, bez přidávání nebo ubírání informací.",
+    "Zachovej strukturu JSON a všechny klíče.",
+    "Názvy modelů, knihoven, nástrojů a benchmarků, metriky, čísla, skóre",
+    "a identifikátory nech beze změny.",
+].join(" ");
+
+/** Sestaví zadání pro překlad přehledů do angličtiny. */
+function buildTranslationPrompt(insights) {
+    return [
+        "Přelož do angličtiny české přehledy AI modelu.",
+        "",
+        "FORMÁT ODPOVĚDI:",
+        "- odpověz pouze JSON objektem se stejnými klíči a stejnou strukturou",
+        "- pole zůstanou poli, texty se přeloží, prázdné hodnoty zůstanou null nebo []",
+        "",
+        "PRAVIDLA PŘEKLADU:",
+        "- překládej jen popisné texty (položky seznamů i samostatné texty)",
+        "- názvy modelů, knihoven, nástrojů a benchmarků, metriky, čísla, skóre a identifikátory nech v původní podobě",
+        "- kategorie benchmarků přelož do angličtiny (např. „kódování“ → „coding“, „obecné znalosti“ → „general knowledge“)",
+        "- krátké technické hodnoty (contextLength, activeParameters, version, baseModel, variants, quantization) zachovej přesně, přelož jen případné české popisy",
+        "- nic nepřidávej, nic nevynechávej a nic nevysvětluj",
+        "",
+        "PŘEHLEDY:",
+        JSON.stringify(insights, null, 2),
+    ].join("\n");
+}
+
+/**
+ * Přeloží české přehledy do angličtiny.
+ * Kategorie benchmarků se nepřevádějí přes české názvy - překlad je už dodá anglicky.
+ */
+async function translateInsights(insights) {
+    const data = await requestCompletion({
+        system: TRANSLATION_SYSTEM_PROMPT,
+        prompt: buildTranslationPrompt(insights),
+        temperature: 0.2,
+        maxTokens: 3500,
+        validate: (response) => Boolean(
+            parseInsights(response?.choices?.[0]?.message?.content, { localizeCategories: false })
+        ),
+    });
+
+    return parseInsights(data?.choices?.[0]?.message?.content, { localizeCategories: false });
+}
+
 /** Ořeže text na rozpočet, ale nikdy neprostřed řádku (rozbité řádky tabulek se nedají přečíst). */
 function cutAtLine(text, limit) {
     if (text.length <= limit) {
@@ -432,21 +481,28 @@ const CATEGORY_LABELS = new Map([
 ]);
 
 /** Převede oblast benchmarku na český název, když je v dokumentaci anglicky. */
-function toCategory(value) {
+function toCategory(value, localizeCategories = true) {
     const text = toText(value);
 
-    return text ? (CATEGORY_LABELS.get(text.toLowerCase()) ?? text.slice(0, 60)) : null;
+    if (!text) {
+        return null;
+    }
+
+    // U anglického překladu se české názvy nepoužívají - překlad je už hotový
+    return localizeCategories
+        ? (CATEGORY_LABELS.get(text.toLowerCase()) ?? text.slice(0, 60))
+        : text.slice(0, 60);
 }
 
 /** Převede benchmarky z odpovědi AI na krátké položky s názvem a výsledkem. */
-function toBenchmarks(value) {
+function toBenchmarks(value, localizeCategories = true) {
     const items = Array.isArray(value) ? value : [];
 
     const cleaned = items.map((item) => ({
         name: toText(item?.name)?.slice(0, 80) ?? null,
         score: toScore(item?.score),
         metric: toText(item?.metric)?.slice(0, 60) ?? null,
-        category: toCategory(item?.category),
+        category: toCategory(item?.category, localizeCategories),
         context: toText(item?.context)?.slice(0, 120) ?? null,
     }));
 
@@ -458,7 +514,7 @@ function toBenchmarks(value) {
 }
 
 /** Převede odpověď AI na přehledy, nebo vrátí null, když se odpověď nedá použít. */
-function parseInsights(raw) {
+function parseInsights(raw, { localizeCategories = true } = {}) {
     const text = String(raw ?? "");
     const start = text.indexOf("{");
     const end = text.lastIndexOf("}");
@@ -489,7 +545,7 @@ function parseInsights(raw) {
             quantization: toList(parsed.quantization),
             compatibility: toList(parsed.compatibility),
             limitations: toList(parsed.limitations, MAX_LIMITATIONS),
-            benchmarks: toBenchmarks(parsed.benchmarks),
+            benchmarks: toBenchmarks(parsed.benchmarks, localizeCategories),
         };
 
         // Když se z dokumentace nic nepřečetlo, nemá smysl výsledek ukládat
@@ -543,6 +599,35 @@ function toInsights(doc) {
 }
 
 /**
+ * Vrátí jen textové přehledy bez obrázků a videí.
+ * Obrázky a videa jsou převzaté z dokumentace, takže se nepřekládají.
+ */
+function toTranslatableInsights(doc) {
+    const { images, videos, ...translatable } = toInsights(doc);
+
+    return translatable;
+}
+
+/** Metadata společná pro české i anglické přehledy z jednoho vstupu. */
+function createInsightsMeta(sourceFingerprint) {
+    return {
+        sourceFingerprint,
+        promptVersion: PROMPT_VERSION,
+        status: "ok",
+        generatedAt: new Date(),
+    };
+}
+
+/** Jsou uložené přehledy z tohoto vstupu a aktuální verze zadání? */
+function isCurrentInsights(doc, sourceFingerprint) {
+    return Boolean(
+        doc?.sourceFingerprint
+        && doc.sourceFingerprint === sourceFingerprint
+        && doc.promptVersion === PROMPT_VERSION
+    );
+}
+
+/**
  * Uloží aspoň obrázky z dokumentace, když se texty od AI nepodaří vytvořit.
  * Otisk se záměrně neukládá, aby se texty zkusily znovu, až bude služba dostupná.
  */
@@ -562,17 +647,48 @@ async function saveVisualOnly(modelId, visual, stored) {
 }
 
 /**
- * Přečte uložené přehledy z databáze (bez volání AI a bez stahování dokumentace).
- * Chybějící přehledy si požadavek zařadí do fronty na pozadí (services/generationQueue).
+ * Přečte uložené přehledy z databáze v požadovaném jazyce
+ * (bez volání AI a bez stahování dokumentace).
+ *
+ * Anglická verze se vrací jen tehdy, když vznikla ze stejné dokumentace.
+ * jinak je null a požadavek si překlad zařadí do fronty na pozadí.
  */
-async function getStoredInsights(modelId) {
-    const stored = await AIModel.findOne({ modelId }, { insights: 1 }).lean();
+async function getStoredInsights(modelId, language = "cs") {
+    const stored = await AIModel.findOne({ modelId }, { insights: 1, insightsEn: 1 }).lean();
 
-    return stored?.insights ? toInsights(stored.insights) : null;
+    if (!stored?.insights) {
+        return null;
+    }
+
+    // Přehledy ze staršího zadání se neposílají - požadavek si vyžádá nové
+    if (stored.insights.promptVersion !== PROMPT_VERSION) {
+        return null;
+    }
+
+    if (language !== "en") {
+        return toInsights(stored.insights);
+    }
+
+    const english = stored.insightsEn;
+
+    if (
+        !english?.sourceFingerprint
+        || english.sourceFingerprint !== stored.insights.sourceFingerprint
+        || english.promptVersion !== PROMPT_VERSION
+    ) {
+        return null;
+    }
+
+    // Obrázky a videa jsou z dokumentace a zůstávají společné pro oba jazyky
+    return toInsights({
+        ...english,
+        images: stored.insights.images,
+        videos: stored.insights.videos,
+    });
 }
 
 /**
- * Připraví české přehledy k modelu z dokumentace a uloží je do databáze.
+ * Připraví přehledy k modelu z dokumentace v češtině i angličtině a uloží je do databáze.
  * Stejný vstup (verze zadání + dokumentace) se zpracovává jen jednou.
  * Spouští se na pozadí z fronty úkolů, ne v požadavku klienta.
  */
@@ -584,11 +700,15 @@ async function generateInsights(modelId) {
     }
 
     const sourceFingerprint = createFingerprint(documentation);
-    const storedModel = await AIModel.findOne({ modelId }, { insights: 1 }).lean();
+    const storedModel = await AIModel.findOne({ modelId }, { insights: 1, insightsEn: 1 }).lean();
     const stored = storedModel?.insights ?? null;
+    const storedEn = storedModel?.insightsEn ?? null;
 
-    // Přehledy z tohoto vstupu už máme
-    if (stored && stored.sourceFingerprint === sourceFingerprint) {
+    const hasCzech = isCurrentInsights(stored, sourceFingerprint);
+    const hasEnglish = isCurrentInsights(storedEn, sourceFingerprint);
+
+    // Oba jazyky z tohoto vstupu už máme
+    if (hasCzech && hasEnglish) {
         return toInsights(stored);
     }
 
@@ -604,38 +724,70 @@ async function generateInsights(modelId) {
         images: extractImages(documentation, modelId),
         videos: extractVideos(documentation, modelId),
     };
+    const hasVisual = visual.images.length > 0 || visual.videos.length > 0;
+
+    // Když české přehledy chybí, vytvoří se z dokumentace; jinak se použijí uložené
+    let insights = hasCzech ? toTranslatableInsights(stored) : null;
 
     try {
-        const data = await requestCompletion({
-            system: SYSTEM_PROMPT,
-            prompt: buildPrompt(excerpt),
-            temperature: 0.3,
-            maxTokens: 3500,
-        });
-
-        const insights = parseInsights(data?.choices?.[0]?.message?.content);
-
         if (!insights) {
-            console.error(`Přehledy modelu „${modelId}“ se nepodařilo přečíst z odpovědi.`);
+            const data = await requestCompletion({
+                system: SYSTEM_PROMPT,
+                prompt: buildPrompt(excerpt),
+                temperature: 0.3,
+                maxTokens: 3500,
+                validate: (response) => Boolean(
+                    parseInsights(response?.choices?.[0]?.message?.content)
+                ),
+            });
 
-            return saveVisualOnly(modelId, visual, stored);
+            insights = parseInsights(data?.choices?.[0]?.message?.content);
+
+            if (!insights) {
+                console.error(`Přehledy modelu „${modelId}“ se nepodařilo přečíst z odpovědi.`);
+
+                return saveVisualOnly(modelId, visual, stored);
+            }
+
+            await AIModel.updateOne(
+                { modelId },
+                {
+                    $set: {
+                        insights: {
+                            ...insights,
+                            ...visual,
+                            ...createInsightsMeta(sourceFingerprint),
+                        },
+                    },
+                }
+            );
+        } else if (hasVisual) {
+            // České přehledy už jsou hotové, jen se obnoví obrázky z aktuální dokumentace
+            await AIModel.updateOne(
+                { modelId },
+                { $set: { "insights.images": visual.images, "insights.videos": visual.videos } }
+            );
         }
 
-        await AIModel.updateOne(
-            { modelId },
-            {
-                $set: {
-                    insights: {
-                        ...insights,
-                        ...visual,
-                        sourceFingerprint,
-                        promptVersion: PROMPT_VERSION,
-                        status: "ok",
-                        generatedAt: new Date(),
-                    },
-                },
+        if (!hasEnglish) {
+            const insightsEn = await translateInsights(insights);
+
+            if (!insightsEn) {
+                throw new Error("Anglický překlad přehledů se nepodařilo přečíst z odpovědi.");
             }
-        );
+
+            await AIModel.updateOne(
+                { modelId },
+                {
+                    $set: {
+                        insightsEn: {
+                            ...insightsEn,
+                            ...createInsightsMeta(sourceFingerprint),
+                        },
+                    },
+                }
+            );
+        }
 
         return { ...insights, ...visual };
     } catch (error) {

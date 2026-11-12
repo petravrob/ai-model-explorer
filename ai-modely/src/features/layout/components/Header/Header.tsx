@@ -1,6 +1,7 @@
 import "./Header.css";
 
 import { useCallback, useEffect, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { NavLink, useLocation } from "react-router-dom";
 
 import { APP_VERSION } from "@/config";
@@ -21,10 +22,13 @@ import {
 } from "@/features/models/modelBrowserBridge";
 import type { ModelBrowserBridgeState } from "@/features/models/modelBrowserBridge";
 
+import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 import SearchBar from "./SearchBar";
 
-/** Horní lišta aplikace: logo s názvem a vyhledávání modelů. */
+/** Horní lišta aplikace: logo s názvem, vyhledávání modelů a přepínač jazyka. */
 function Header() {
+
+    const { t } = useTranslation("layout");
 
     // Na menších šířkách je vyhledávání schované a rozbalí ho tlačítko s lupou
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -124,6 +128,12 @@ function Header() {
         return () => window.removeEventListener("scroll", handleScrollThrottled);
     }, [isSearchOpen]);
 
+    // Popisek tlačítka filtrů, u zvolených filtrů doplněný o jejich počet
+    const filterToggleLabel = t(isFilterOpen ? "header.hideFilters" : "header.showFilters");
+    const filterButtonLabel = activeFilterCount > 0
+        ? `${filterToggleLabel} ${t("header.filterSelectedCount", { count: activeFilterCount })}`
+        : filterToggleLabel;
+
     return (
         <header className="header">
             <div className="header__container">
@@ -134,17 +144,21 @@ function Header() {
 
                     <span className="header__brand-text">
                         <span className="header__title-row">
-                            <span className="header__title">AI model explorer</span>
+                            <span className="header__title">{t("header.title")}</span>
 
                             {/* Na široké liště je verze vedle názvu, na menších šířkách je vpravo u ikon */}
-                            <span className="header__version header__version--title">Verze: {APP_VERSION}</span>
+                            <span className="header__version header__version--title">{t("header.version", { version: APP_VERSION })}</span>
                         </span>
 
                         {/* Podtitulek je rozdělený na dvě části - na telefonu je každá na vlastním řádku */}
                         <span className="header__subtitle">
-                            <span className="header__subtitle-line">Prohlížení AI modelů</span>{" "}
+                            <span className="header__subtitle-line">{t("header.subtitleMain")}</span>{" "}
                             <span className="header__subtitle-line">
-                                z <HuggingFaceLogo className="header__subtitle-logo" /> Hugging Face
+                                <Trans
+                                    t={t}
+                                    i18nKey="header.subtitleSource"
+                                    components={{ logo: <HuggingFaceLogo className="header__subtitle-logo" /> }}
+                                />
                             </span>
                         </span>
                     </span>
@@ -153,7 +167,7 @@ function Header() {
                 {/* Na telefonu jsou v liště i ikony filtru a řazení (jen nad výpisem modelů) */}
                 <div className="header__actions">
                     {/* Na menších šířkách je verze tady vpravo u ikon (na široké liště je vedle názvu) */}
-                    <span className="header__version header__version--actions">Verze: {APP_VERSION}</span>
+                    <span className="header__version header__version--actions">{t("header.version", { version: APP_VERSION })}</span>
 
                     <div className="header__icon-row">
                         {isModelBrowserPage && (
@@ -161,9 +175,7 @@ function Header() {
                                 <button
                                     type="button"
                                     className={`header__icon-button${isFilterOpen ? " header__icon-button--open" : ""}${isFilterActive ? " header__icon-button--active" : ""}`}
-                                    aria-label={`${isFilterOpen ? "Skrýt filtry" : "Zobrazit filtry"}${
-                                        activeFilterCount > 0 ? ` (zvoleno ${activeFilterCount})` : ""
-                                    }`}
+                                    aria-label={filterButtonLabel}
                                     aria-expanded={isFilterOpen}
                                     aria-controls="model-filter-categories"
                                     onClick={requestModelBrowserFilterToggle}
@@ -179,7 +191,7 @@ function Header() {
                                 <button
                                     type="button"
                                     className={`header__icon-button${isSortOpen ? " header__icon-button--open" : ""}`}
-                                    aria-label={isSortOpen ? "Skrýt řazení" : "Zobrazit řazení"}
+                                    aria-label={isSortOpen ? t("header.hideSort") : t("header.showSort")}
                                     aria-expanded={isSortOpen}
                                     onClick={requestModelBrowserSortToggle}
                                 >
@@ -191,13 +203,16 @@ function Header() {
                         <button
                             type="button"
                             className="header__search-toggle"
-                            aria-label="Vyhledávání"
+                            aria-label={t("header.searchToggle")}
                             aria-expanded={isSearchOpen}
                             aria-controls="header-search"
                             onClick={toggleSearch}
                         >
                             <Icon path={MAGNIFIER_ICON} className="header__search-toggle-icon" />
                         </button>
+
+                        {/* Přepínač jazyka je vidět na všech šířkách (na počítači jako jediná ikona vpravo) */}
+                        <LanguageSwitcher />
                     </div>
                 </div>
 

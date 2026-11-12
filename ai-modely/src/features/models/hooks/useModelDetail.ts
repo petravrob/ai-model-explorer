@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+
+import { translate } from "@/i18n/translate";
 
 import { AIModel, ModelInsights } from "../types";
 import { ROUTE_PATHS } from "@/routes/paths";
@@ -25,6 +28,10 @@ function useModelDetail(modelId: string | undefined) {
         useState<string | null>(null);
 
     const navigate = useNavigate();
+
+    // Jazyk rozhraní: model i přehledy se načítají v něm a po přepnutí se obnoví
+    const { i18n } = useTranslation("models");
+    const language = i18n.resolvedLanguage === "en" ? "en" : "cs";
 
 
     // Detail modelu se vždy otevře od začátku stránky (od shora, bez scrollu)
@@ -62,7 +69,7 @@ function useModelDetail(modelId: string | undefined) {
                 const errorMessage =
                     error instanceof Error
                         ? error.message
-                        : "Nepodařilo se načíst model.";
+                        : translate("models:errors.loadModel");
 
                 setError(errorMessage);
 
@@ -76,7 +83,7 @@ function useModelDetail(modelId: string | undefined) {
 
         loadModel();
 
-    }, [modelId]);
+    }, [modelId, language]);
 
     // Přehledy z dokumentace se připravují zvlášť, až pro otevřený model.
     // Server odpovídá hned - hotové přehledy vrátí, chybějící si zařadí ke zpracování
@@ -138,7 +145,7 @@ function useModelDetail(modelId: string | undefined) {
                 clearTimeout(retryTimer);
             }
         };
-    }, [modelId]);
+    }, [modelId, language]);
 
     // Návrat zpět na předchozí stránku (nebo na seznam modelů)
     const handleBack = (): void => {

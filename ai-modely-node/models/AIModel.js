@@ -76,10 +76,15 @@ const videoSchema = new mongoose.Schema(
     }
 );
 
-// Vygenerovaný český popis modelu
+// Vygenerovaný popis modelu (česky a anglicky)
 const descriptionSchema = new mongoose.Schema(
     {
         text: {
+            type: String,
+            trim: true,
+        },
+        // Anglický překlad popisu pro anglickou verzi aplikace
+        textEn: {
             type: String,
             trim: true,
         },
@@ -104,7 +109,7 @@ const descriptionSchema = new mongoose.Schema(
     }
 );
 
-// Vygenerované české přehledy z dokumentace
+// Vygenerované přehledy z dokumentace (česky a anglicky)
 const insightsSchema = new mongoose.Schema(
     {
         // Označení zadání vstupu, ze kterého hodnoty vznikly - při změně zadání nebo dokumentace se vytvoří znovu
@@ -321,13 +326,18 @@ const aiModelSchema = new mongoose.Schema(
             default: null,
             trim: true,
         },
-        // Vygenerovaný český popis do karty modelu
+        // Vygenerovaný popis do karty modelu (česky, s anglickým překladem v textEn)
         description: {
             type: descriptionSchema,
             default: null,
         },
-        // Vygenerované české přehledy z dokumentace modelu
+        // Vygenerované přehledy z dokumentace modelu v češtině
         insights: {
+            type: insightsSchema,
+            default: null,
+        },
+        // Anglický překlad přehledů z dokumentace (stejná struktura jako insights)
+        insightsEn: {
             type: insightsSchema,
             default: null,
         },

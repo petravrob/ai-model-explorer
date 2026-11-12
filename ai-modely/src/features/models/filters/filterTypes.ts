@@ -4,8 +4,10 @@ import type { AIModel } from "../types";
 export interface FilterOption {
     // Hodnota, která se ukládá do výběru a používá při filtrování
     value: string;
-    // Popisek zobrazený uživateli
-    label: string;
+    // Popisek zobrazený uživateli (u názvů značek a modelů se nepřekládá)
+    label?: string;
+    // Klíč popisku v překladech (má přednost před label)
+    labelKey?: string;
     // Ikona u popisku související s tématem (pod)kategorie – SVG cesta (viewBox 24×24)
     icon?: string;
     // Volitelně lze definovat vnořené podkategorie
@@ -21,8 +23,8 @@ export interface FilterOption {
 export interface FilterCategoryConfig {
     // Jedinečný klíč kategorie, z něj se odvodí klíče ve stavu filtrů
     key: string;
-    // Titulek kategorie zobrazený v panelu
-    title: string;
+    // Klíč názvu kategorie v překladech
+    titleKey: string;
     // Ikona u titulku kategorie související s jejím významem
     icon: string;
     // Nabídka hodnot zobrazená uživateli
@@ -32,3 +34,4 @@ export interface FilterCategoryConfig {
     // Hodnoty modelu, které se při klientském filtrování porovnávají se zvolenými hodnotami
     getValues: (model: AIModel) => string[];
 }
+

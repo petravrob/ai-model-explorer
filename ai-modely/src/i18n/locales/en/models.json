@@ -1,0 +1,482 @@
+{
+    "browser": {
+        "fuzzyNote": "No exact match found, showing the most similar models.",
+        "loadMore": "Load more models",
+        "loadMoreLoading": "Loading more models…",
+        "loadMoreError": "Failed to load more models. Please try again.",
+        "empty": {
+            "search": "No models found for “{{query}}”.",
+            "filters": "No models match the selected filters.",
+            "tab": "No models found for the “{{tab}}” tab.",
+            "default": "No models found."
+        }
+    },
+    "tabs": {
+        "ariaLabel": "Model list tabs",
+        "all": {
+            "label": "All",
+            "description": "Browsing all available models."
+        },
+        "recommended": {
+            "label": "Recommended",
+            "description": "Proven models with a clear license, known size and library."
+        },
+        "new": {
+            "label": "New",
+            "description": "Models published on Hugging Face in the last two months."
+        },
+        "trending": {
+            "label": "Trending",
+            "description": "The most popular models currently gaining traction (Hugging Face trending score)."
+        },
+        "local": {
+            "label": "Run locally",
+            "description": "Models with a quantized variant (GGUF, AWQ, GPTQ) or up to 1B parameters that can run on a regular computer."
+        },
+        "server": {
+            "label": "Server-grade",
+            "description": "Models over 13B parameters that need a powerful server or GPU."
+        }
+    },
+    "sort": {
+        "title": "Sorting",
+        "label": "Sort by:",
+        "buttonLabel": "Sort",
+        "optionsAriaLabel": "Sort options",
+        "popularity": "Popularity",
+        "downloads": "Downloads",
+        "likes": "Likes",
+        "created": "Date added"
+    },
+    "filters": {
+        "title": "Filters",
+        "clearAll": "Clear all",
+        "apply": "Done",
+        "categories": {
+            "tasks": "Task",
+            "languages": "Language",
+            "library": "Library",
+            "license": "License",
+            "parameters": "Model size",
+            "author": "Author"
+        }
+    },
+    "tasks": {
+        "text": {
+            "label": "text",
+            "options": {
+                "text-generation": "generation",
+                "text-classification": "classification",
+                "question-answering": "question answering",
+                "translation": "translation",
+                "summarization": "summarization",
+                "token-classification": "information extraction"
+            },
+            "genitive": "of text"
+        },
+        "images": {
+            "label": "images",
+            "options": {
+                "text-to-image": "generation",
+                "image-classification": "recognition",
+                "image-to-text": "image captioning",
+                "object-detection": "object detection",
+                "image-segmentation": "segmentation",
+                "image-to-image": "editing",
+                "text-to-3d": "3D generation",
+                "image-to-3d": "3D generation"
+            },
+            "genitive": "of images"
+        },
+        "audio": {
+            "label": "audio & speech",
+            "options": {
+                "automatic-speech-recognition": "speech transcription",
+                "text-to-speech": "text to speech",
+                "audio-classification": "sound recognition",
+                "text-to-audio": "audio generation",
+                "voice-activity-detection": "speech detection",
+                "audio-to-audio": "audio editing"
+            },
+            "genitive": "of audio and speech"
+        },
+        "video": {
+            "label": "video",
+            "options": {
+                "text-to-video": "generation",
+                "image-to-video": "generation",
+                "video-text-to-text": "analysis",
+                "video-classification": "recognition",
+                "video-to-video": "editing"
+            },
+            "genitive": "of video"
+        },
+        "documents": {
+            "label": "documents",
+            "options": {
+                "document-question-answering": "document Q&A",
+                "table-question-answering": "document Q&A",
+                "visual-document-retrieval": "document search"
+            },
+            "genitive": "of documents"
+        },
+        "search-similarity": {
+            "label": "search & similarity",
+            "options": {
+                "feature-extraction": "feature extraction",
+                "sentence-similarity": "similar content",
+                "text-ranking": "result ranking",
+                "image-feature-extraction": "image feature extraction"
+            },
+            "genitive": "of search and similarity"
+        },
+        "multimodal": {
+            "label": "multimodal",
+            "options": {
+                "image-text-to-text": "image & text",
+                "visual-question-answering": "image Q&A",
+                "image-text-to-image": "image & text",
+                "image-text-to-video": "image & text",
+                "video-text-to-text": "video & text",
+                "any-to-any": "multiple content types"
+            },
+            "genitive": "of multimodal content"
+        },
+        "data-prediction": {
+            "label": "data & prediction",
+            "options": {
+                "time-series-forecasting": "time series",
+                "tabular-classification": "data classification",
+                "tabular-regression": "prediction"
+            },
+            "genitive": "of data and prediction"
+        },
+        "robotics": {
+            "label": "robotics",
+            "options": {
+                "reinforcement-learning": "reinforcement learning",
+                "robotics": "robotics"
+            },
+            "genitive": "of robotics"
+        },
+        "other": {
+            "label": "other",
+            "options": {
+                "graph-ml": "graph data"
+            },
+            "genitive": "of other"
+        }
+    },
+    "languages": {
+        "cs": "Czech",
+        "zh": "Chinese",
+        "en": "English",
+        "fr": "French",
+        "ja": "Japanese",
+        "ko": "Korean",
+        "de": "German",
+        "ru": "Russian",
+        "es": "Spanish"
+    },
+    "parameterRanges": {
+        "0-1B": "Up to 1 B parameters",
+        "1-7B": "1–7 B",
+        "7-13B": "7–13 B",
+        "13-30B": "13–30 B",
+        "30-70B": "30–70 B",
+        "70B+": "More than 70 B"
+    },
+    "modelList": {
+        "task": "Task",
+        "parameters": "Parameters",
+        "library": "Library",
+        "license": "License",
+        "languages": "Languages",
+        "updated": "Updated",
+        "downloads": "downloads",
+        "likes": "likes",
+        "moreTags": "More model tags"
+    },
+    "modelDetail": {
+        "downloads": "downloads",
+        "likes": "likes",
+        "recommendedSettings": "Recommended settings",
+        "sections": {
+            "bestFor": "Best for",
+            "whyThisModel": "Why this model?",
+            "limitations": "Limitations",
+            "gallery": "Images from Hugging Face",
+            "howItWorks": "How the model works",
+            "facts": "Technical details",
+            "family": "Model origin and variants",
+            "hardware": "Hardware requirements",
+            "deployment": "Deployment and usage",
+            "compatibility": "Compatibility",
+            "quantization": "Quantization and formats"
+        },
+        "facts": {
+            "task": {
+                "label": "Task",
+                "description": "What the model does, i.e. the result it returns to the user."
+            },
+            "input": {
+                "label": "Input",
+                "description": "Everything the model can process."
+            },
+            "parameters": {
+                "label": "Parameters",
+                "description": "How big the model is. Larger models usually do more, but are more demanding to run."
+            },
+            "architecture": {
+                "label": "Architecture / processing",
+                "description": "What the model consists of and how it processes data."
+            },
+            "context": {
+                "label": "Context",
+                "description": "How much text the model can read and take into account at once."
+            },
+            "version": {
+                "label": "Version",
+                "description": "Release identifier distinguishing newer and older model revisions."
+            },
+            "library": {
+                "label": "Library",
+                "description": "The software library most commonly used to run the model."
+            },
+            "license": {
+                "label": "License",
+                "description": "The terms under which you can use the model."
+            },
+            "languages": {
+                "label": "Languages",
+                "description": "Languages the model understands."
+            },
+            "updated": {
+                "label": "Updated",
+                "description": "When the model was last modified."
+            }
+        },
+        "flowInput": "Input: {{value}}",
+        "flowOutput": "Output: {{value}}",
+        "flowDescription": "The diagram shows the data path: what the model takes as input, how it processes it and what it returns.",
+        "familyBasedOn": "Based on: {{value}}",
+        "familyVariants": "Variants: {{value}}",
+        "familyDescription": "The diagram shows the model's origin: which model it is based on and which derived variants it has.",
+        "activeParametersNote": "{{value}} active",
+        "activeParametersOnly": "{{value}} active"
+    },
+    "readme": {
+        "title": "Description from Hugging Face",
+        "sourceNote": "The text is taken from the model card on Hugging Face, links point to the original sources."
+    },
+    "detailPage": {
+        "back": "Back to model list",
+        "loading": "Loading model...",
+        "notFound": "Model not found."
+    },
+    "errors": {
+        "loadModels": "Failed to load models. Please try again.",
+        "loadModel": "Failed to load the model.",
+        "loadAvatar": "Failed to load the avatar.",
+        "loadInsights": "Failed to prepare the overviews from the documentation.",
+        "createDescriptions": "Failed to generate the descriptions."
+    },
+    "summary": {
+        "fallback": "An AI model available through Hugging Face."
+    },
+    "highlights": {
+        "handlesOnly": "Handles {{modalities}}.",
+        "handlesBesidesText": "Besides text, it also handles {{modalities}}.",
+        "architecture": "Architecture according to the documentation: {{value}}.",
+        "trainingMethod": "Training method according to the documentation: {{value}}.",
+        "openLicense": "The open {{license}} license also allows commercial use.",
+        "contextLength": "Handles context up to {{value}}.",
+        "languageCount_one": "Supports {{count}} language.",
+        "languageCount_other": "Supports {{count}} languages."
+    },
+    "limitations": {
+        "nonCommercial": "The {{license}} license does not allow commercial use.",
+        "largeModel": "The model has {{parameters}} parameters, so it is more demanding on memory and hardware.",
+        "singleLanguage": "The documentation lists only {{language}}; it may be less reliable in other languages."
+    },
+    "license": {
+        "other": "other"
+    },
+    "modalities": {
+        "images": "images",
+        "audio": "audio",
+        "video": "video"
+    },
+    "deployment": {
+        "python-sdk": "A library that lets you run the model directly in your Python program.",
+        "python": "Running the model directly in a Python program.",
+        "javascript": "Running the model directly in a browser or a JavaScript application.",
+        "transformers": "The official Hugging Face library for running the model in Python.",
+        "pytorch": "A software library for running models in Python.",
+        "tensorflow": "Google's software library for running models.",
+        "onnx": "A universal format that lets the model run in many different tools.",
+        "onnx-runtime": "A tool for running ONNX models quickly.",
+        "safetensors": "A safe format for storing trained model weights.",
+        "bitsandbytes": "A tool for more memory-efficient model inference (quantization).",
+        "vllm": "A tool for fast deployment of large language models on a server.",
+        "text-generation-inference": "A Hugging Face tool for serving the model on a server.",
+        "tgi": "A Hugging Face tool for serving the model on a server.",
+        "rest-api": "An interface that lets other applications call the model over the network.",
+        "api": "An interface that lets other applications call the model over the network.",
+        "inference-api": "An online service that runs the model on a server for you.",
+        "hugging-face-inference-api": "A Hugging Face online service that runs the model for you.",
+        "laya-serve": "A custom server that exposes the model to other applications.",
+        "jev-api": "A hosted service for calling the model over the network (same interface as laya-serve).",
+        "router": "A component that picks the right model variant for each request.",
+        "llama-cpp": "A tool for running models even on a regular computer without a powerful GPU.",
+        "ollama": "A tool for running models easily on your own computer.",
+        "docker": "A packaged environment in which the model runs the same on any machine.",
+        "cli": "Controlling the model from the command line.",
+        "other": "A tool or service you can use to run and use the model."
+    },
+    "tags": {
+        "text2text-generation": "Text conversion and generation",
+        "unconditional-image-generation": "Unprompted image generation",
+        "fill-mask": "Filling in missing words",
+        "zero-shot-classification": "Classification without prior examples",
+        "multiple-choice": "Multiple-choice question answering",
+        "zero-shot-image-classification": "Image recognition without prior examples",
+        "depth-estimation": "Depth estimation in an image",
+        "mask-generation": "Image mask generation",
+        "conversational": "Conversation",
+        "reasoning": "Logical reasoning and problem solving",
+        "code": "Working with source code",
+        "coding": "Programming and code",
+        "math": "Mathematical tasks",
+        "chat": "Chat and dialogue",
+        "moe": "Mixture of specialised experts",
+        "vision": "Understanding visual data",
+        "multimodal": "Handling multiple data types",
+        "multilingual": "Working in multiple languages",
+        "long-context": "Working with long context",
+        "tool-calling": "Using external tools",
+        "function-calling": "Function calling",
+        "instruction-following": "Following instructions",
+        "agents": "AI agents",
+        "rag": "Information retrieval and knowledge use (RAG)",
+        "ocr": "Text recognition from images (OCR)",
+        "embeddings": "Converting data into vector representations",
+        "embedding": "Vector representations of data",
+        "zero-shot": "Use without prior examples",
+        "distillation": "Transferring knowledge into a smaller model",
+        "speculative-decoding": "Faster generation through prediction",
+        "uncensored": "Model without additional content restrictions",
+        "image-generation": "Image generation",
+        "diffusion": "Diffusion generation",
+        "lora": "Efficient model adaptation (LoRA)",
+        "controlnet": "Controlling image generation (ControlNet)",
+        "stable-diffusion": "Stable Diffusion",
+        "stable-diffusion-xl": "Stable Diffusion XL",
+        "sdxl": "Stable Diffusion XL",
+        "flux": "FLUX",
+        "inpainting": "Editing and filling in parts of an image",
+        "style-transfer": "Artistic style transfer",
+        "upscaling": "Image upscaling",
+        "photorealistic": "Photorealistic images",
+        "photography": "Photographic images",
+        "cinematic": "Cinematic look",
+        "portrait": "Portraits",
+        "realistic": "Realistic look",
+        "illustration": "Illustration",
+        "anime": "Anime style",
+        "art": "Artistic creation",
+        "artistic": "Artistic style",
+        "audio": "Audio",
+        "speech": "Speech",
+        "voice": "Voice",
+        "tts": "Text to speech",
+        "asr": "Speech to text",
+        "speech-synthesis": "Speech synthesis from text",
+        "speech-generation": "Speech generation",
+        "speech-to-text": "Speech transcription",
+        "voice-cloning": "Voice cloning",
+        "voice-clone": "Voice cloning",
+        "voice-conversion": "Converting one voice into another",
+        "voice-design": "Creating and editing a voice",
+        "voice-agent": "Voice AI agent",
+        "speaker": "Speaker",
+        "speaker-diarization": "Telling speakers apart",
+        "speaker-recognition": "Speaker recognition",
+        "speaker-verification": "Speaker verification",
+        "speaker-identification": "Speaker identification",
+        "speaker-change-detection": "Detecting speaker changes",
+        "source-separation": "Separating individual audio sources",
+        "emotion": "Emotion recognition",
+        "emotions": "Emotion recognition",
+        "emotion-control": "Controlling emotion in speech",
+        "expressive-speech": "Expressive and emotional speech",
+        "forced-alignment": "Time alignment of speech and text",
+        "whisper": "Whisper",
+        "wav2vec2": "wav2vec 2.0",
+        "streaming": "Real-time processing",
+        "low-latency": "Low latency",
+        "realtime": "Real-time processing",
+        "gguf": "Local run (GGUF)",
+        "on-device": "Runs directly on the device",
+        "4-bit": "Lower memory requirements",
+        "8-bit": "Lower memory requirements",
+        "2-bit": "Lower memory requirements",
+        "fp8": "Lower memory requirements",
+        "awq": "Lower memory requirements",
+        "ternary": "Lower memory requirements",
+        "imatrix": "Lower memory requirements",
+        "compressed-tensors": "Lower memory requirements",
+        "apple-silicon": "Optimised for Apple Silicon",
+        "cuda": "GPU acceleration",
+        "metal": "GPU acceleration",
+        "comfyui": "ComfyUI",
+        "llama-cpp": "llama.cpp",
+        "unsloth": "Unsloth",
+        "pyannote": "pyannote",
+        "pyannote-audio": "pyannote",
+        "pyannote-audio-pipeline": "pyannote",
+        "vision-language": "Understanding images and text",
+        "text-to-audio": "Audio generation",
+        "voice-activity-detection": "Speech detection in a recording",
+        "agentic": "Agentic workflows",
+        "abliterated": "Model without additional content restrictions",
+        "image-editing": "Image editing",
+        "creative-writing": "Creative writing",
+        "stable-diffusion-diffusers": "Stable Diffusion",
+        "causal-lm": "Language model",
+        "bert": "BERT",
+        "distilbert": "DistilBERT",
+        "roberta": "RoBERTa",
+        "xlm-roberta": "XLM-RoBERTa",
+        "electra": "ELECTRA",
+        "t5": "T5",
+        "clip": "CLIP",
+        "vit": "ViT",
+        "yolo": "YOLO",
+        "sam": "SAM",
+        "llama": "Llama",
+        "mistral": "Mistral",
+        "gemma": "Gemma",
+        "phi": "Phi",
+        "qwen": "Qwen",
+        "deepseek": "DeepSeek",
+        "granite": "Granite",
+        "hubert": "HuBERT",
+        "mms": "MMS",
+        "kokoro": "Kokoro",
+        "piper": "Piper",
+        "gpt2": "GPT-2",
+        "gpt-neox": "GPT-NeoX",
+        "opt": "OPT",
+        "pythia": "Pythia",
+        "coqui": "Coqui",
+        "qwen2": "Qwen",
+        "qwen3": "Qwen",
+        "qwen3-8": "Qwen",
+        "qwen3-5": "Qwen",
+        "qwen3-5-moe": "Qwen",
+        "gemma2": "Gemma",
+        "gemma3": "Gemma",
+        "gemma4": "Gemma"
+    }
+}

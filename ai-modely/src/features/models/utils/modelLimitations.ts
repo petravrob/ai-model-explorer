@@ -1,4 +1,5 @@
 import type { AIModel, ModelInsights } from "../types";
+import { translate } from "@/i18n/translate";
 import { formatLanguages, formatParameters } from "./formatters";
 import { getModelLicense } from "./modelCard";
 
@@ -22,18 +23,18 @@ export const getModelLimitations = (model: AIModel, insights: ModelInsights | nu
 
     // Nekomerční licence je pro použití nejdůležitější omezení
     if (model.license && NON_COMMERCIAL_LICENSE.test(model.license)) {
-        limitations.push(`Licence ${getModelLicense(model.license)} nepovoluje komerční použití.`);
+        limitations.push(translate("models:limitations.nonCommercial", { license: getModelLicense(model.license) }));
     }
 
     // Nároky na provoz se odvozují jen tehdy, když je dokumentace nepopisuje
     const hasDocumentedHardware = (insights?.hardwareRequirements?.length ?? 0) > 0;
 
     if (!hasDocumentedHardware && model.parameters !== null && model.parameters >= LARGE_MODEL_PARAMETERS) {
-        limitations.push(`Model má ${formatParameters(model.parameters)} parametrů, takže je náročnější na paměť a hardware.`);
+        limitations.push(translate("models:limitations.largeModel", { parameters: formatParameters(model.parameters) }));
     }
 
     if ((model.languages?.length ?? 0) === 1) {
-        limitations.push(`Dokumentace uvádí jen jazyk ${formatLanguages(model.languages)}, v dalších jazycích může být méně spolehlivý.`);
+        limitations.push(translate("models:limitations.singleLanguage", { language: formatLanguages(model.languages) }));
     }
 
     return limitations;

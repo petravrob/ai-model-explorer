@@ -1,0 +1,26 @@
+{
+    "missingValue": "not specified",
+    "loadingModels": "Loading models",
+    "updatingModels": "Updating models",
+    "image": {
+        "zoom": "Enlarge image",
+        "zoomWithLabel": "Enlarge image: {{label}}",
+        "zoomedDefault": "Enlarged image",
+        "closeZoom": "Close enlarged image"
+    },
+    "search": {
+        "placeholder": "Search…",
+        "label": "Search",
+        "submit": "Search",
+        "clear": "Clear search"
+    },
+    "checkboxGroup": {
+        "showMore": "Show more ({{count}})",
+        "showLess": "Show less",
+        "selectedCount_one": "{{count}} active",
+        "selectedCount_other": "{{count}} active"
+    },
+    "errors": {
+        "rootElement": "Failed to find the application root element."
+    }
+}

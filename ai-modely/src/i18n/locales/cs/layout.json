@@ -1,0 +1,24 @@
+{
+    "header": {
+        "version": "Verze: {{version}}",
+        "title": "AI model explorer",
+        "subtitleMain": "Prohlížení AI modelů",
+        "subtitleSource": "z <logo /> Hugging Face",
+        "searchToggle": "Vyhledávání",
+        "showFilters": "Zobrazit filtry",
+        "hideFilters": "Skrýt filtry",
+        "filterSelectedCount": "(zvoleno {{count}})",
+        "showSort": "Zobrazit řazení",
+        "hideSort": "Skrýt řazení",
+        "languageSwitcher": "Jazyk rozhraní"
+    },
+    "search": {
+        "placeholder": "Hledat modely, autory nebo tagy…",
+        "ariaLabel": "Hledat modely"
+    },
+    "notFound": {
+        "title": "Stránka nebyla nalezena",
+        "message": "Tato adresa neexistuje nebo byla přesunuta.",
+        "backHome": "Zpět na hlavní stránku"
+    }
+}

@@ -12,6 +12,7 @@ const {
     getAuthorAvatarUrl,
 } = require("../services/huggingFaceService");
 const { isValidModel, mapModelData, mapRawModels } = require("../services/modelMapper");
+const { apiMessage, readLanguage } = require("../services/apiMessages");
 const { getStoredDescriptions } = require("../services/descriptionService");
 const { getStoredInsights } = require("../services/insightsService");
 const { enqueueJobs } = require("../services/generationQueue");
@@ -245,28 +246,38 @@ const getHuggingFaceModel = async (modelId) => {
     }
 };
 
-/** Převod modelu na správný tvar pro renderování. */
-const toApiModel = (model) => ({
+/** Převod modelu na správný tvar pro renderování (popis v požadovaném jazyce). */
+const toApiModel = (model, language = "cs") => ({
     ...model,
     createdAt: model.publishedAt ?? null,
-    description: model.description?.text ?? null,
+    // Anglická verze se posílá jen hotová, chybějící překlad se na pozadí dogeneruje
+    description: language === "en"
+        ? (model.description?.textEn ?? null)
+        : (model.description?.text ?? null),
 });
 
 /**
  * Doplní k modelům právě načteným z Hugging Face popisky uložené v databázi.
  * Popisky, které v databázi ještě nejsou, si klient vyžádá zvlášť a server je dogeneruje na pozadí.
  */
-const withStoredDescriptions = async (models) => {
+const withStoredDescriptions = async (models, language = "cs") => {
     const stored = new Map(
-        (await getStoredDescriptions(models.map((model) => model.modelId)))
+        (await getStoredDescriptions(models.map((model) => model.modelId), language))
             .map((item) => [item.modelId, item.description])
     );
 
-    return models.map((model) =>
-        stored.has(model.modelId)
-            ? { ...model, description: { text: stored.get(model.modelId) } }
-            : model
-    );
+    return models.map((model) => {
+        if (!stored.has(model.modelId)) {
+            return model;
+        }
+
+        const text = stored.get(model.modelId);
+
+        return {
+            ...model,
+            description: language === "en" ? { textEn: text } : { text },
+        };
+    });
 };
 
 /**
@@ -275,7 +286,7 @@ const withStoredDescriptions = async (models) => {
  */
 const fetchStoredModels = async (query, poolSort, sort, pageLimit, pageOffset) => {
 
-    const models = await AIModel.find(query, { insights: 0 })
+    const models = await AIModel.find(query, { insights: 0, insightsEn: 0 })
         .sort(STORED_SORTS[poolSort] ?? STORED_SORTS.downloads)
         .skip(pageOffset)
         .limit(pageLimit)
@@ -335,6 +346,8 @@ const fetchLiveModels = async (queries, storedQuery, poolSort, sort, count, lang
 };
 
 const getModels = async (req, res) => {
+    const language = readLanguage(req);
+
     try {
         const { sort, tab } = req.query;
         const tasks = toArrayParam(req.query.tasks);
@@ -358,14 +371,14 @@ const getModels = async (req, res) => {
         if (sort && !SORT_PARAMS[sort]) {
             return res.status(400).json({
                 status: "error",
-                error: "Neznámé řazení.",
+                error: apiMessage("unknownSort", language),
             });
         }
 
         if (tab && !Object.hasOwn(TAB_SORT_KEYS, tab)) {
             return res.status(400).json({
                 status: "error",
-                error: "Neznámý štítek.",
+                error: apiMessage("unknownTab", language),
             });
         }
 
@@ -413,7 +426,7 @@ const getModels = async (req, res) => {
 
         // Uložené popisky se přidají rovnou k výpisu, aby se nenačítaly znovu.
         // Živé modely nemají databázové id, v adrese detailu se použije identifikátor z Hugging Face.
-        const liveModels = (await withStoredDescriptions(livePage.models)).map((model) => ({
+        const liveModels = (await withStoredDescriptions(livePage.models, language)).map((model) => ({
             ...model,
             _id: model._id ?? model.modelId,
             avatarUrl: model.avatarUrl ?? null,
@@ -424,7 +437,7 @@ const getModels = async (req, res) => {
 
         return res.status(200).json({
             status: "ok",
-            data: pageModels.map(toApiModel),
+            data: pageModels.map((model) => toApiModel(model, language)),
             meta: {
                 offset: pageOffset,
                 limit: pageLimit,
@@ -438,12 +451,14 @@ const getModels = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Nepodařilo se načíst modely.",
+            error: apiMessage("modelsLoadFailed", language),
         });
     }
 };
 
 const getModel = async (req, res) => {
+    const language = readLanguage(req);
+
     try {
         const { modelId } = req.params;
 
@@ -452,7 +467,7 @@ const getModel = async (req, res) => {
             ? { _id: modelId }
             : { modelId };
 
-        let model = await AIModel.findOne(query, { insights: 0 }).lean();
+        let model = await AIModel.findOne(query, { insights: 0, insightsEn: 0 }).lean();
 
         // Model, který dosud není v databázi, se zkusí načíst živě z Hugging Face
         if (!model && !mongoose.Types.ObjectId.isValid(modelId)) {
@@ -467,32 +482,34 @@ const getModel = async (req, res) => {
         if (!model) {
             return res.status(404).json({
                 status: "error",
-                error: "Model nebyl nalezen.",
+                error: apiMessage("modelNotFound", language),
             });
         }
 
         return res.status(200).json({
             status: "ok",
-            data: toApiModel(model),
+            data: toApiModel(model, language),
         });
     } catch (error) {
         console.error("Fetching model failed:", error);
 
         return res.status(500).json({
             status: "error",
-            error: "Nepodařilo se načíst model.",
+            error: apiMessage("modelLoadFailed", language),
         });
     }
 };
 
 const getAvatar = async (req, res) => {
+    const language = readLanguage(req);
+
     try {
         const { author } = req.params;
 
         if (!author) {
             return res.status(400).json({
                 status: "error",
-                error: "Chybí autor.",
+                error: apiMessage("missingAuthor", language),
             });
         }
 
@@ -510,7 +527,7 @@ const getAvatar = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Nepodařilo se načíst avatar.",
+            error: apiMessage("avatarLoadFailed", language),
         });
     }
 };
@@ -521,11 +538,13 @@ const getAvatar = async (req, res) => {
  * co už je v databázi, chybějící popisky zařadí ke zpracování a hned odpoví.
  */
 const createDescriptions = async (req, res) => {
+    const language = readLanguage(req);
+
     try {
         const models = Array.isArray(req.body?.models) ? req.body.models : [];
         const modelIds = models.map((model) => model?.modelId).filter(Boolean);
 
-        const descriptions = await getStoredDescriptions(modelIds);
+        const descriptions = await getStoredDescriptions(modelIds, language);
         const readyIds = new Set(descriptions.map((item) => item.modelId));
 
         // Chybějící popisky se doplní na pozadí - klient je uvidí při dalším načtení
@@ -540,20 +559,22 @@ const createDescriptions = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Nepodařilo se vygenerovat popisky.",
+            error: apiMessage("descriptionsFailed", language),
         });
     }
 };
 
 /** Načte text model card (README) modelu z Hugging Face. */
 const getModelCard = async (req, res) => {
+    const language = readLanguage(req);
+
     try {
         const { modelId } = req.params;
 
         if (!modelId) {
             return res.status(400).json({
                 status: "error",
-                error: "Chybí identifikátor modelu.",
+                error: apiMessage("missingModelId", language),
             });
         }
 
@@ -568,7 +589,7 @@ const getModelCard = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Nepodařilo se načíst dokumentaci modelu.",
+            error: apiMessage("cardLoadFailed", language),
         });
     }
 };
@@ -580,13 +601,15 @@ const getModelCard = async (req, res) => {
  * (bez přehledů stránka funguje dál se základními údaji).
  */
 const createInsights = async (req, res) => {
+    const language = readLanguage(req);
+
     try {
         const { modelId } = req.params;
 
         if (!modelId) {
             return res.status(400).json({
                 status: "error",
-                error: "Chybí identifikátor modelu.",
+                error: apiMessage("missingModelId", language),
             });
         }
 
@@ -596,7 +619,7 @@ const createInsights = async (req, res) => {
         const stored = await AIModel.findOne(query, { modelId: 1 }).lean();
 
         const resolvedModelId = stored?.modelId ?? modelId;
-        const insights = await getStoredInsights(resolvedModelId);
+        const insights = await getStoredInsights(resolvedModelId, language);
 
         if (!insights) {
             // Přehledy se připraví na pozadí - klient je uvidí při dalším otevření detailu
@@ -612,7 +635,7 @@ const createInsights = async (req, res) => {
 
         return res.status(500).json({
             status: "error",
-            error: "Nepodařilo se připravit přehledy z dokumentace.",
+            error: apiMessage("insightsFailed", language),
         });
     }
 };

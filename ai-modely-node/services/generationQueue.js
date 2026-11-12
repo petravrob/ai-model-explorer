@@ -114,7 +114,9 @@ async function enqueueJobs(type, modelIds) {
 
         return (result.upsertedCount ?? 0) + (result.modifiedCount ?? 0);
     } catch (error) {
-        // Souběžné požadavky zařazují stejné úkoly - duplicitní vložení se ignoruje
+        // Souběžné požadavky zařazují stejné úkoly - duplicitní vložení se ignoruje.
+        // BulkWrite kvůli duplicitě vyhodí chybu, i když se část úkolů vložila,
+        // proto se počty berou z částečného výsledku.
         const onlyDuplicates = error?.code === 11000
             || (error?.writeErrors?.length > 0 && error.writeErrors.every((item) => item.err?.code === 11000));
 
@@ -122,7 +124,9 @@ async function enqueueJobs(type, modelIds) {
             throw error;
         }
 
-        return 0;
+        const partial = error?.result ?? {};
+
+        return (partial.upsertedCount ?? 0) + (partial.modifiedCount ?? 0);
     }
 }
 
@@ -178,11 +182,15 @@ async function processDescriptionJob(job) {
     }
 
     // Mezi zařazením a zpracováním mohl popisek doplnit jiný požadavek
-    if (model.description?.version === DESCRIPTION_VERSION && model.description?.text?.trim()) {
+    if (
+        model.description?.version === DESCRIPTION_VERSION
+        && model.description?.text?.trim()
+        && model.description?.textEn?.trim()
+    ) {
         return;
     }
 
-    const { description } = await generateDescription(model);
+    const { description, descriptionEn } = await generateDescription(model);
 
     await AIModel.updateOne(
         { modelId: job.modelId },
@@ -190,6 +198,7 @@ async function processDescriptionJob(job) {
             $set: {
                 description: {
                     text: description,
+                    textEn: descriptionEn,
                     version: DESCRIPTION_VERSION,
                     status: "ok",
                     generatedAt: new Date(),
@@ -222,7 +231,11 @@ async function processDescriptionBatch(jobs) {
         }
 
         // Mezi zařazením a zpracováním mohl popisek doplnit jiný požadavek
-        if (model.description?.version === DESCRIPTION_VERSION && model.description?.text?.trim()) {
+        if (
+            model.description?.version === DESCRIPTION_VERSION
+            && model.description?.text?.trim()
+            && model.description?.textEn?.trim()
+        ) {
             doneJobIds.push(job._id);
             continue;
         }
@@ -233,15 +246,16 @@ async function processDescriptionBatch(jobs) {
 
     if (toGenerate.length > 0) {
         const generated = await generateDescriptions(toGenerate);
-        const generatedById = new Map(generated.map((item) => [item.modelId, item.description]));
+        const generatedById = new Map(generated.map((item) => [item.modelId, item]));
 
-        for (const [modelId, description] of generatedById) {
+        for (const [modelId, item] of generatedById) {
             await AIModel.updateOne(
                 { modelId },
                 {
                     $set: {
                         description: {
-                            text: description,
+                            text: item.description,
+                            textEn: item.descriptionEn,
                             version: DESCRIPTION_VERSION,
                             status: "ok",
                             generatedAt: new Date(),
@@ -252,10 +266,12 @@ async function processDescriptionBatch(jobs) {
         }
 
         for (const job of generatingJobs) {
-            if (generatedById.has(job.modelId)) {
+            const item = generatedById.get(job.modelId);
+
+            if (item?.description && item?.descriptionEn) {
                 doneJobIds.push(job._id);
             } else {
-                // AI pro model popisek nevrátilo nebo neprošel kontrolou délky - zkusí se znovu
+                // AI pro model popisek nevrátilo v obou jazycích nebo neprošel kontrolou délky - zkusí se znovu
                 failedJobs.push({ job, error: new Error(`AI nevrátilo použitelný popisek pro model „${job.modelId}“.`) });
             }
         }

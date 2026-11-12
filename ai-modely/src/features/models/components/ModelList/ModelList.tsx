@@ -1,9 +1,13 @@
 import "./ModelList.css";
 
+import { useTranslation } from "react-i18next";
+
+import { translate } from "@/i18n/translate";
+
 import { ModelListProps } from "../../types";
 import { formatCount, formatDate, formatLanguages, formatParameters } from "../../utils/formatters";
 import { getModelCardPreview, getModelLicense, getModelProvider, getModelSummary, getModelTagList } from "../../utils/modelCard";
-import { ChipList, DetailItem, DOWNLOAD_ICON, LIKE_ICON, MISSING_VALUE, Stat } from "@/ui";
+import { ChipList, DetailItem, DOWNLOAD_ICON, LIKE_ICON, Stat } from "@/ui";
 
 import ModelImage from "./ModelImage";
 
@@ -23,6 +27,9 @@ function SummaryPlaceholder() {
 
 /** Zobrazuje seznam modelů */
 function ModelList({ models, onModelClick, pendingDescriptionIds = [] }: ModelListProps) {
+
+    const { t } = useTranslation("models");
+
     return (
         <ul className="model-list">
             {models.map((model) => {
@@ -78,18 +85,26 @@ function ModelList({ models, onModelClick, pendingDescriptionIds = [] }: ModelLi
                                 <ChipList
                                     items={chipTags}
                                     remaining={tags.remaining}
-                                    remainingTitle="Další štítky modelu"
+                                    remainingTitle={t("modelList.moreTags")}
                                     variant="muted"
                                 />
                             )}
 
                             <div className="model-list__meta">
-                                <DetailItem label="Úloha" value={tags.primary ?? MISSING_VALUE} />
-                                <DetailItem label="Parametry" value={formatParameters(model.parameters)} />
-                                <DetailItem label="Knihovna" value={model.library ?? MISSING_VALUE} />
-                                <DetailItem label="Licence" value={getModelLicense(model.license)} />
-                                <DetailItem label="Jazyky" value={formatLanguages(model.languages)} />
-                                <DetailItem label="Aktualizace" value={formatDate(model.lastModified)} />
+                                <DetailItem
+                                    label={t("modelList.task")}
+                                    value={tags.primary ?? translate("common:missingValue")}
+                                    missing={!tags.primary}
+                                />
+                                <DetailItem label={t("modelList.parameters")} value={formatParameters(model.parameters)} missing={model.parameters === null} />
+                                <DetailItem
+                                    label={t("modelList.library")}
+                                    value={model.library ?? translate("common:missingValue")}
+                                    missing={!model.library}
+                                />
+                                <DetailItem label={t("modelList.license")} value={getModelLicense(model.license)} missing={!model.license} />
+                                <DetailItem label={t("modelList.languages")} value={formatLanguages(model.languages)} missing={(model.languages?.length ?? 0) === 0} />
+                                <DetailItem label={t("modelList.updated")} value={formatDate(model.lastModified)} missing={!model.lastModified} />
                             </div>
 
                             <div className="model-list__stats">
@@ -97,14 +112,14 @@ function ModelList({ models, onModelClick, pendingDescriptionIds = [] }: ModelLi
                                     size="sm"
                                     icon={DOWNLOAD_ICON}
                                     value={formatCount(model.downloads)}
-                                    label="stažení"
+                                    label={t("modelList.downloads")}
                                 />
 
                                 <Stat
                                     size="sm"
                                     icon={LIKE_ICON}
                                     value={formatCount(model.likes)}
-                                    label="oblíbení"
+                                    label={t("modelList.likes")}
                                 />
                             </div>
                         </div>

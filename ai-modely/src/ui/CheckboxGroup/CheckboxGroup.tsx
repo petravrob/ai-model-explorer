@@ -1,6 +1,7 @@
 import "./CheckboxGroup.css";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import CheckboxGroupHeader from "../CheckboxGroupHeader/CheckboxGroupHeader";
 import CheckboxGroupOptions from "../CheckboxGroupOptions/CheckboxGroupOptions";
@@ -20,6 +21,8 @@ interface CheckboxGroupProps {
 
 /** Kategorie filtrů (hodnoty se dají skrýt). */
 function CheckboxGroup({ title, icon, options, selected, onToggle, visibleValues }: CheckboxGroupProps) {
+    const { t } = useTranslation();
+
     const [isOpen, setIsOpen] = useState(true);
 
     // Nabídka zobrazuje kategorii s méně hodnotami, aby zůstaly vidět i ostatní kategorie filtrů
@@ -58,8 +61,8 @@ function CheckboxGroup({ title, icon, options, selected, onToggle, visibleValues
                             onClick={() => setShowAllOptions((showAll) => !showAll)}
                         >
                             {showAllOptions
-                                ? "Zobrazit méně"
-                                : `Zobrazit další (${collapsedOptions.hiddenCount})`}
+                                ? t("checkboxGroup.showLess")
+                                : t("checkboxGroup.showMore", { count: collapsedOptions.hiddenCount })}
                         </button>
                     )}
                 </div>

@@ -1,5 +1,7 @@
 import type { MetricItem } from "@/ui";
 
+import { useTranslation } from "react-i18next";
+
 import { Section } from "@/ui";
 
 export interface ModelFactItem extends MetricItem {
@@ -13,8 +15,10 @@ interface ModelFactsProps {
 
 /** Technické údaje modelu */
 function ModelFacts({ items }: ModelFactsProps) {
+    const { t } = useTranslation("models");
+
     return (
-        <Section title="Technické údaje">
+        <Section title={t("modelDetail.sections.facts")}>
             <dl className="model-detail__facts">
                 {items.map((item) => (
                     <div className="model-detail__fact" key={item.label} title={item.description}>

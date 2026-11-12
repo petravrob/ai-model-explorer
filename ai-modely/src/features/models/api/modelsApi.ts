@@ -1,9 +1,25 @@
 import { handleApiResponse } from "@/api/apiUtils";
 import { API_URL } from "@/config";
+import { getCurrentLanguage } from "@/i18n";
+import { translate } from "@/i18n/translate";
 import { AIModel, ModelFilters, ModelInsights } from "@/features/models";
 import { MODELS_PER_PAGE } from "../modelPagingConfig";
 import type { ModelSortKey } from "../modelSortsConfig";
 import type { ModelTabKey } from "../modelTabsConfig";
+
+/**
+ * Adresa API s aktuálním jazykem rozhraní.
+ *
+ * Server podle `lang` vrací popisky a přehledy v češtině nebo angličtině,
+ * takže každý požadavek na data modelů musí parametr nést.
+ */
+const apiUrl = (path: string, params: URLSearchParams = new URLSearchParams()): string => {
+    params.set("lang", getCurrentLanguage());
+
+    const query = params.toString();
+
+    return `${API_URL}${path}${query ? `?${query}` : ""}`;
+};
 
 /** Jedna stránka výpisu a informace, jestli jsou na serveru další. */
 export interface ModelsPage {
@@ -65,7 +81,7 @@ export const getModels = async (
     }
 
     const response = await fetch(
-        `${API_URL}/api/models?${params.toString()}`,
+        apiUrl("/api/models", params),
         {
             method: "GET",
             signal,
@@ -74,7 +90,7 @@ export const getModels = async (
 
     const data = await handleApiResponse<AIModel[]>(
         response,
-        "Nepodařilo se načíst modely."
+        translate("models:errors.loadModels")
     );
 
     const models = data.data as AIModel[];
@@ -108,13 +124,13 @@ export const getAuthorAvatar = async (
         try {
 
             const response = await fetch(
-                `${API_URL}/api/models/avatar/${encodeURIComponent(author)}`,
+                apiUrl(`/api/models/avatar/${encodeURIComponent(author)}`),
                 { method: "GET" }
             );
 
             const data = await handleApiResponse<{ avatarUrl: string | null }>(
                 response,
-                "Nepodařilo se načíst avatar."
+                translate("models:errors.loadAvatar")
             );
 
             return (data.data as { avatarUrl: string | null }).avatarUrl;
@@ -138,7 +154,7 @@ export const getModel = async (
 ): Promise<AIModel> => {
 
     const response = await fetch(
-        `${API_URL}/api/models/${encodeURIComponent(modelId)}`,
+        apiUrl(`/api/models/${encodeURIComponent(modelId)}`),
         {
             method: "GET",
         }
@@ -146,19 +162,19 @@ export const getModel = async (
 
     const data = await handleApiResponse<AIModel>(
         response,
-        "Nepodařilo se načíst model."
+        translate("models:errors.loadModel")
     );
 
     return data.data as AIModel;
 };
 
-/** Připraví české přehledy z dokumentace modelu (jednou na verzi dokumentace). */
+/** Připraví přehledy z dokumentace modelu (jednou na verzi dokumentace). */
 export const getModelInsights = async (
     modelId: string
 ): Promise<ModelInsights | null> => {
 
     const response = await fetch(
-        `${API_URL}/api/models/${encodeURIComponent(modelId)}/insights`,
+        apiUrl(`/api/models/${encodeURIComponent(modelId)}/insights`),
         {
             method: "POST",
         }
@@ -166,7 +182,7 @@ export const getModelInsights = async (
 
     const data = await handleApiResponse<{ modelId: string; insights: ModelInsights | null }>(
         response,
-        "Nepodařilo se připravit přehledy z dokumentace."
+        translate("models:errors.loadInsights")
     );
 
     return (data.data as { insights: ModelInsights | null }).insights;
@@ -177,7 +193,7 @@ export const createDescriptions = async (
     models: AIModel[]
 ): Promise<{ modelId: string; description: string }[]> => {
 
-    const response = await fetch(`${API_URL}/api/models/descriptions`, {
+    const response = await fetch(apiUrl("/api/models/descriptions"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ models }),
@@ -185,7 +201,7 @@ export const createDescriptions = async (
 
     const data = await handleApiResponse<{ modelId: string; description: string }[]>(
         response,
-        "Nepodařilo se vygenerovat popisky."
+        translate("models:errors.createDescriptions")
     );
 
     return data.data as { modelId: string; description: string }[];

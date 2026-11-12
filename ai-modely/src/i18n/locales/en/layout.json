@@ -1,0 +1,24 @@
+{
+    "header": {
+        "version": "Version: {{version}}",
+        "title": "AI model explorer",
+        "subtitleMain": "Browse AI models",
+        "subtitleSource": "from <logo /> Hugging Face",
+        "searchToggle": "Search",
+        "showFilters": "Show filters",
+        "hideFilters": "Hide filters",
+        "filterSelectedCount": "({{count}} selected)",
+        "showSort": "Show sorting",
+        "hideSort": "Hide sorting",
+        "languageSwitcher": "Interface language"
+    },
+    "search": {
+        "placeholder": "Search models, authors or tags…",
+        "ariaLabel": "Search models"
+    },
+    "notFound": {
+        "title": "Page not found",
+        "message": "This address does not exist or has been moved.",
+        "backHome": "Back to the home page"
+    }
+}

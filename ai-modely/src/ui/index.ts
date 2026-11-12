@@ -8,7 +8,7 @@ export { default as CheckboxGroupOptions } from "./CheckboxGroupOptions/Checkbox
 export type { CheckboxGroupDisplayOption, CheckboxGroupOption } from "./checkboxGroupTypes";
 export { default as ChipList } from "./ChipList/ChipList";
 export { default as DataTable } from "./DataTable/DataTable";
-export { default as DetailItem, MISSING_VALUE } from "./DetailItem/DetailItem";
+export { default as DetailItem } from "./DetailItem/DetailItem";
 export { default as DocumentImage } from "./DocumentImage/DocumentImage";
 export { default as DocumentVideo } from "./DocumentVideo/DocumentVideo";
 export { default as FieldGroup } from "./FieldGroup/FieldGroup";

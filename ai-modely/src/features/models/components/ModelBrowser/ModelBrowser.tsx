@@ -1,6 +1,9 @@
 import "./ModelBrowser.css";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import { translate } from "@/i18n/translate";
 
 import useModelBrowser from "../../hooks/useModelBrowser";
 import useScrollRestoration from "../../hooks/useScrollRestoration";
@@ -20,6 +23,7 @@ import ModelTabs from "../ModelTabs/ModelTabs";
 
 /** Rozhraní pro zobrazení seznamu modelů. */
 function ModelBrowser() {
+    const { t } = useTranslation("models");
 
     const {
         models,
@@ -254,7 +258,7 @@ function ModelBrowser() {
                         <PageMessage>{error}</PageMessage>
                     ) : (
                         <div className="model-browser__initial-loading">
-                            <LogoLoader label="Načítání modelů" />
+                            <LogoLoader label={translate("common:loadingModels")} />
                         </div>
                     )}
                 </div>
@@ -279,12 +283,12 @@ function ModelBrowser() {
 
     // Zpráva pro prázdný výpis, rozliší hledání, filtry, štítek a prázdnou databázi
     const emptyMessage = searchQuery
-        ? `Pro hledaný výraz „${searchQuery}“ nebyly nalezeny žádné modely.`
+        ? t("browser.empty.search", { query: searchQuery })
         : isFilterActive
-            ? "Podle zvolených filtrů nebyly nalezeny žádné modely."
+            ? t("browser.empty.filters")
             : isTabActive
-                ? `Pro štítek „${activeTab.label}“ nebyly nalezeny žádné modely.`
-                : "Nebyly nalezeny žádné modely.";
+                ? t("browser.empty.tab", { tab: translate(`models:tabs.${activeTab.value}.label`) })
+                : t("browser.empty.default");
 
     return (
         <div className={layoutClassName}>
@@ -325,14 +329,14 @@ function ModelBrowser() {
 
                     {/* Význam zvoleného štítku, aby bylo jasné, jaké modely výpis obsahuje */}
                     <p className="model-browser__tab-note">
-                        {activeTab.description}
+                        {translate(`models:tabs.${activeTab.value}.description`)}
                     </p>
 
                     {error ? (
                         <PageMessage>{error}</PageMessage>
                     ) : isWaitingForModels ? (
                         <div className="model-browser__initial-loading">
-                            <LogoLoader label="Načítání modelů" />
+                            <LogoLoader label={translate("common:loadingModels")} />
                         </div>
                     ) : models.length === 0 && !hasMore ? (
                         <PageMessage>{emptyMessage}</PageMessage>
@@ -340,7 +344,7 @@ function ModelBrowser() {
                         <div className="model-browser__results">
                             {isFuzzySearch && (
                                 <p className="model-browser__fuzzy-note">
-                                    Přesná shoda nenalezena, zobrazují se nejpodobnější modely.
+                                    {t("browser.fuzzyNote")}
                                 </p>
                             )}
 
@@ -362,7 +366,7 @@ function ModelBrowser() {
                                         onClick={loadMore}
                                         disabled={isLoadingMore || loading}
                                     >
-                                        {isLoadingMore ? "Načítám další modely…" : "Načíst další modely"}
+                                        {isLoadingMore ? t("browser.loadMoreLoading") : t("browser.loadMore")}
                                     </Button>
 
                                     {loadMoreError && (

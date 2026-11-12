@@ -1,11 +1,13 @@
 import "./SearchField.css";
 
 import type { ChangeEvent, FormEvent, KeyboardEvent, Ref } from "react";
+import { useTranslation } from "react-i18next";
 
 import Button from "../Button/Button";
 
 interface SearchFieldProps {
     value: string;
+    // Bez zadání se použije obecný text z překladů
     placeholder?: string;
     ariaLabel?: string;
     className?: string;
@@ -19,14 +21,15 @@ interface SearchFieldProps {
 /** Vyhledávací pole, vstup s ikonou hledání a tlačítkem pro vymazání. */
 function SearchField({
     value,
-    placeholder = "Hledat…",
-    ariaLabel = "Hledat",
+    placeholder,
+    ariaLabel,
     className,
     inputRef,
     onChange,
     onSubmit,
     onClear,
 }: SearchFieldProps) {
+    const { t } = useTranslation();
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
 
@@ -53,7 +56,7 @@ function SearchField({
                 type="submit"
                 variant="icon"
                 className="search-field__submit"
-                aria-label="Vyhledat"
+                aria-label={t("search.submit")}
             >
                 <svg
                     className="search-field__icon"
@@ -75,8 +78,8 @@ function SearchField({
                 className="search-field__input"
                 type="search"
                 value={value}
-                placeholder={placeholder}
-                aria-label={ariaLabel}
+                placeholder={placeholder ?? t("search.placeholder")}
+                aria-label={ariaLabel ?? t("search.label")}
                 autoComplete="off"
                 onChange={onChange}
                 onKeyDown={handleKeyDown}
@@ -87,7 +90,7 @@ function SearchField({
                     type="button"
                     variant="icon"
                     className="search-field__clear"
-                    aria-label="Vymazat hledání"
+                    aria-label={t("search.clear")}
                     onClick={onClear}
                 >
                     ×

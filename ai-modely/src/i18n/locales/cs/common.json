@@ -1,0 +1,28 @@
+{
+    "missingValue": "neuvedeno",
+    "loadingModels": "Načítání modelů",
+    "updatingModels": "Aktualizace modelů",
+    "image": {
+        "zoom": "Zvětšit obrázek",
+        "zoomWithLabel": "Zvětšit obrázek: {{label}}",
+        "zoomedDefault": "Zvětšený obrázek",
+        "closeZoom": "Zavřít zvětšený obrázek"
+    },
+    "search": {
+        "placeholder": "Hledat…",
+        "label": "Hledat",
+        "submit": "Vyhledat",
+        "clear": "Vymazat hledání"
+    },
+    "checkboxGroup": {
+        "showMore": "Zobrazit další ({{count}})",
+        "showLess": "Zobrazit méně",
+        "selectedCount_one": "{{count}} aktivní",
+        "selectedCount_few": "{{count}} aktivní",
+        "selectedCount_many": "{{count}} aktivních",
+        "selectedCount_other": "{{count}} aktivních"
+    },
+    "errors": {
+        "rootElement": "Nepodařilo se najít kořenový element aplikace."
+    }
+}
