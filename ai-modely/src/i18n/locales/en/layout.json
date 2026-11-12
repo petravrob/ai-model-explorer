@@ -20,5 +20,15 @@
         "title": "Page not found",
         "message": "This address does not exist or has been moved.",
         "backHome": "Back to the home page"
+    },
+    "devInfo": {
+        "button": "Development",
+        "buttonAria": "Development info",
+        "title": "App development",
+        "updated": "Updated: {{date}}",
+        "statusTitle": "Currently",
+        "plannedTitle": "Planned features",
+        "issuesTitle": "Issues currently being fixed",
+        "close": "Close development info window"
     }
 }

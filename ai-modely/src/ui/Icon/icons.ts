@@ -28,6 +28,9 @@ export const SORT_ICON = "M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"
 // Hledání (lupa)
 export const MAGNIFIER_ICON = "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14M21 21l-4.5-4.5";
 
+// Informace (kroužek s písmenem i)
+export const INFO_ICON = "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01";
+
 // Přihlášený uživatel
 export const USER_ICON = "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";
 
