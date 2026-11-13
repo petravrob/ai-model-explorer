@@ -42,3 +42,7 @@ export const SEARCHABLE_PATHS: readonly string[] = [
 export const isSearchablePath = (pathname: string): boolean =>
     SEARCHABLE_PATHS.includes(pathname);
 
+/** Určí, zda na dané cestě běží detail konkrétního modelu. */
+export const isModelDetailPath = (pathname: string): boolean =>
+    pathname.startsWith("/model/");
+
