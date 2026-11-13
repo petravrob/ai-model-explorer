@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import { getCurrentLanguage } from "@/i18n";
-import { CLOSE_ICON, Icon } from "@/ui";
+import { Button } from "@/ui";
 
 import { DEV_INFO_CONTENT } from "../../devInfoContent";
 
@@ -71,16 +71,6 @@ function DevInfoDialog({ onClose }: DevInfoDialogProps) {
                     >
                         {t("devInfo.title")}
                     </h2>
-
-                    <button
-                        type="button"
-                        className="dev-info-dialog__close"
-                        onClick={onClose}
-                        aria-label={t("devInfo.close")}
-                        autoFocus
-                    >
-                        <Icon path={CLOSE_ICON} />
-                    </button>
                 </header>
 
                 <p className="dev-info-dialog__updated">
@@ -103,6 +93,23 @@ function DevInfoDialog({ onClose }: DevInfoDialogProps) {
                         </ul>
                     </section>
                 ))}
+
+                <footer className="dev-info-dialog__footer">
+                    <p className="dev-info-dialog__github-note">
+                        {t("devInfo.githubNoteBefore")}{" "}
+                        <a
+                            className="dev-info-dialog__github-link"
+                            href="https://github.com/petravrob/ai-model-explorer"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {t("devInfo.githubNoteLink")}
+                        </a>
+                        .
+                    </p>
+
+                    <Button className="dev-info-dialog__close-button" onClick={onClose}>{t("devInfo.closeButton")}</Button>
+                </footer>
             </div>
         </div>,
         document.body

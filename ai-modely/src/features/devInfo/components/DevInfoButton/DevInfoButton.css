@@ -10,17 +10,17 @@
     padding: .65rem 1.1rem;
     border: 1px solid rgb(255 255 255 / 18%);
     border-radius: var(--radius-pill);
-    background: var(--primary);
+    background: var(--header-bg);
     color: var(--on-primary);
     font-size: .9rem;
     font-weight: 500;
-    box-shadow: 0 8px 22px rgb(79 70 229 / 40%);
+    box-shadow: 0 8px 22px rgb(58 58 135 / 40%);
     transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .dev-info-button:hover {
-    background: var(--primary-hover);
-    box-shadow: 0 10px 26px rgb(79 70 229 / 48%);
+    background: var(--header-bg-deep);
+    box-shadow: 0 10px 26px rgb(58 58 135 / 48%);
     transform: translateY(-2px);
 }
 
