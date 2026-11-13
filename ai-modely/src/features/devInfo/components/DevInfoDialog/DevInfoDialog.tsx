@@ -37,6 +37,11 @@ function DevInfoDialog({ onClose }: DevInfoDialogProps) {
         },
     ];
 
+    // Odkaz na předvyplněnou novou zprávu v Gmailu (příjemce + předmět podle jazyka)
+    const feedbackHref =
+        `https://mail.google.com/mail/?view=cm&fs=1&to=petravrob@gmail.com` +
+        `&su=${encodeURIComponent(t("devInfo.feedbackSubject"))}`;
+
     // Zavření klávesou Escape a zablokování posouvání stránky pod oknem
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent): void => {
@@ -95,18 +100,33 @@ function DevInfoDialog({ onClose }: DevInfoDialogProps) {
                 ))}
 
                 <footer className="dev-info-dialog__footer">
-                    <p className="dev-info-dialog__github-note">
-                        {t("devInfo.githubNoteBefore")}{" "}
-                        <a
-                            className="dev-info-dialog__github-link"
-                            href="https://github.com/petravrob/ai-model-explorer"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            {t("devInfo.githubNoteLink")}
-                        </a>
-                        .
-                    </p>
+                    <div className="dev-info-dialog__footer-notes">
+                        <p className="dev-info-dialog__github-note">
+                            {t("devInfo.githubNoteBefore")}{" "}
+                            <a
+                                className="dev-info-dialog__github-link"
+                                href="https://github.com/petravrob/ai-model-explorer"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {t("devInfo.githubNoteLink")}
+                            </a>
+                            .
+                        </p>
+
+                        <p className="dev-info-dialog__feedback-note">
+                            {t("devInfo.feedbackNoteBefore")}{" "}
+                            <a
+                                className="dev-info-dialog__feedback-link"
+                                href={feedbackHref}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                petravrob@gmail.com
+                            </a>
+                            .
+                        </p>
+                    </div>
 
                     <Button className="dev-info-dialog__close-button" onClick={onClose}>{t("devInfo.closeButton")}</Button>
                 </footer>

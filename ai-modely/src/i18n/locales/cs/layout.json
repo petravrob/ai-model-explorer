@@ -31,6 +31,8 @@
         "issuesTitle": "Právě řešené problémy",
         "closeButton": "Zavřít",
         "githubNoteBefore": "Další informace o projektu a jeho vývoji najdete v",
-        "githubNoteLink": "GitHub repozitáři"
+        "githubNoteLink": "GitHub repozitáři",
+        "feedbackNoteBefore": "Dotazy a zpětnou vazbu můžete zaslat na",
+        "feedbackSubject": "AI Model Explorer – Dotaz nebo připomínka"
     }
 }
